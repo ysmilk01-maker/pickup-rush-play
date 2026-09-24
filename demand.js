@@ -1,4 +1,4 @@
-import {stageProfile} from './campaign.js?v=33';
+import {stageProfile} from './campaign.js?v=34';
 // Reproducible levels: changing a queue on retry would punish planning.
 export function seededRandom(seed){
   let n=seed>>>0;

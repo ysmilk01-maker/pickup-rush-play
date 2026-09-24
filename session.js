@@ -1,6 +1,6 @@
-import {Market} from './market.js?v=33';
-import {pendingCars} from './garage.js?v=33';
-import {CAPACITY} from './traffic.js?v=33';
+import {Market} from './market.js?v=34';
+import {pendingCars} from './garage.js?v=34';
+import {CAPACITY} from './traffic.js?v=34';
 // Only save settled moments, so reload can never strand a person or a car mid-route.
 export function checkpoint(m,run){
   if(m.busy||m.state.status!=='playing')return null;
