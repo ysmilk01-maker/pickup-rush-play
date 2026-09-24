@@ -1,5 +1,5 @@
-import { COLORS, LEVELS, MAX_BAYS, VEHICLE_TYPES, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=7";
-import { platform } from "./platform.js?v=7";
+import { COLORS, LEVELS, MAX_BAYS, VEHICLE_TYPES, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=8";
+import { platform } from "./platform.js?v=8";
 
 const $ = (selector) => document.querySelector(selector);
 const board = $("#board");
@@ -8,6 +8,8 @@ const bays = $("#bays");
 const picker = $("#level-picker");
 const overlay = $("#result-overlay");
 const adDialog = $("#ad-dialog");
+const toast = $("#game-toast");
+const transferRoad = $("#transfer-road");
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const arrow = { R: "→", L: "←", U: "↑", D: "↓", NE: "↗", NW: "↖", SE: "↘", SW: "↙" };
 
@@ -16,6 +18,19 @@ let state = createGame(levelIndex);
 let coins = platform.loadCoins();
 let animating = false;
 let adReady = false;
+let toastTimer = 0;
+
+function showToast(message, tone = "warning") {
+  clearTimeout(toastTimer);
+  toast.textContent = message;
+  toast.className = `game-toast ${tone}`;
+  toast.hidden = false;
+  requestAnimationFrame(() => toast.classList.add("show"));
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => { toast.hidden = true; }, 180);
+  }, 1450);
+}
 
 function renderQueue() {
   queue.replaceChildren(...state.queue.slice(0, 16).map((color, index) => {
@@ -61,7 +76,9 @@ function renderBoard() {
     button.dataset.dir = car.dir;
     button.dataset.type = car.type;
     button.setAttribute("aria-label", `${COLORS[car.color].label} ${VEHICLE_TYPES[car.type].label}, ${arrow[car.dir]} 방향${ready ? ", 이동 가능" : ", 길 막힘"}`);
-    button.innerHTML = `<span class="vehicle-kind">${VEHICLE_TYPES[car.type].short}</span><span class="car-mark">${COLORS[car.color].short}</span><span class="car-arrow">${arrow[car.dir]}</span>`;
+    const windowCount = car.type === "bus" ? 3 : car.type === "van" ? 2 : 1;
+    const windows = Array.from({ length: windowCount }, () => '<i class="vehicle-window"></i>').join("");
+    button.innerHTML = `<span class="vehicle-kind">${VEHICLE_TYPES[car.type].short}</span><span class="vehicle-windows" aria-hidden="true">${windows}</span><span class="car-mark">${COLORS[car.color].short}</span><span class="car-arrow">${arrow[car.dir]}</span>`;
     return button;
   }));
 }
@@ -152,11 +169,31 @@ function startExhaustTrail(vehicle) {
   return () => clearInterval(timer);
 }
 
+function burstSmoke(x, y, amount = 6) {
+  if (reduceMotion.matches) return;
+  for (let index = 0; index < amount; index += 1) {
+    const puff = document.createElement("span");
+    puff.className = "exhaust-puff burst";
+    puff.style.left = `${x + (Math.random() - .5) * 20}px`;
+    puff.style.top = `${y + (Math.random() - .5) * 12}px`;
+    puff.style.setProperty("--burst-x", `${(Math.random() - .5) * 34}px`);
+    puff.style.setProperty("--burst-y", `${-10 - Math.random() * 24}px`);
+    document.body.append(puff);
+    setTimeout(() => puff.remove(), 620);
+  }
+}
+
+const screenAngle = {
+  R: 35, L: 215, U: -35, D: 145,
+  NE: 0, SW: 180, NW: -90, SE: 90
+};
+
 async function animateCarToBay(carElement, bayElement) {
-  if (reduceMotion.matches || !carElement.animate || !bayElement) return;
+  if (reduceMotion.matches || !carElement.animate || !bayElement) return { ghost: null, target: bayElement };
   const start = carElement.getBoundingClientRect();
   const target = bayElement.getBoundingClientRect();
   const road = board.getBoundingClientRect();
+  const transfer = transferRoad.getBoundingClientRect();
   const dx = target.left + target.width / 2 - (start.left + start.width / 2);
   const dy = target.top + target.height / 2 - (start.top + start.height / 2);
   const vector = {
@@ -173,51 +210,78 @@ async function animateCarToBay(carElement, bayElement) {
   const exitDistance = Math.min(...edgeDistances) + 18;
   const exitX = vector[0] * exitDistance;
   const exitY = vector[1] * exitDistance;
-  const mergeX = exitX + (dx - exitX) * .38;
-  const mergeY = exitY + (dy - exitY) * .22;
+  const roadY = transfer.top + transfer.height * .55 - centerY;
+  const laneX = Math.max(transfer.left + 28, Math.min(transfer.right - 28, centerX + exitX)) - centerX;
+  const parkX = target.left + target.width / 2 - centerX;
+  const parkY = target.top + target.height / 2 - centerY;
   const ghost = carElement.cloneNode(true);
   ghost.classList.add("travel-car");
+  ghost.classList.remove("diagonal", "ready", "blocked");
   ghost.style.left = `${start.left}px`;
   ghost.style.top = `${start.top}px`;
   ghost.style.width = `${start.width}px`;
   ghost.style.height = `${start.height}px`;
+  ghost.style.rotate = "0deg";
+  ghost.style.setProperty("--travel-angle", `${screenAngle[carElement.dataset.dir]}deg`);
   document.body.append(ghost);
   carElement.style.opacity = "0";
+  board.classList.add("launching");
+  burstSmoke(centerX, centerY, 7);
   const stopTrail = startExhaustTrail(ghost);
-  const duration = { taxi: 540, van: 670, bus: 820 }[carElement.dataset.type] || 670;
+  const duration = { taxi: 760, van: 900, bus: 1060 }[carElement.dataset.type] || 900;
   await ghost.animate([
-    { transform: "translate(0, 0) scale(1)" },
-    { transform: `translate(${exitX * .72}px, ${exitY * .72}px) scale(1.03)`, offset: .28 },
-    { transform: `translate(${exitX}px, ${exitY}px) scale(1)`, offset: .46 },
-    { transform: `translate(${mergeX}px, ${mergeY}px) scale(.86)`, offset: .7 },
-    { transform: `translate(${dx}px, ${dy}px) scale(.54)` }
-  ], { duration, easing: "cubic-bezier(.45, 0, .2, 1)", fill: "forwards" }).finished.catch(() => {});
+    { transform: `translate(0, 0) rotate(${screenAngle[carElement.dataset.dir]}deg) scale(1)` },
+    { transform: `translate(${exitX}px, ${exitY}px) rotate(${screenAngle[carElement.dataset.dir]}deg) scale(1.02)`, offset: .38 },
+    { transform: `translate(${laneX}px, ${roadY}px) rotate(0deg) scale(.86)`, offset: .58 },
+    { transform: `translate(${parkX}px, ${roadY}px) rotate(0deg) scale(.78)`, offset: .8 },
+    { transform: `translate(${parkX}px, ${parkY}px) rotate(-7deg) scale(.62)` }
+  ], { duration, easing: "cubic-bezier(.42, 0, .16, 1)", fill: "forwards" }).finished.catch(() => {});
   stopTrail();
-  ghost.remove();
+  board.classList.remove("launching");
+  burstSmoke(target.left + target.width / 2, target.top + target.height / 2, 4);
+  return { ghost, target: ghost };
 }
 
-async function animatePassengersToBay(passengers, bayIndex) {
+async function animatePassengersToVehicle(passengers, targetElement) {
   if (reduceMotion.matches || !passengers.length) return;
-  const target = bays.children[bayIndex]?.getBoundingClientRect();
+  const target = targetElement?.getBoundingClientRect();
   if (!target) return;
+  [...queue.querySelectorAll(".passenger")].slice(0, passengers.length).forEach((element) => { element.style.opacity = "0"; });
+  $("#message").textContent = `${passengers.length}명의 승객이 차량에 탑승 중입니다.`;
   await Promise.all(passengers.map(async (passenger, index) => {
     const ghost = document.createElement("span");
-    ghost.className = `${passenger.className} boarding-passenger`;
+    ghost.className = `${passenger.className} boarding-passenger walking`;
     ghost.textContent = passenger.text;
     ghost.style.left = `${passenger.rect.left}px`;
     ghost.style.top = `${passenger.rect.top}px`;
     ghost.style.width = `${passenger.rect.width}px`;
     ghost.style.height = `${passenger.rect.height}px`;
     document.body.append(ghost);
-    const dx = target.left + target.width / 2 - (passenger.rect.left + passenger.rect.width / 2);
-    const dy = target.top + target.height / 2 - (passenger.rect.top + passenger.rect.height / 2);
+    const boardingX = target.left + target.width * (.36 + index * .13);
+    const boardingY = target.top + target.height * .52;
+    const dx = boardingX - (passenger.rect.left + passenger.rect.width / 2);
+    const dy = boardingY - (passenger.rect.top + passenger.rect.height / 2);
     await ghost.animate([
       { transform: "translate(0, 0) scale(1)", opacity: 1 },
-      { transform: `translate(${dx * .55}px, ${dy * .55}px) scale(.9)`, opacity: 1, offset: .65 },
-      { transform: `translate(${dx}px, ${dy}px) scale(.35)`, opacity: .15 }
-    ], { duration: 250, delay: index * 45, easing: "cubic-bezier(.23, 1, .32, 1)", fill: "forwards" }).finished.catch(() => {});
+      { transform: `translate(${dx * .25}px, ${dy * .25 - 8}px) scale(.98) rotate(-7deg)`, opacity: 1, offset: .25 },
+      { transform: `translate(${dx * .5}px, ${dy * .5}px) scale(.9) rotate(7deg)`, opacity: 1, offset: .5 },
+      { transform: `translate(${dx * .76}px, ${dy * .76 - 6}px) scale(.72) rotate(-5deg)`, opacity: 1, offset: .76 },
+      { transform: `translate(${dx}px, ${dy}px) scale(.25)`, opacity: .05 }
+    ], { duration: 560, delay: index * 125, easing: "cubic-bezier(.35, 0, .18, 1)", fill: "forwards" }).finished.catch(() => {});
     ghost.remove();
   }));
+}
+
+async function finishArrival(arrival, didBoard) {
+  if (!arrival?.ghost) return;
+  if (didBoard) {
+    await arrival.ghost.animate([
+      { opacity: 1, filter: "brightness(1)" },
+      { opacity: 1, filter: "brightness(1.22)", offset: .38 },
+      { opacity: 0, filter: "brightness(1.08)" }
+    ], { duration: 360, easing: "cubic-bezier(.4, 0, 1, 1)", fill: "forwards" }).finished.catch(() => {});
+  }
+  arrival.ghost.remove();
 }
 
 board.addEventListener("click", async (event) => {
@@ -227,18 +291,31 @@ board.addEventListener("click", async (event) => {
   if (!car || !canExit(state, car)) {
     carElement.classList.remove("is-blocked");
     requestAnimationFrame(() => carElement.classList.add("is-blocked"));
-    state.message = "다른 차량이 길을 막고 있어요.";
+    state.message = "화살표 앞을 다른 차량이 막고 있어요.";
     $("#message").textContent = state.message;
+    showToast("앞 차량을 먼저 빼주세요");
     platform.haptic("light");
+    return;
+  }
+
+  const bayIndex = state.bays.findIndex((bay) => !bay);
+  if (bayIndex < 0) {
+    state.message = "주차 공간이 가득 찼습니다.";
+    $("#message").textContent = state.message;
+    showToast("주차 공간이 가득 찼습니다");
+    platform.haptic("light");
+    bays.classList.remove("full-shake");
+    requestAnimationFrame(() => bays.classList.add("full-shake"));
     return;
   }
 
   animating = true;
   renderControls();
-  const bayIndex = state.bays.findIndex((bay) => !bay);
   const bayElement = bays.children[bayIndex];
   const passengers = captureBoardingPassengers(car.color);
-  await animateCarToBay(carElement, bayElement);
+  const arrival = await animateCarToBay(carElement, bayElement);
+  await animatePassengersToVehicle(passengers, arrival.target);
+  await finishArrival(arrival, passengers.length > 0);
   const outcome = moveCar(state, carElement.dataset.id);
   platform.haptic(outcome.ok ? (state.status === "won" ? "success" : "light") : "light");
   if (state.status === "won") {
@@ -248,7 +325,6 @@ board.addEventListener("click", async (event) => {
     platform.emit("level-complete", { level: state.levelIndex + 1, moves: state.moves });
   }
   render();
-  await animatePassengersToBay(passengers, outcome.bayIndex);
   animating = false;
   renderControls();
   renderResult();
@@ -317,5 +393,5 @@ picker.replaceChildren(...LEVELS.map((level, index) => {
 render();
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {
-  navigator.serviceWorker.register("./sw.js?v=7").catch(() => {});
+  navigator.serviceWorker.register("./sw.js?v=8").catch(() => {});
 }

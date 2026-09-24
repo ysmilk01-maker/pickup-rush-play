@@ -53,7 +53,9 @@ function vehiclePlan(count) {
   if (count <= 20) return { taxi: 4, van: 12, bus: 4 };
   if (count <= 24) return { taxi: 6, van: 14, bus: 4 };
   if (count <= 28) return { taxi: 8, van: 14, bus: 6 };
-  return { taxi: 8, van: 18, bus: 6 };
+  if (count <= 32) return { taxi: 8, van: 18, bus: 6 };
+  if (count <= 36) return { taxi: 12, van: 18, bus: 6 };
+  return { taxi: 14, van: 20, bus: 6 };
 }
 
 function packedVehicles(seed, count, rows = 8, cols = 8) {
@@ -125,37 +127,37 @@ function solutionFor(cars, rows = 8, cols = 8) {
   return solution;
 }
 
-function denseStage({ prefix, title, district, difficulty, count, layoutSeed, colorShift = 0 }) {
+function denseStage({ prefix, title, district, difficulty, count, layoutSeed, colorShift = 0, rows = 8, cols = 8 }) {
   for (let attempt = 0; attempt < 96; attempt += 1) {
-    const placements = packedVehicles(layoutSeed + attempt * 7919, count);
+    const placements = packedVehicles(layoutSeed + attempt * 7919, count, rows, cols);
     if (!placements) continue;
     let taxiIndex = 0;
     const cars = placements.map(({ type, cells }, index) => {
-      const rows = cells.map((cell) => cell.r);
-      const cols = cells.map((cell) => cell.c);
-      const r = Math.min(...rows);
-      const c = Math.min(...cols);
+      const cellRows = cells.map((cell) => cell.r);
+      const cellCols = cells.map((cell) => cell.c);
+      const r = Math.min(...cellRows);
+      const c = Math.min(...cellCols);
       let dir;
       if (type === "taxi") {
         dir = DIAGONALS[(taxiIndex + layoutSeed) % DIAGONALS.length];
         taxiIndex += 1;
-      } else if (new Set(rows).size === 1) {
-        dir = cols.reduce((sum, value) => sum + value, 0) / cols.length < 3.5 ? "L" : "R";
+      } else if (new Set(cellRows).size === 1) {
+        dir = cellCols.reduce((sum, value) => sum + value, 0) / cellCols.length < (cols - 1) / 2 ? "L" : "R";
       } else {
-        dir = rows.reduce((sum, value) => sum + value, 0) / rows.length < 3.5 ? "U" : "D";
+        dir = cellRows.reduce((sum, value) => sum + value, 0) / cellRows.length < (rows - 1) / 2 ? "U" : "D";
       }
       return { id: `${prefix}${type[0]}${index}`, color: colorFor(index, colorShift), type, r, c, dir, len: VEHICLE_TYPES[type].len };
     });
     if (!Object.keys(DIRECTION_STEPS).every((dir) => cars.some((car) => car.dir === dir))) continue;
     try {
-      const solution = solutionFor(cars);
+      const solution = solutionFor(cars, rows, cols);
       const byId = Object.fromEntries(cars.map((car) => [car.id, car]));
       return {
         title,
         district,
         difficulty,
-        cols: 8,
-        rows: 8,
+        cols,
+        rows,
         cars,
         queue: solution.flatMap((id) => repeat(byId[id].color, 3)),
         solution
@@ -168,18 +170,18 @@ function denseStage({ prefix, title, district, difficulty, count, layoutSeed, co
 }
 
 export const LEVELS = [
-  denseStage({ prefix: "s1", title: "출근 대혼잡", district: "다운타운", difficulty: 2, count: 20, layoutSeed: 101 }),
-  denseStage({ prefix: "s2", title: "사방 환승로", district: "다운타운", difficulty: 2, count: 20, layoutSeed: 211, colorShift: 1 }),
-  denseStage({ prefix: "s3", title: "도심 밀집 구역", district: "다운타운", difficulty: 3, count: 24, layoutSeed: 307, colorShift: 2 }),
-  denseStage({ prefix: "s4", title: "시장 앞 병목", district: "다운타운", difficulty: 3, count: 24, layoutSeed: 419, colorShift: 3 }),
-  denseStage({ prefix: "s5", title: "강변 교차 정체", district: "리버사이드", difficulty: 3, count: 28, layoutSeed: 523, colorShift: 4 }),
-  denseStage({ prefix: "s6", title: "무지개 차고", district: "리버사이드", difficulty: 4, count: 28, layoutSeed: 631, colorShift: 5 }),
-  denseStage({ prefix: "s7", title: "공원 사방 만차", district: "리버사이드", difficulty: 4, count: 32, layoutSeed: 743, colorShift: 6 }),
-  denseStage({ prefix: "s8", title: "퇴근 러시아워", district: "리버사이드", difficulty: 4, count: 32, layoutSeed: 857 }),
-  denseStage({ prefix: "s9", title: "네온 교차 봉쇄", district: "나이트 시티", difficulty: 5, count: 32, layoutSeed: 967, colorShift: 1 }),
-  denseStage({ prefix: "s10", title: "심야 터미널", district: "나이트 시티", difficulty: 5, count: 32, layoutSeed: 1087, colorShift: 3 }),
-  denseStage({ prefix: "s11", title: "차고지 완전 봉쇄", district: "나이트 시티", difficulty: 5, count: 32, layoutSeed: 1193, colorShift: 5 }),
-  denseStage({ prefix: "s12", title: "마지막 초대형 정체", district: "나이트 시티", difficulty: 5, count: 32, layoutSeed: 1297, colorShift: 6 })
+  denseStage({ prefix: "s1", title: "출근 대혼잡", district: "다운타운", difficulty: 2, count: 28, layoutSeed: 101 }),
+  denseStage({ prefix: "s2", title: "사방 환승로", district: "다운타운", difficulty: 2, count: 28, layoutSeed: 211, colorShift: 1 }),
+  denseStage({ prefix: "s3", title: "도심 밀집 구역", district: "다운타운", difficulty: 3, count: 32, layoutSeed: 307, colorShift: 2 }),
+  denseStage({ prefix: "s4", title: "시장 앞 병목", district: "다운타운", difficulty: 3, count: 32, layoutSeed: 419, colorShift: 3 }),
+  denseStage({ prefix: "s5", title: "강변 교차 정체", district: "리버사이드", difficulty: 3, count: 36, layoutSeed: 523, colorShift: 4, rows: 9, cols: 9 }),
+  denseStage({ prefix: "s6", title: "무지개 차고", district: "리버사이드", difficulty: 4, count: 36, layoutSeed: 631, colorShift: 5, rows: 9, cols: 9 }),
+  denseStage({ prefix: "s7", title: "공원 사방 만차", district: "리버사이드", difficulty: 4, count: 40, layoutSeed: 743, colorShift: 6, rows: 9, cols: 9 }),
+  denseStage({ prefix: "s8", title: "퇴근 러시아워", district: "리버사이드", difficulty: 4, count: 40, layoutSeed: 857, rows: 9, cols: 9 }),
+  denseStage({ prefix: "s9", title: "네온 교차 봉쇄", district: "나이트 시티", difficulty: 5, count: 40, layoutSeed: 967, colorShift: 1, rows: 9, cols: 9 }),
+  denseStage({ prefix: "s10", title: "심야 터미널", district: "나이트 시티", difficulty: 5, count: 40, layoutSeed: 1087, colorShift: 3, rows: 9, cols: 9 }),
+  denseStage({ prefix: "s11", title: "차고지 완전 봉쇄", district: "나이트 시티", difficulty: 5, count: 40, layoutSeed: 1193, colorShift: 5, rows: 9, cols: 9 }),
+  denseStage({ prefix: "s12", title: "마지막 초대형 정체", district: "나이트 시티", difficulty: 5, count: 40, layoutSeed: 1297, colorShift: 6, rows: 9, cols: 9 })
 ];
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
