@@ -1,11 +1,10 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#b4c5da"><meta name="description" content="입체 차량을 빼내고 승객을 직접 태우는 교통 퍼즐"><title>픽업 러시 · 교통 정류장</title><link rel="manifest" href="./manifest.webmanifest?v=13"><link rel="stylesheet" href="./style.css?v=13"></head>
-<body><main id="game"><canvas id="scene" width="600" height="1080" aria-label="입체 주차장, 차량 화살표 방향으로 길을 열어 승객을 태우세요"></canvas>
-<div id="car-targets" aria-label="주차장 차량"></div>
-<header><button id="settings" class="round" aria-label="설정 및 스테이지 선택">⚙</button><div class="logo">픽업 러시<small>COLOR STATION</small></div><div class="coins">🟡 <span id="coin-count">60</span></div></header>
-<div id="locked-targets" aria-label="정류장 확장"></div>
-<div id="toast" role="status" aria-live="polite"></div>
-<footer><button id="undo"><b>↶</b><span>되돌리기</span></button><button id="sort"><b>⇄</b><span>승객 정렬</span><small id="sort-count">1</small></button><button id="ad"><b>＋</b><span>정류장 확장</span><small>AD</small></button></footer>
-<div class="hint" id="hint">화살표 앞이 빈 차를 눌러보세요</div>
-<div id="modal" class="modal" hidden><section><button id="close" aria-label="닫기">×</button><h1 id="modal-title"></h1><div id="modal-body"></div><button id="primary" class="primary">계속하기</button></section></div>
-</main><script type="module" src="./app.js?v=13"></script></body></html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#211e33"><meta name="description" content="엉킨 푸드트럭을 꺼내 재료를 싣고, 요리를 완성해 나만의 야시장을 밝히는 퍼즐"><title>야시장 한입특급 · Night Bite Express</title><link rel="manifest" href="./manifest.webmanifest?v=16"><link rel="stylesheet" href="./style.css?v=16"></head>
+<body><main id="game"><canvas id="scene" width="600" height="1080" aria-label="야시장 푸드트럭 퍼즐. 화살표 앞이 열린 트럭을 꺼내 위쪽 메뉴 주문을 완성하세요."></canvas>
+<div id="car-targets" aria-label="푸드트럭"></div>
+<header><button id="settings" class="round" aria-label="도움말 및 단계 선택">☰</button><div class="logo">야시장 한입특급<small>NIGHT BITE EXPRESS</small></div><button id="town" class="town-button" aria-label="우리 야시장과 꾸미기">🏮</button><div class="coins">● <span id="coin-count">60</span></div></header>
+<div id="orders" aria-label="현재 요리 주문"></div><div id="next-order"></div>
+<div id="locked-targets" aria-label="주방 확장"></div><div id="toast" role="status" aria-live="polite"></div>
+<footer><button id="undo"><b>↶</b><span>되돌리기</span><small>무료</small></button><button id="guide"><b>✦</b><span>길 찾기</span><small>무료</small></button><button id="ad"><b>＋</b><span>주방 확장</span><small>AD</small></button></footer>
+<div class="hint" id="hint"></div><div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden><section><button id="close" aria-label="닫기">×</button><h1 id="modal-title"></h1><div id="modal-body"></div><button id="primary" class="primary">계속하기</button></section></div>
+</main><script type="module" src="./app.js?v=16"></script></body></html>

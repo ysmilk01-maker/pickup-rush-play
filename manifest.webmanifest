@@ -1,10 +1,1 @@
-{
-  "name": "픽업 러시: 컬러 정류장",
-  "short_name": "픽업 러시",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#74bdf0",
-  "theme_color": "#7ecbff",
-  "orientation": "any",
-  "lang": "ko"
-}
+{"name":"야시장 한입특급","short_name":"한입특급","start_url":"./","display":"standalone","background_color":"#211e33","theme_color":"#211e33","orientation":"any","lang":"ko"}

@@ -1,6 +1,6 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=13';
-import { assignModels, makePassenger } from './appearance.js?v=13';
-import { isFreeform, bounds, LOT, GROUND_SCALE } from './geometry.js?v=13';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=16';
+import { assignModels, makePassenger } from './appearance.js?v=16';
+import { isFreeform, bounds, LOT, GROUND_SCALE } from './geometry.js?v=16';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -15,7 +15,7 @@ export function carPose(car,state) {
   const p=PROJECT(x,y), d=DIRECTIONS[car.dir];
   return {...p,angle:Math.atan2((d[0]+d[1])*28,(d[0]-d[1])*30.5)};
 }
-function smoothPath(points) {
+export function smoothPath(points) {
   const result=[points[0]];
   for(let i=1;i<points.length-1;i++){
     const a=points[i-1],b=points[i],c=points[i+1];
@@ -25,7 +25,7 @@ function smoothPath(points) {
     for(let k=1;k<=8;k++){const t=k/8;result.push({x:(1-t)**2*enter.x+2*(1-t)*t*b.x+t*t*exit.x,y:(1-t)**2*enter.y+2*(1-t)*t*b.y+t*t*exit.y});}
   }result.push(points.at(-1));return result;
 }
-function pathPose(path,t) {
+export function pathPose(path,t) {
   const distances=path.slice(1).map((p,i)=>Math.hypot(p.x-path[i].x,p.y-path[i].y));
   let length=distances.reduce((a,b)=>a+b,0)*Math.min(1,t);
   for(let i=0;i<distances.length;i++) {
