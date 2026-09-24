@@ -8,6 +8,18 @@ export const COLORS = {
   orange: { label: "주황", short: "✦", hex: "#ff914d" }
 };
 
+export const VEHICLE_TYPES = {
+  taxi: { label: "택시", short: "TAXI", len: 1 },
+  van: { label: "봉고차", short: "VAN", len: 2 },
+  bus: { label: "버스", short: "BUS", len: 3 }
+};
+
+const DIRECTION_STEPS = {
+  L: [0, -1], R: [0, 1], U: [-1, 0], D: [1, 0],
+  NW: [-1, -1], NE: [-1, 1], SW: [1, -1], SE: [1, 1]
+};
+const DIAGONALS = ["NW", "NE", "SE", "SW"];
+
 const repeat = (color, count) => Array.from({ length: count }, () => color);
 
 const PALETTE = Object.keys(COLORS);
@@ -37,48 +49,68 @@ function shuffle(items, random) {
   return items;
 }
 
-function mixedDominoes(seed, rows = 8, cols = 8) {
+function vehiclePlan(count) {
+  if (count <= 20) return { taxi: 4, van: 12, bus: 4 };
+  if (count <= 24) return { taxi: 6, van: 14, bus: 4 };
+  if (count <= 28) return { taxi: 8, van: 14, bus: 6 };
+  return { taxi: 8, van: 18, bus: 6 };
+}
+
+function packedVehicles(seed, count, rows = 8, cols = 8) {
   const random = seededRandom(seed);
   const occupied = new Set();
-  const dominoes = [];
+  const vehicles = [];
+  const remaining = vehiclePlan(count);
+  let holes = rows * cols - Object.entries(remaining).reduce((sum, [type, amount]) => sum + VEHICLE_TYPES[type].len * amount, 0);
   const key = (r, c) => `${r}:${c}`;
+  const available = (cells) => cells.every((cell) => cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols && !occupied.has(key(cell.r, cell.c)));
 
   const fill = () => {
-    if (occupied.size === rows * cols) return true;
-    let minimum = 5;
-    let candidates = [];
+    if (occupied.size === rows * cols) return holes === 0 && Object.values(remaining).every((amount) => amount === 0);
+    let first = null;
     for (let r = 0; r < rows; r += 1) {
       for (let c = 0; c < cols; c += 1) {
-        if (occupied.has(key(r, c))) continue;
-        const options = [[0, 1], [1, 0], [0, -1], [-1, 0]]
-          .map(([dr, dc]) => ({ r: r + dr, c: c + dc }))
-          .filter((cell) => cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols && !occupied.has(key(cell.r, cell.c)));
-        if (options.length < minimum) {
-          minimum = options.length;
-          candidates = [{ r, c, options }];
-        } else if (options.length === minimum) {
-          candidates.push({ r, c, options });
-        }
+        if (!occupied.has(key(r, c))) { first = { r, c }; break; }
       }
+      if (first) break;
+    }
+    if (!first) return false;
+
+    const options = [];
+    if (holes > 0) options.push({ type: null, cells: [first] });
+    if (remaining.taxi > 0) options.push({ type: "taxi", cells: [first] });
+    if (remaining.van > 0) {
+      options.push({ type: "van", cells: [first, { r: first.r, c: first.c + 1 }] });
+      options.push({ type: "van", cells: [first, { r: first.r + 1, c: first.c }] });
+    }
+    if (remaining.bus > 0) {
+      options.push({ type: "bus", cells: [first, { r: first.r, c: first.c + 1 }, { r: first.r, c: first.c + 2 }] });
+      options.push({ type: "bus", cells: [first, { r: first.r + 1, c: first.c }, { r: first.r + 2, c: first.c }] });
     }
 
-    const candidate = candidates[Math.floor(random() * candidates.length)];
-    if (!candidate) return false;
-    shuffle(candidate.options, random);
-    for (const partner of candidate.options) {
-      occupied.add(key(candidate.r, candidate.c));
-      occupied.add(key(partner.r, partner.c));
-      dominoes.push([{ r: candidate.r, c: candidate.c }, partner]);
+    shuffle(options, random);
+    for (const option of options.filter((item) => available(item.cells))) {
+      option.cells.forEach((cell) => occupied.add(key(cell.r, cell.c)));
+      if (option.type) {
+        remaining[option.type] -= 1;
+        vehicles.push(option);
+      } else {
+        holes -= 1;
+      }
       if (fill()) return true;
-      dominoes.pop();
-      occupied.delete(key(candidate.r, candidate.c));
-      occupied.delete(key(partner.r, partner.c));
+      if (option.type) {
+        vehicles.pop();
+        remaining[option.type] += 1;
+      } else {
+        holes += 1;
+      }
+      option.cells.forEach((cell) => occupied.delete(key(cell.r, cell.c)));
     }
     return false;
   };
 
-  if (!fill()) throw new Error(`Unable to build mixed traffic layout for seed ${seed}`);
-  return shuffle(dominoes, random);
+  if (!fill()) return null;
+  return shuffle(vehicles, random);
 }
 
 function solutionFor(cars, rows = 8, cols = 8) {
@@ -94,34 +126,45 @@ function solutionFor(cars, rows = 8, cols = 8) {
 }
 
 function denseStage({ prefix, title, district, difficulty, count, layoutSeed, colorShift = 0 }) {
-  const cars = [];
-  const addCar = (id, r, c, dir) => {
-    cars.push({ id, color: colorFor(cars.length, colorShift), r, c, dir, len: 2 });
-    return id;
-  };
-
-  mixedDominoes(layoutSeed).slice(0, count).forEach(([first, second], index) => {
-    if (first.r === second.r) {
-      const c = Math.min(first.c, second.c);
-      addCar(`${prefix}h${index}`, first.r, c, c + 0.5 < 3.5 ? "L" : "R");
-    } else {
-      const r = Math.min(first.r, second.r);
-      addCar(`${prefix}v${index}`, r, first.c, r + 0.5 < 3.5 ? "U" : "D");
+  for (let attempt = 0; attempt < 96; attempt += 1) {
+    const placements = packedVehicles(layoutSeed + attempt * 7919, count);
+    if (!placements) continue;
+    let taxiIndex = 0;
+    const cars = placements.map(({ type, cells }, index) => {
+      const rows = cells.map((cell) => cell.r);
+      const cols = cells.map((cell) => cell.c);
+      const r = Math.min(...rows);
+      const c = Math.min(...cols);
+      let dir;
+      if (type === "taxi") {
+        dir = DIAGONALS[(taxiIndex + layoutSeed) % DIAGONALS.length];
+        taxiIndex += 1;
+      } else if (new Set(rows).size === 1) {
+        dir = cols.reduce((sum, value) => sum + value, 0) / cols.length < 3.5 ? "L" : "R";
+      } else {
+        dir = rows.reduce((sum, value) => sum + value, 0) / rows.length < 3.5 ? "U" : "D";
+      }
+      return { id: `${prefix}${type[0]}${index}`, color: colorFor(index, colorShift), type, r, c, dir, len: VEHICLE_TYPES[type].len };
+    });
+    if (!Object.keys(DIRECTION_STEPS).every((dir) => cars.some((car) => car.dir === dir))) continue;
+    try {
+      const solution = solutionFor(cars);
+      const byId = Object.fromEntries(cars.map((car) => [car.id, car]));
+      return {
+        title,
+        district,
+        difficulty,
+        cols: 8,
+        rows: 8,
+        cars,
+        queue: solution.flatMap((id) => repeat(byId[id].color, 3)),
+        solution
+      };
+    } catch {
+      // Try the next deterministic packing when a dense arrangement locks.
     }
-  });
-
-  const solution = solutionFor(cars);
-  const byId = Object.fromEntries(cars.map((car) => [car.id, car]));
-  return {
-    title,
-    district,
-    difficulty,
-    cols: 8,
-    rows: 8,
-    cars,
-    queue: solution.flatMap((id) => repeat(byId[id].color, 3)),
-    solution
-  };
+  }
+  throw new Error(`Unable to build a solvable mixed vehicle stage for ${prefix}`);
 }
 
 export const LEVELS = [
@@ -165,7 +208,10 @@ export function createGame(levelIndex = 0) {
 export function cellsFor(car) {
   const cells = [];
   for (let i = 0; i < car.len; i += 1) {
-    cells.push({ r: car.r + ((car.dir === "U" || car.dir === "D") ? i : 0), c: car.c + ((car.dir === "L" || car.dir === "R") ? i : 0) });
+    cells.push({
+      r: car.r + ((car.dir === "U" || car.dir === "D") ? i : 0),
+      c: car.c + ((car.dir === "L" || car.dir === "R") ? i : 0)
+    });
   }
   return cells;
 }
@@ -181,27 +227,10 @@ function occupiedMap(state, ignoreId = null) {
 export function exitPath(state, car) {
   const occupied = occupiedMap(state, car.id);
   const cells = cellsFor(car);
-  let r;
-  let c;
-  let dr = 0;
-  let dc = 0;
-  if (car.dir === "R") {
-    ({ r } = cells[0]);
-    c = Math.max(...cells.map((cell) => cell.c)) + 1;
-    dc = 1;
-  } else if (car.dir === "L") {
-    ({ r } = cells[0]);
-    c = Math.min(...cells.map((cell) => cell.c)) - 1;
-    dc = -1;
-  } else if (car.dir === "D") {
-    ({ c } = cells[0]);
-    r = Math.max(...cells.map((cell) => cell.r)) + 1;
-    dr = 1;
-  } else {
-    ({ c } = cells[0]);
-    r = Math.min(...cells.map((cell) => cell.r)) - 1;
-    dr = -1;
-  }
+  const [dr, dc] = DIRECTION_STEPS[car.dir];
+  const nose = cells.reduce((best, cell) => (cell.r * dr + cell.c * dc > best.r * dr + best.c * dc ? cell : best));
+  let r = nose.r + dr;
+  let c = nose.c + dc;
   const path = [];
   while (r >= 0 && r < state.rows && c >= 0 && c < state.cols) {
     path.push({ r, c, blocked: occupied.has(`${r}:${c}`) });
@@ -267,9 +296,9 @@ export function moveCar(state, carId) {
   }
   saveHistory(state);
   state.cars = state.cars.filter((item) => item.id !== carId);
-  state.bays[bayIndex] = { id: car.id, color: car.color, seats: 3 };
+  state.bays[bayIndex] = { id: car.id, color: car.color, type: car.type, seats: 3 };
   state.moves += 1;
-  state.message = `${COLORS[car.color].label} 차량이 정류장에 도착했습니다.`;
+  state.message = `${COLORS[car.color].label} ${VEHICLE_TYPES[car.type].label}가 정류장에 도착했습니다.`;
   resolveBoarding(state);
   return { ok: true, status: state.status, bayIndex };
 }

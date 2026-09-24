@@ -91,11 +91,24 @@ h1 { margin: 0; font-size: clamp(20px, 5.8vw, 27px); line-height: 1.05; letter-s
 .board.changing { opacity: .2; transform: translateY(7px); }
 .car { position: absolute; z-index: 2; border: 3px solid #fff; border-radius: 13px; display: flex; align-items: center; justify-content: space-evenly; color: #17304d; box-shadow: inset 0 -8px #17304d2e, 0 5px 0 #314556, 0 8px 9px #23374766; cursor: pointer; transition: transform 160ms var(--ease-out), filter 160ms var(--ease-out), opacity 160ms var(--ease-out); }
 .car::before, .car::after { content: ""; width: 9px; height: 56%; border-radius: 4px; background: #24405e; border: 1px solid #ffffffb5; }
+.vehicle-kind { position: absolute; left: 50%; top: 2px; z-index: 2; translate: -50% 0; padding: 1px 4px; border-radius: 5px; color: #fff; background: #17304dbd; font-size: 6px; font-weight: 1000; letter-spacing: .04em; line-height: 1.2; }
+.type-bus { border-radius: 10px; }
+.type-bus .vehicle-kind { background: #142f4fe8; font-size: 7px; }
+.type-van .vehicle-kind { background: #ffffffdf; color: #17304d; }
+.type-taxi { border-radius: 17px; }
+.type-taxi::before, .type-taxi::after { position: absolute; top: 50%; width: 6px; height: 19px; translate: 0 -50%; }
+.type-taxi::before { left: 2px; }
+.type-taxi::after { right: 2px; }
+.type-taxi .car-mark { display: none; }
+.type-taxi .vehicle-kind { top: 1px; padding: 1px 3px; color: #543b00; background: #ffe36e; font-size: 5px; }
 .car[data-dir="U"], .car[data-dir="D"] { flex-direction: column; }
 .car[data-dir="U"]::before, .car[data-dir="U"]::after,
 .car[data-dir="D"]::before, .car[data-dir="D"]::after { width: 56%; height: 9px; }
 .car[data-dir="U"] { box-shadow: inset 8px 0 #17304d24, 0 5px 0 #314556, 0 8px 9px #23374766; }
 .car[data-dir="D"] { box-shadow: inset -8px 0 #17304d24, 0 5px 0 #314556, 0 8px 9px #23374766; }
+.car[data-dir="NE"], .car[data-dir="SW"] { --arrow-rotate: 45deg; rotate: -45deg; scale: .82; }
+.car[data-dir="NW"], .car[data-dir="SE"] { --arrow-rotate: -45deg; rotate: 45deg; scale: .82; }
+.car.diagonal .car-arrow, .car.diagonal .vehicle-kind { rotate: var(--arrow-rotate); }
 .car.blocked { filter: saturate(.75) brightness(.88); }
 .car.ready { animation: ready-pulse 2.2s var(--ease-in-out) infinite; }
 .car-mark { font-size: clamp(11px, 3.6vw, 18px); color: #fff; text-shadow: 0 2px #17304d80; }
@@ -104,6 +117,7 @@ h1 { margin: 0; font-size: clamp(20px, 5.8vw, 27px); line-height: 1.05; letter-s
 .car.is-leaving { pointer-events: none; animation-play-state: paused; }
 .travel-car { position: fixed; z-index: 50; margin: 0; pointer-events: none; animation: none !important; }
 .boarding-passenger { position: fixed; z-index: 55; margin: 0; pointer-events: none; animation: none !important; }
+.exhaust-puff { position: fixed; z-index: 49; width: 13px; height: 13px; translate: -50% -50%; border-radius: 50%; pointer-events: none; background: #fff; box-shadow: 0 0 0 4px #ffffff66; animation: exhaust-puff 500ms ease-out forwards; }
 
 .color-red { background-color: var(--red); }
 .color-blue { background-color: var(--blue); }
@@ -158,6 +172,7 @@ dialog ol { padding-left: 22px; line-height: 1.65; }
 @keyframes result-in { from { opacity: 0; transform: translateY(18px) scale(.96); } }
 @keyframes bus-bounce { 0%, 100% { transform: translateY(0); } 35% { transform: translateY(-9px) rotate(-4deg); } 65% { transform: translateY(-3px) rotate(3deg); } }
 @keyframes confetti-fall { from { background-position: 0 -400px, 20px -320px, 40px -500px; } to { background-position: 0 500px, 20px 450px, 40px 520px; } }
+@keyframes exhaust-puff { from { opacity: .92; transform: scale(.45); } to { opacity: 0; transform: translateY(14px) scale(1.8); } }
 
 @media (hover: hover) and (pointer: fine) {
   .car:hover, .control:not(:disabled):hover, .round-button:hover { transform: translateY(-2px); filter: brightness(1.07); }

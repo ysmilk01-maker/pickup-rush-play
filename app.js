@@ -1,5 +1,5 @@
-import { COLORS, LEVELS, MAX_BAYS, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=6";
-import { platform } from "./platform.js?v=6";
+import { COLORS, LEVELS, MAX_BAYS, VEHICLE_TYPES, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=7";
+import { platform } from "./platform.js?v=7";
 
 const $ = (selector) => document.querySelector(selector);
 const board = $("#board");
@@ -9,7 +9,7 @@ const picker = $("#level-picker");
 const overlay = $("#result-overlay");
 const adDialog = $("#ad-dialog");
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
-const arrow = { R: "→", L: "←", U: "↑", D: "↓" };
+const arrow = { R: "→", L: "←", U: "↑", D: "↓", NE: "↗", NW: "↖", SE: "↘", SW: "↙" };
 
 let levelIndex = Math.min(platform.loadProgress(), LEVELS.length - 1);
 let state = createGame(levelIndex);
@@ -34,9 +34,9 @@ function renderBays() {
   bays.replaceChildren(...state.bays.map((bay, index) => {
     const slot = document.createElement("div");
     slot.className = `bay${bay ? ` occupied color-${bay.color}` : ""}`;
-    slot.setAttribute("aria-label", bay ? `${COLORS[bay.color].label} 차량, 빈 좌석 ${bay.seats}` : `빈 대기 칸 ${index + 1}`);
+    slot.setAttribute("aria-label", bay ? `${COLORS[bay.color].label} ${VEHICLE_TYPES[bay.type].label}, 빈 좌석 ${bay.seats}` : `빈 대기 칸 ${index + 1}`);
     slot.innerHTML = bay
-      ? `<span class="bay-car">${COLORS[bay.color].short}</span><span class="seat-count">${bay.seats}석</span>`
+      ? `<span class="bay-car">${VEHICLE_TYPES[bay.type].short}</span><span class="seat-count">${bay.seats}석</span>`
       : `<span class="plus">＋</span><span>대기</span>`;
     return slot;
   }));
@@ -48,17 +48,20 @@ function renderBoard() {
   board.style.setProperty("--rows", state.rows);
   board.replaceChildren(...state.cars.map((car) => {
     const horizontal = car.dir === "R" || car.dir === "L";
+    const vertical = car.dir === "U" || car.dir === "D";
+    const diagonal = !horizontal && !vertical;
     const ready = canExit(state, car);
     const button = document.createElement("button");
-    button.className = `car color-${car.color} ${ready ? "ready" : "blocked"}`;
+    button.className = `car type-${car.type} color-${car.color}${diagonal ? " diagonal" : ""} ${ready ? "ready" : "blocked"}`;
     button.style.left = `calc(${car.c} * 100% / ${state.cols} + 3px)`;
     button.style.top = `calc(${car.r} * 100% / ${state.rows} + 3px)`;
     button.style.width = `calc(${horizontal ? car.len : 1} * 100% / ${state.cols} - 6px)`;
-    button.style.height = `calc(${horizontal ? 1 : car.len} * 100% / ${state.rows} - 6px)`;
+    button.style.height = `calc(${vertical ? car.len : 1} * 100% / ${state.rows} - 6px)`;
     button.dataset.id = car.id;
     button.dataset.dir = car.dir;
-    button.setAttribute("aria-label", `${COLORS[car.color].label} 차량, ${arrow[car.dir]} 방향${ready ? ", 이동 가능" : ", 길 막힘"}`);
-    button.innerHTML = `<span class="car-mark">${COLORS[car.color].short}</span><span class="car-arrow">${arrow[car.dir]}</span>`;
+    button.dataset.type = car.type;
+    button.setAttribute("aria-label", `${COLORS[car.color].label} ${VEHICLE_TYPES[car.type].label}, ${arrow[car.dir]} 방향${ready ? ", 이동 가능" : ", 길 막힘"}`);
+    button.innerHTML = `<span class="vehicle-kind">${VEHICLE_TYPES[car.type].short}</span><span class="car-mark">${COLORS[car.color].short}</span><span class="car-arrow">${arrow[car.dir]}</span>`;
     return button;
   }));
 }
@@ -98,8 +101,9 @@ function render() {
   $("#level-title").textContent = state.levelTitle;
   $("#district-label").textContent = state.district;
   const horizontal = state.cars.filter((car) => car.dir === "L" || car.dir === "R").length;
-  const vertical = state.cars.length - horizontal;
-  $("#traffic-label").textContent = `${state.cars.length}대 · ↔${horizontal} ↕${vertical}`;
+  const vertical = state.cars.filter((car) => car.dir === "U" || car.dir === "D").length;
+  const diagonal = state.cars.length - horizontal - vertical;
+  $("#traffic-label").textContent = `${state.cars.length}대 · ↔${horizontal} ↕${vertical} ⤢${diagonal}`;
   $("#difficulty-label").textContent = `난이도 ${"★".repeat(state.difficulty)}${"☆".repeat(5 - state.difficulty)}`;
   $("#level-progress").style.width = `${((state.levelIndex + 1) / LEVELS.length) * 100}%`;
   $("#coin-count").textContent = coins;
@@ -134,13 +138,43 @@ function captureBoardingPassengers(color) {
   }));
 }
 
+function startExhaustTrail(vehicle) {
+  const timer = setInterval(() => {
+    if (!vehicle.isConnected) return;
+    const rect = vehicle.getBoundingClientRect();
+    const puff = document.createElement("span");
+    puff.className = "exhaust-puff";
+    puff.style.left = `${rect.left + rect.width / 2 + (Math.random() - .5) * 8}px`;
+    puff.style.top = `${rect.top + rect.height / 2 + (Math.random() - .5) * 8}px`;
+    document.body.append(puff);
+    setTimeout(() => puff.remove(), 520);
+  }, 78);
+  return () => clearInterval(timer);
+}
+
 async function animateCarToBay(carElement, bayElement) {
   if (reduceMotion.matches || !carElement.animate || !bayElement) return;
   const start = carElement.getBoundingClientRect();
   const target = bayElement.getBoundingClientRect();
+  const road = board.getBoundingClientRect();
   const dx = target.left + target.width / 2 - (start.left + start.width / 2);
   const dy = target.top + target.height / 2 - (start.top + start.height / 2);
-  const nudge = { R: [26, 0], L: [-26, 0], U: [0, -26], D: [0, 26] }[carElement.dataset.dir];
+  const vector = {
+    R: [1, 0], L: [-1, 0], U: [0, -1], D: [0, 1],
+    NE: [.707, -.707], NW: [-.707, -.707], SE: [.707, .707], SW: [-.707, .707]
+  }[carElement.dataset.dir];
+  const centerX = start.left + start.width / 2;
+  const centerY = start.top + start.height / 2;
+  const edgeDistances = [];
+  if (vector[0] > 0) edgeDistances.push((road.right - centerX + start.width) / vector[0]);
+  if (vector[0] < 0) edgeDistances.push((centerX - road.left + start.width) / -vector[0]);
+  if (vector[1] > 0) edgeDistances.push((road.bottom - centerY + start.height) / vector[1]);
+  if (vector[1] < 0) edgeDistances.push((centerY - road.top + start.height) / -vector[1]);
+  const exitDistance = Math.min(...edgeDistances) + 18;
+  const exitX = vector[0] * exitDistance;
+  const exitY = vector[1] * exitDistance;
+  const mergeX = exitX + (dx - exitX) * .38;
+  const mergeY = exitY + (dy - exitY) * .22;
   const ghost = carElement.cloneNode(true);
   ghost.classList.add("travel-car");
   ghost.style.left = `${start.left}px`;
@@ -149,11 +183,16 @@ async function animateCarToBay(carElement, bayElement) {
   ghost.style.height = `${start.height}px`;
   document.body.append(ghost);
   carElement.style.opacity = "0";
+  const stopTrail = startExhaustTrail(ghost);
+  const duration = { taxi: 540, van: 670, bus: 820 }[carElement.dataset.type] || 670;
   await ghost.animate([
     { transform: "translate(0, 0) scale(1)" },
-    { transform: `translate(${nudge[0]}px, ${nudge[1]}px) scale(1.04)`, offset: .22 },
-    { transform: `translate(${dx}px, ${dy}px) scale(.56)` }
-  ], { duration: 290, easing: "cubic-bezier(.77, 0, .175, 1)", fill: "forwards" }).finished.catch(() => {});
+    { transform: `translate(${exitX * .72}px, ${exitY * .72}px) scale(1.03)`, offset: .28 },
+    { transform: `translate(${exitX}px, ${exitY}px) scale(1)`, offset: .46 },
+    { transform: `translate(${mergeX}px, ${mergeY}px) scale(.86)`, offset: .7 },
+    { transform: `translate(${dx}px, ${dy}px) scale(.54)` }
+  ], { duration, easing: "cubic-bezier(.45, 0, .2, 1)", fill: "forwards" }).finished.catch(() => {});
+  stopTrail();
   ghost.remove();
 }
 
@@ -278,5 +317,5 @@ picker.replaceChildren(...LEVELS.map((level, index) => {
 render();
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {
-  navigator.serviceWorker.register("./sw.js?v=6").catch(() => {});
+  navigator.serviceWorker.register("./sw.js?v=7").catch(() => {});
 }
