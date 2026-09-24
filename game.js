@@ -11,6 +11,8 @@ export const COLORS = {
 const repeat = (color, count) => Array.from({ length: count }, () => color);
 
 const PALETTE = Object.keys(COLORS);
+export const BASE_BAYS = 4;
+export const MAX_BAYS = 7;
 
 function colorFor(index, shift) {
   return PALETTE[(index * 3 + shift) % PALETTE.length];
@@ -109,12 +111,11 @@ export function createGame(levelIndex = 0) {
     rows: level.rows,
     queue: clone(level.queue),
     cars: clone(level.cars),
-    bays: [null, null, null],
+    bays: Array.from({ length: BASE_BAYS }, () => null),
     history: [],
     status: "playing",
     message: "화살표 앞이 열린 차량을 보내세요.",
     boosters: { rotateQueue: 1, extraBay: 1 },
-    adRewardClaimed: false,
     rewardedBays: 0,
     moves: 0
   };
@@ -242,7 +243,6 @@ export function undo(state) {
     state.bays.push(null);
     state.rewardedBays = (state.rewardedBays || 0) + 1;
   }
-  if (rewardedBays > 0) state.adRewardClaimed = true;
   state.message = "한 수 되돌렸습니다.";
   return true;
 }
@@ -258,7 +258,7 @@ export function rotateQueue(state) {
 }
 
 export function addBay(state) {
-  if (state.status === "won" || !state.boosters.extraBay) return false;
+  if (state.status === "won" || !state.boosters.extraBay || state.bays.length >= MAX_BAYS) return false;
   saveHistory(state);
   state.boosters.extraBay -= 1;
   state.bays.push(null);
@@ -268,8 +268,7 @@ export function addBay(state) {
 }
 
 export function grantRewardedBay(state) {
-  if (state.status === "won" || state.adRewardClaimed) return false;
-  state.adRewardClaimed = true;
+  if (state.status === "won" || state.bays.length >= MAX_BAYS) return false;
   state.rewardedBays = (state.rewardedBays || 0) + 1;
   state.bays.push(null);
   state.status = "playing";

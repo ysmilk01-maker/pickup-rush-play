@@ -1,5 +1,5 @@
-import { COLORS, LEVELS, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=3";
-import { platform } from "./platform.js?v=3";
+import { COLORS, LEVELS, MAX_BAYS, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=4";
+import { platform } from "./platform.js?v=4";
 
 const $ = (selector) => document.querySelector(selector);
 const board = $("#board");
@@ -66,11 +66,13 @@ function renderBoard() {
 function renderControls() {
   $("#undo").disabled = !state.history.length || animating;
   $("#rotate").disabled = !state.boosters.rotateQueue || state.status !== "playing" || animating;
-  $("#extra-bay").disabled = !state.boosters.extraBay || state.status === "won" || animating;
-  $("#rewarded-bay").disabled = state.adRewardClaimed || state.status === "won" || animating;
+  const atMaxBays = state.bays.length >= MAX_BAYS;
+  $("#extra-bay").disabled = !state.boosters.extraBay || atMaxBays || state.status === "won" || animating;
+  $("#rewarded-bay").disabled = atMaxBays || state.status === "won" || animating;
   $("#rotate-count").textContent = state.boosters.rotateQueue;
   $("#bay-count").textContent = state.boosters.extraBay;
-  $("#rewarded-bay .control-label").textContent = state.adRewardClaimed ? "광고 보상 받음" : "광고 보고 +1칸";
+  $("#rewarded-bay .control-label").textContent = atMaxBays ? "최대 7칸" : "광고 보고 +1칸";
+  $("#rewarded-bay .ad-tag").textContent = atMaxBays ? "MAX" : `${MAX_BAYS - state.bays.length}`;
   $("#move-count").textContent = `${state.moves}수`;
 }
 
@@ -87,7 +89,7 @@ function renderResult() {
   $("#result-copy").textContent = state.message;
   $("#next-level").textContent = won
     ? (state.levelIndex < LEVELS.length - 1 ? "다음 스테이지" : "처음부터 다시")
-    : (state.adRewardClaimed ? "다시 도전" : "광고 보고 +1칸으로 계속");
+    : (state.bays.length >= MAX_BAYS ? "다시 도전" : "광고 보고 +1칸으로 계속");
   $(".result-kicker").textContent = won ? "STAGE CLEAR" : "NEED MORE SPACE";
 }
 
@@ -212,7 +214,7 @@ board.addEventListener("click", async (event) => {
 });
 
 async function openRewardedAd() {
-  if (state.adRewardClaimed || state.status === "won") return;
+  if (state.bays.length >= MAX_BAYS || state.status === "won") return;
   adReady = false;
   $("#finish-ad").disabled = true;
   $("#cancel-ad").disabled = true;
@@ -253,7 +255,7 @@ $("#rotate").addEventListener("click", () => { rotateQueue(state); render(); });
 $("#extra-bay").addEventListener("click", () => { addBay(state); overlay.hidden = true; render(); });
 picker.addEventListener("change", () => loadLevel(Number(picker.value)));
 $("#next-level").addEventListener("click", () => {
-  if (state.status === "lost" && !state.adRewardClaimed) {
+  if (state.status === "lost" && state.bays.length < MAX_BAYS) {
     openRewardedAd();
     return;
   }
@@ -274,5 +276,5 @@ picker.replaceChildren(...LEVELS.map((level, index) => {
 render();
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {
-  navigator.serviceWorker.register("./sw.js?v=3").catch(() => {});
+  navigator.serviceWorker.register("./sw.js?v=4").catch(() => {});
 }
