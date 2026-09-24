@@ -10,97 +10,90 @@ export const COLORS = {
 
 const repeat = (color, count) => Array.from({ length: count }, () => color);
 
-const layouts = {
-  starter: {
-    cols: 6,
-    rows: 6,
-    cars: [
-      { key: "a", r: 0, c: 3, dir: "D", len: 2 },
-      { key: "b", r: 0, c: 0, dir: "R", len: 2 },
-      { key: "c", r: 3, c: 0, dir: "R", len: 2 }
-    ],
-    solution: ["a", "b", "c"]
-  },
-  cross: {
-    cols: 6,
-    rows: 6,
-    cars: [
-      { key: "a", r: 0, c: 0, dir: "D", len: 2 },
-      { key: "b", r: 3, c: 0, dir: "R", len: 2 },
-      { key: "c", r: 2, c: 4, dir: "U", len: 2 },
-      { key: "d", r: 5, c: 2, dir: "R", len: 2 }
-    ],
-    solution: ["c", "b", "a", "d"]
-  },
-  junction: {
-    cols: 6,
-    rows: 6,
-    cars: [
-      { key: "a", r: 0, c: 1, dir: "D", len: 2 },
-      { key: "b", r: 2, c: 3, dir: "L", len: 2 },
-      { key: "c", r: 4, c: 3, dir: "U", len: 2 },
-      { key: "d", r: 1, c: 5, dir: "D", len: 2 }
-    ],
-    solution: ["a", "b", "c", "d"]
-  },
-  avenue: {
-    cols: 7,
-    rows: 7,
-    cars: [
-      { key: "a", r: 0, c: 5, dir: "D", len: 2 },
-      { key: "b", r: 3, c: 4, dir: "L", len: 2 },
-      { key: "c", r: 5, c: 1, dir: "R", len: 2 },
-      { key: "d", r: 2, c: 0, dir: "D", len: 2 },
-      { key: "e", r: 6, c: 3, dir: "R", len: 2 }
-    ],
-    solution: ["d", "b", "a", "c", "e"]
-  },
-  rush: {
-    cols: 7,
-    rows: 7,
-    cars: [
-      { key: "a", r: 0, c: 0, dir: "R", len: 2 },
-      { key: "b", r: 0, c: 4, dir: "D", len: 2 },
-      { key: "c", r: 3, c: 2, dir: "L", len: 2 },
-      { key: "d", r: 5, c: 3, dir: "U", len: 2 },
-      { key: "e", r: 6, c: 0, dir: "R", len: 2 },
-      { key: "f", r: 4, c: 5, dir: "D", len: 2 }
-    ],
-    solution: ["b", "a", "c", "d", "e", "f"]
-  }
-};
+const PALETTE = Object.keys(COLORS);
 
-function stage({ prefix, title, district, difficulty, layout, colors, queueOrder }) {
-  const template = layouts[layout];
-  const cars = template.cars.map((car, index) => ({ ...car, id: `${prefix}${car.key}`, color: colors[index] }));
-  const byKey = Object.fromEntries(cars.map((car) => [car.key, car]));
-  const solutionKeys = template.solution;
-  const queueKeys = queueOrder || solutionKeys;
+function colorFor(index, shift) {
+  return PALETTE[(index * 3 + shift) % PALETTE.length];
+}
+
+function denseStage({ prefix, title, district, difficulty, count, mode, colorShift = 0 }) {
+  const cars = [];
+  const solution = [];
+  const addCar = (id, r, c, dir) => {
+    cars.push({ id, color: colorFor(cars.length, colorShift), r, c, dir, len: 2 });
+    return id;
+  };
+
+  if (mode === "horizontal") {
+    const laneCount = count / 4;
+    const rowOffset = Math.floor((8 - laneCount) / 2);
+    for (let lane = 0; lane < laneCount; lane += 1) {
+      const r = rowOffset + lane;
+      const ids = [
+        addCar(`${prefix}r${lane}a`, r, 0, "L"),
+        addCar(`${prefix}r${lane}b`, r, 2, "L"),
+        addCar(`${prefix}r${lane}c`, r, 4, "R"),
+        addCar(`${prefix}r${lane}d`, r, 6, "R")
+      ];
+      solution.push(ids[0], ids[3], ids[1], ids[2]);
+    }
+  } else if (mode === "vertical") {
+    const laneCount = count / 4;
+    const colOffset = Math.floor((8 - laneCount) / 2);
+    for (let lane = 0; lane < laneCount; lane += 1) {
+      const c = colOffset + lane;
+      const ids = [
+        addCar(`${prefix}c${lane}a`, 0, c, "U"),
+        addCar(`${prefix}c${lane}b`, 2, c, "U"),
+        addCar(`${prefix}c${lane}c`, 4, c, "D"),
+        addCar(`${prefix}c${lane}d`, 6, c, "D")
+      ];
+      solution.push(ids[0], ids[3], ids[1], ids[2]);
+    }
+  } else {
+    const down = [];
+    const up = [];
+    for (let c = 0; c < 8; c += 1) down.push(addCar(`${prefix}d${c}`, 6, c, "D"));
+    for (let r = 0; r < 4; r += 1) {
+      const ids = [
+        addCar(`${prefix}h${r}a`, r, 0, "L"),
+        addCar(`${prefix}h${r}b`, r, 2, "L"),
+        addCar(`${prefix}h${r}c`, r, 4, "R"),
+        addCar(`${prefix}h${r}d`, r, 6, "R")
+      ];
+      solution.push(ids[0], ids[3], ids[1], ids[2]);
+    }
+    for (let c = 0; c < 8; c += 1) up.push(addCar(`${prefix}u${c}`, 4, c, "U"));
+    solution.unshift(...down);
+    solution.push(...up);
+  }
+
+  const byId = Object.fromEntries(cars.map((car) => [car.id, car]));
   return {
     title,
     district,
     difficulty,
-    cols: template.cols,
-    rows: template.rows,
-    cars: cars.map(({ key, ...car }) => car),
-    queue: queueKeys.flatMap((key) => repeat(byKey[key].color, 3)),
-    solution: solutionKeys.map((key) => byKey[key].id)
+    cols: 8,
+    rows: 8,
+    cars,
+    queue: solution.flatMap((id) => repeat(byId[id].color, 3)),
+    solution
   };
 }
 
 export const LEVELS = [
-  stage({ prefix: "s1", title: "출근 첫차", district: "다운타운", difficulty: 1, layout: "starter", colors: ["blue", "red", "green"] }),
-  stage({ prefix: "s2", title: "환승 구간", district: "다운타운", difficulty: 1, layout: "cross", colors: ["yellow", "purple", "blue", "red"] }),
-  stage({ prefix: "s3", title: "도심 교차로", district: "다운타운", difficulty: 2, layout: "junction", colors: ["yellow", "red", "green", "blue"], queueOrder: ["c", "b", "d", "a"] }),
-  stage({ prefix: "s4", title: "시장 앞 혼잡", district: "다운타운", difficulty: 2, layout: "avenue", colors: ["purple", "green", "yellow", "blue", "red"] }),
-  stage({ prefix: "s5", title: "강변 진입로", district: "리버사이드", difficulty: 2, layout: "cross", colors: ["cyan", "orange", "green", "purple"] }),
-  stage({ prefix: "s6", title: "무지개 정류장", district: "리버사이드", difficulty: 3, layout: "rush", colors: ["yellow", "blue", "purple", "red", "green", "cyan"] }),
-  stage({ prefix: "s7", title: "공원 순환선", district: "리버사이드", difficulty: 3, layout: "avenue", colors: ["orange", "cyan", "yellow", "purple", "green"], queueOrder: ["b", "d", "a", "c", "e"] }),
-  stage({ prefix: "s8", title: "퇴근 러시아워", district: "리버사이드", difficulty: 3, layout: "rush", colors: ["green", "red", "cyan", "yellow", "purple", "orange"], queueOrder: ["a", "b", "c", "d", "e", "f"] }),
-  stage({ prefix: "s9", title: "네온 사거리", district: "나이트 시티", difficulty: 4, layout: "junction", colors: ["purple", "orange", "blue", "cyan"], queueOrder: ["b", "a", "d", "c"] }),
-  stage({ prefix: "s10", title: "심야 환승", district: "나이트 시티", difficulty: 4, layout: "avenue", colors: ["red", "cyan", "green", "orange", "yellow"], queueOrder: ["a", "d", "b", "c", "e"] }),
-  stage({ prefix: "s11", title: "터미널 대혼잡", district: "나이트 시티", difficulty: 5, layout: "rush", colors: ["orange", "purple", "blue", "green", "red", "yellow"], queueOrder: ["c", "b", "a", "d", "e", "f"] }),
-  stage({ prefix: "s12", title: "마지막 운행", district: "나이트 시티", difficulty: 5, layout: "rush", colors: ["cyan", "yellow", "red", "purple", "orange", "green"], queueOrder: ["a", "c", "b", "d", "f", "e"] })
+  denseStage({ prefix: "s1", title: "출근 대혼잡", district: "다운타운", difficulty: 2, count: 20, mode: "horizontal" }),
+  denseStage({ prefix: "s2", title: "수직 환승로", district: "다운타운", difficulty: 2, count: 20, mode: "vertical", colorShift: 1 }),
+  denseStage({ prefix: "s3", title: "도심 밀집 구역", district: "다운타운", difficulty: 3, count: 24, mode: "horizontal", colorShift: 2 }),
+  denseStage({ prefix: "s4", title: "시장 앞 병목", district: "다운타운", difficulty: 3, count: 24, mode: "vertical", colorShift: 3 }),
+  denseStage({ prefix: "s5", title: "강변 정체", district: "리버사이드", difficulty: 3, count: 28, mode: "horizontal", colorShift: 4 }),
+  denseStage({ prefix: "s6", title: "무지개 차고", district: "리버사이드", difficulty: 4, count: 28, mode: "vertical", colorShift: 5 }),
+  denseStage({ prefix: "s7", title: "공원 만차", district: "리버사이드", difficulty: 4, count: 32, mode: "horizontal", colorShift: 6 }),
+  denseStage({ prefix: "s8", title: "퇴근 러시아워", district: "리버사이드", difficulty: 4, count: 32, mode: "vertical" }),
+  denseStage({ prefix: "s9", title: "네온 교차 봉쇄", district: "나이트 시티", difficulty: 5, count: 32, mode: "interlocked", colorShift: 1 }),
+  denseStage({ prefix: "s10", title: "심야 터미널", district: "나이트 시티", difficulty: 5, count: 32, mode: "interlocked", colorShift: 3 }),
+  denseStage({ prefix: "s11", title: "차고지 완전 봉쇄", district: "나이트 시티", difficulty: 5, count: 32, mode: "interlocked", colorShift: 5 }),
+  denseStage({ prefix: "s12", title: "마지막 초대형 정체", district: "나이트 시티", difficulty: 5, count: 32, mode: "interlocked", colorShift: 6 })
 ];
 
 const clone = (value) => JSON.parse(JSON.stringify(value));

@@ -1,5 +1,5 @@
-import { COLORS, LEVELS, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=2";
-import { platform } from "./platform.js?v=2";
+import { COLORS, LEVELS, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=3";
+import { platform } from "./platform.js?v=3";
 
 const $ = (selector) => document.querySelector(selector);
 const board = $("#board");
@@ -76,6 +76,10 @@ function renderControls() {
 
 function renderResult() {
   const finished = state.status !== "playing";
+  if (finished && animating) {
+    overlay.hidden = true;
+    return;
+  }
   overlay.hidden = !finished;
   if (!finished) return;
   const won = state.status === "won";
@@ -91,6 +95,7 @@ function render() {
   $("#level-label").textContent = `LEVEL ${state.levelIndex + 1} / ${LEVELS.length}`;
   $("#level-title").textContent = state.levelTitle;
   $("#district-label").textContent = state.district;
+  $("#traffic-label").textContent = `남은 차량 ${state.cars.length}대`;
   $("#difficulty-label").textContent = `난이도 ${"★".repeat(state.difficulty)}${"☆".repeat(5 - state.difficulty)}`;
   $("#level-progress").style.width = `${((state.levelIndex + 1) / LEVELS.length) * 100}%`;
   $("#coin-count").textContent = coins;
@@ -116,23 +121,60 @@ function loadLevel(nextIndex) {
   else setTimeout(swap, 150);
 }
 
-function exitTransform(direction) {
-  const distance = Math.max(board.clientWidth, board.clientHeight) * 1.15;
-  return {
-    R: `translateX(${distance}px)`,
-    L: `translateX(-${distance}px)`,
-    U: `translateY(-${distance}px)`,
-    D: `translateY(${distance}px)`
-  }[direction];
+function captureBoardingPassengers(color) {
+  if (state.queue[0] !== color) return [];
+  return [...queue.querySelectorAll(".passenger")].slice(0, 3).map((element) => ({
+    className: element.className.replace(" first", ""),
+    text: element.textContent,
+    rect: element.getBoundingClientRect()
+  }));
 }
 
-async function animateExit(carElement) {
-  if (reduceMotion.matches || !carElement.animate) return;
-  carElement.classList.add("is-leaving");
-  await carElement.animate(
-    [{ transform: "translate(0, 0)" }, { transform: exitTransform(carElement.dataset.dir), opacity: .35 }],
-    { duration: 230, easing: "cubic-bezier(.77, 0, .175, 1)", fill: "forwards" }
-  ).finished.catch(() => {});
+async function animateCarToBay(carElement, bayElement) {
+  if (reduceMotion.matches || !carElement.animate || !bayElement) return;
+  const start = carElement.getBoundingClientRect();
+  const target = bayElement.getBoundingClientRect();
+  const dx = target.left + target.width / 2 - (start.left + start.width / 2);
+  const dy = target.top + target.height / 2 - (start.top + start.height / 2);
+  const nudge = { R: [26, 0], L: [-26, 0], U: [0, -26], D: [0, 26] }[carElement.dataset.dir];
+  const ghost = carElement.cloneNode(true);
+  ghost.classList.add("travel-car");
+  ghost.style.left = `${start.left}px`;
+  ghost.style.top = `${start.top}px`;
+  ghost.style.width = `${start.width}px`;
+  ghost.style.height = `${start.height}px`;
+  document.body.append(ghost);
+  carElement.style.opacity = "0";
+  await ghost.animate([
+    { transform: "translate(0, 0) scale(1)" },
+    { transform: `translate(${nudge[0]}px, ${nudge[1]}px) scale(1.04)`, offset: .22 },
+    { transform: `translate(${dx}px, ${dy}px) scale(.56)` }
+  ], { duration: 290, easing: "cubic-bezier(.77, 0, .175, 1)", fill: "forwards" }).finished.catch(() => {});
+  ghost.remove();
+}
+
+async function animatePassengersToBay(passengers, bayIndex) {
+  if (reduceMotion.matches || !passengers.length) return;
+  const target = bays.children[bayIndex]?.getBoundingClientRect();
+  if (!target) return;
+  await Promise.all(passengers.map(async (passenger, index) => {
+    const ghost = document.createElement("span");
+    ghost.className = `${passenger.className} boarding-passenger`;
+    ghost.textContent = passenger.text;
+    ghost.style.left = `${passenger.rect.left}px`;
+    ghost.style.top = `${passenger.rect.top}px`;
+    ghost.style.width = `${passenger.rect.width}px`;
+    ghost.style.height = `${passenger.rect.height}px`;
+    document.body.append(ghost);
+    const dx = target.left + target.width / 2 - (passenger.rect.left + passenger.rect.width / 2);
+    const dy = target.top + target.height / 2 - (passenger.rect.top + passenger.rect.height / 2);
+    await ghost.animate([
+      { transform: "translate(0, 0) scale(1)", opacity: 1 },
+      { transform: `translate(${dx * .55}px, ${dy * .55}px) scale(.9)`, opacity: 1, offset: .65 },
+      { transform: `translate(${dx}px, ${dy}px) scale(.35)`, opacity: .15 }
+    ], { duration: 250, delay: index * 45, easing: "cubic-bezier(.23, 1, .32, 1)", fill: "forwards" }).finished.catch(() => {});
+    ghost.remove();
+  }));
 }
 
 board.addEventListener("click", async (event) => {
@@ -150,9 +192,11 @@ board.addEventListener("click", async (event) => {
 
   animating = true;
   renderControls();
-  await animateExit(carElement);
+  const bayIndex = state.bays.findIndex((bay) => !bay);
+  const bayElement = bays.children[bayIndex];
+  const passengers = captureBoardingPassengers(car.color);
+  await animateCarToBay(carElement, bayElement);
   const outcome = moveCar(state, carElement.dataset.id);
-  animating = false;
   platform.haptic(outcome.ok ? (state.status === "won" ? "success" : "light") : "light");
   if (state.status === "won") {
     platform.saveProgress(Math.min(state.levelIndex + 1, LEVELS.length - 1));
@@ -161,6 +205,10 @@ board.addEventListener("click", async (event) => {
     platform.emit("level-complete", { level: state.levelIndex + 1, moves: state.moves });
   }
   render();
+  await animatePassengersToBay(passengers, outcome.bayIndex);
+  animating = false;
+  renderControls();
+  renderResult();
 });
 
 async function openRewardedAd() {
@@ -226,5 +274,5 @@ picker.replaceChildren(...LEVELS.map((level, index) => {
 render();
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {
-  navigator.serviceWorker.register("./sw.js?v=2").catch(() => {});
+  navigator.serviceWorker.register("./sw.js?v=3").catch(() => {});
 }

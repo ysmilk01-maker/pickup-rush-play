@@ -60,6 +60,7 @@ button:focus-visible, select:focus-visible { outline: 4px solid #fff; outline-of
 
 .stage-card { padding: 10px 13px 9px; border: 3px solid #fff; border-radius: 17px; background: #255a94eb; color: #fff; box-shadow: 0 5px 0 #163d6d, 0 12px 20px #315a8040; }
 .stage-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; font-weight: 900; letter-spacing: .06em; color: #c9e8ff; }
+#traffic-label { padding: 1px 7px; border-radius: 999px; color: #173d68; background: #ffe36e; letter-spacing: 0; }
 .stage-title-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10px; }
 .eyebrow { display: block; margin-top: 3px; color: #ffe36e; font-size: 11px; font-weight: 1000; letter-spacing: .1em; }
 h1 { margin: 0; font-size: clamp(20px, 5.8vw, 27px); line-height: 1.05; letter-spacing: -.05em; }
@@ -96,6 +97,8 @@ h1 { margin: 0; font-size: clamp(20px, 5.8vw, 27px); line-height: 1.05; letter-s
 .car-arrow { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #ffffffdf; font-weight: 1000; }
 .car.is-blocked { animation: blocked-shake 220ms var(--ease-in-out); }
 .car.is-leaving { pointer-events: none; animation-play-state: paused; }
+.travel-car { position: fixed; z-index: 50; margin: 0; pointer-events: none; animation: none !important; }
+.boarding-passenger { position: fixed; z-index: 55; margin: 0; pointer-events: none; animation: none !important; }
 
 .color-red { background-color: var(--red); }
 .color-blue { background-color: var(--blue); }
