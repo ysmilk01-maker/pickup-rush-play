@@ -1,5 +1,5 @@
-import { COLORS, LEVELS, MAX_BAYS, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=4";
-import { platform } from "./platform.js?v=4";
+import { COLORS, LEVELS, MAX_BAYS, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=5";
+import { platform } from "./platform.js?v=5";
 
 const $ = (selector) => document.querySelector(selector);
 const board = $("#board");
@@ -276,5 +276,5 @@ picker.replaceChildren(...LEVELS.map((level, index) => {
 render();
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {
-  navigator.serviceWorker.register("./sw.js?v=4").catch(() => {});
+  navigator.serviceWorker.register("./sw.js?v=5").catch(() => {});
 }
