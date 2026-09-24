@@ -55,10 +55,11 @@ function vehiclePlan(count) {
   if (count <= 28) return { taxi: 8, van: 14, bus: 6 };
   if (count <= 32) return { taxi: 8, van: 18, bus: 6 };
   if (count <= 36) return { taxi: 12, van: 18, bus: 6 };
-  return { taxi: 14, van: 20, bus: 6 };
+  if (count <= 40) return { taxi: 14, van: 20, bus: 6 };
+  return { taxi: 16, van: 24, bus: 8 };
 }
 
-function packedVehicles(seed, count, rows = 8, cols = 8) {
+function packedVehicles(seed, count, rows = 9, cols = 9) {
   const random = seededRandom(seed);
   const occupied = new Set();
   const vehicles = [];
@@ -115,7 +116,7 @@ function packedVehicles(seed, count, rows = 8, cols = 8) {
   return shuffle(vehicles, random);
 }
 
-function solutionFor(cars, rows = 8, cols = 8) {
+function solutionFor(cars, rows = 9, cols = 9) {
   const remaining = cars.map((car) => ({ ...car }));
   const solution = [];
   while (remaining.length) {
@@ -127,7 +128,7 @@ function solutionFor(cars, rows = 8, cols = 8) {
   return solution;
 }
 
-function denseStage({ prefix, title, district, difficulty, count, layoutSeed, colorShift = 0, rows = 8, cols = 8 }) {
+function denseStage({ prefix, title, district, difficulty, count, layoutSeed, colorShift = 0, rows = 9, cols = 9 }) {
   for (let attempt = 0; attempt < 96; attempt += 1) {
     const placements = packedVehicles(layoutSeed + attempt * 7919, count, rows, cols);
     if (!placements) continue;
@@ -170,18 +171,18 @@ function denseStage({ prefix, title, district, difficulty, count, layoutSeed, co
 }
 
 export const LEVELS = [
-  denseStage({ prefix: "s1", title: "출근 대혼잡", district: "다운타운", difficulty: 2, count: 28, layoutSeed: 101 }),
-  denseStage({ prefix: "s2", title: "사방 환승로", district: "다운타운", difficulty: 2, count: 28, layoutSeed: 211, colorShift: 1 }),
-  denseStage({ prefix: "s3", title: "도심 밀집 구역", district: "다운타운", difficulty: 3, count: 32, layoutSeed: 307, colorShift: 2 }),
-  denseStage({ prefix: "s4", title: "시장 앞 병목", district: "다운타운", difficulty: 3, count: 32, layoutSeed: 419, colorShift: 3 }),
-  denseStage({ prefix: "s5", title: "강변 교차 정체", district: "리버사이드", difficulty: 3, count: 36, layoutSeed: 523, colorShift: 4, rows: 9, cols: 9 }),
-  denseStage({ prefix: "s6", title: "무지개 차고", district: "리버사이드", difficulty: 4, count: 36, layoutSeed: 631, colorShift: 5, rows: 9, cols: 9 }),
+  denseStage({ prefix: "s1", title: "출근 대혼잡", district: "다운타운", difficulty: 2, count: 40, layoutSeed: 101 }),
+  denseStage({ prefix: "s2", title: "사방 환승로", district: "다운타운", difficulty: 2, count: 40, layoutSeed: 211, colorShift: 1 }),
+  denseStage({ prefix: "s3", title: "도심 밀집 구역", district: "다운타운", difficulty: 3, count: 40, layoutSeed: 307, colorShift: 2 }),
+  denseStage({ prefix: "s4", title: "시장 앞 병목", district: "다운타운", difficulty: 3, count: 40, layoutSeed: 419, colorShift: 3 }),
+  denseStage({ prefix: "s5", title: "강변 교차 정체", district: "리버사이드", difficulty: 3, count: 40, layoutSeed: 523, colorShift: 4, rows: 9, cols: 9 }),
+  denseStage({ prefix: "s6", title: "무지개 차고", district: "리버사이드", difficulty: 4, count: 40, layoutSeed: 631, colorShift: 5, rows: 9, cols: 9 }),
   denseStage({ prefix: "s7", title: "공원 사방 만차", district: "리버사이드", difficulty: 4, count: 40, layoutSeed: 743, colorShift: 6, rows: 9, cols: 9 }),
   denseStage({ prefix: "s8", title: "퇴근 러시아워", district: "리버사이드", difficulty: 4, count: 40, layoutSeed: 857, rows: 9, cols: 9 }),
-  denseStage({ prefix: "s9", title: "네온 교차 봉쇄", district: "나이트 시티", difficulty: 5, count: 40, layoutSeed: 967, colorShift: 1, rows: 9, cols: 9 }),
-  denseStage({ prefix: "s10", title: "심야 터미널", district: "나이트 시티", difficulty: 5, count: 40, layoutSeed: 1087, colorShift: 3, rows: 9, cols: 9 }),
-  denseStage({ prefix: "s11", title: "차고지 완전 봉쇄", district: "나이트 시티", difficulty: 5, count: 40, layoutSeed: 1193, colorShift: 5, rows: 9, cols: 9 }),
-  denseStage({ prefix: "s12", title: "마지막 초대형 정체", district: "나이트 시티", difficulty: 5, count: 40, layoutSeed: 1297, colorShift: 6, rows: 9, cols: 9 })
+  denseStage({ prefix: "s9", title: "네온 교차 봉쇄", district: "나이트 시티", difficulty: 5, count: 48, layoutSeed: 967, colorShift: 1, rows: 10, cols: 10 }),
+  denseStage({ prefix: "s10", title: "심야 터미널", district: "나이트 시티", difficulty: 5, count: 48, layoutSeed: 1087, colorShift: 3, rows: 10, cols: 10 }),
+  denseStage({ prefix: "s11", title: "차고지 완전 봉쇄", district: "나이트 시티", difficulty: 5, count: 48, layoutSeed: 1193, colorShift: 5, rows: 10, cols: 10 }),
+  denseStage({ prefix: "s12", title: "마지막 초대형 정체", district: "나이트 시티", difficulty: 5, count: 48, layoutSeed: 1297, colorShift: 6, rows: 10, cols: 10 })
 ];
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
