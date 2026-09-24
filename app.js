@@ -1,15 +1,15 @@
-import {pendingCars,garageStatus} from './garage.js?v=29';
-import {MusicPlayer,TRACKS} from './music.js?v=29';
-import {LEVELS_PER_DISTRICT,districtFor,stageProfile} from './campaign.js?v=29';
-import {Market,MARKET_LEVELS,DISTRICTS,STALL_ICONS} from './market.js?v=29';
-import {MarketScene} from './market-scene.js?v=29';
-import {LobbyScene} from './lobby-scene.js?v=29';
-import {carPose,BAY,CAPACITY} from './traffic.js?v=29';
-import {canExit,COLORS,LEVELS} from './game.js?v=29';
-import {VEHICLE_MODELS} from './appearance.js?v=29';
-import {platform} from './platform.js?v=29';
-import {normalize,complete,buyTheme,claimMission,MISSIONS,THEMES,TOTAL_LEVELS} from './progress.js?v=29';
-import {checkpoint,restoreSession} from './session.js?v=29';
+import {pendingCars,garageStatus} from './garage.js?v=30';
+import {MusicPlayer,TRACKS} from './music.js?v=30';
+import {LEVELS_PER_DISTRICT,districtFor,stageProfile} from './campaign.js?v=30';
+import {Market,MARKET_LEVELS,DISTRICTS,STALL_ICONS} from './market.js?v=30';
+import {MarketScene} from './market-scene.js?v=30';
+import {LobbyScene} from './lobby-scene.js?v=30';
+import {carPose,BAY,CAPACITY} from './traffic.js?v=30';
+import {canExit,COLORS,LEVELS} from './game.js?v=30';
+import {VEHICLE_MODELS} from './appearance.js?v=30';
+import {platform} from './platform.js?v=30';
+import {normalize,complete,buyTheme,claimMission,MISSIONS,THEMES,TOTAL_LEVELS} from './progress.js?v=30';
+import {checkpoint,restoreSession} from './session.js?v=30';
 const $=s=>document.querySelector(s),SAVE='night-bite-market-v1',SESSION='night-bite-session-v1';
 function read(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
 let save=normalize(read(SAVE)),market=null,run=null,view='home',tab='home',district=districtFor(save.level),selected=null,last=0,finished=false,adBusy=false,toastUntil=0,returnFocus=null,primaryAction=null,checkpointSignature='',queueSignature='',audio,practiceReturn=null,boardSignature='',garageSignature='';
@@ -149,4 +149,4 @@ $('#garage-preview').onclick=()=>{const s=garageStatus(market.state,market.arriv
 document.addEventListener('visibilitychange',syncMusic);
 window.addEventListener('resize',()=>{scene.resize();lobbyScene.resize();});document.addEventListener('visibilitychange',()=>{last=0;checkpointRun();});window.addEventListener('pagehide',checkpointRun);
 showLobby();syncMusic();if(restored&&market.demandVersion<5)toast('새 색상은 새 운행부터 적용돼요. 기존 판은 그대로 이어져요.',5000);$('#loading').hidden=true;requestAnimationFrame(frame);
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=29').catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=30').catch(()=>{});

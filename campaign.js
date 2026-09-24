@@ -6,7 +6,7 @@ export const DISTRICTS=[
  {name:'별빛 항구',subtitle:'큰 셔틀이 드나드는 부두',icon:'✨',color:'#c4b1ff'},
  {name:'벚꽃 거리',subtitle:'꽃잎 아래 손님들의 밤산책',icon:'🌸',color:'#ffb4d1'},
  {name:'노을 언덕',subtitle:'서로 얽힌 길을 천천히 풀어요',icon:'🌇',color:'#f6aa8a'},
- {name:'은하 광장',subtitle:'여섯 색 셔틀이 만나는 곳',icon:'🌌',color:'#a9adff'},
+ {name:'은하 광장',subtitle:'별빛 아래 셔틀이 만나는 곳',icon:'🌌',color:'#a9adff'},
  {name:'반딧불 숲',subtitle:'한 명씩 이어지는 작은 발걸음',icon:'🌿',color:'#a7dca5'},
  {name:'무지개 다리',subtitle:'일곱 빛깔의 복잡한 환승',icon:'🌈',color:'#9cddeb'},
  {name:'심야 터미널',subtitle:'긴 버스와 짧은 줄 사이의 선택',icon:'🌃',color:'#b6b5e5'},

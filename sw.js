@@ -1,5 +1,5 @@
-const CACHE = "pickup-rush-v29";
-const ASSETS = ["./district-scene.js?v=29", "./campaign-layouts-v4.js?v=29", "./audio/lantern-lane.mp3", "./garage.js?v=29", "./music.js?v=29", "./campaign.js?v=29", "./campaign-layouts.js?v=29", "./demand.js?v=29", "./lobby.css?v=29", "./lobby-scene.js?v=29", "./progress.js?v=29", "./session.js?v=29", "./index.html", "./style.css?v=29", "./game.js?v=29", "./app.js?v=29", "./traffic.js?v=29", "./scene.js?v=29", "./market.js?v=29", "./market-scene.js?v=29", "./appearance.js?v=29", "./geometry.js?v=29", "./layout.js?v=29", "./platform.js?v=29", "./manifest.webmanifest?v=29"];
+const CACHE = "pickup-rush-v30";
+const ASSETS = ["./district-scene.js?v=30", "./campaign-layouts-v4.js?v=30", "./audio/lantern-lane.mp3", "./garage.js?v=30", "./music.js?v=30", "./campaign.js?v=30", "./campaign-layouts.js?v=30", "./demand.js?v=30", "./lobby.css?v=30", "./lobby-scene.js?v=30", "./progress.js?v=30", "./session.js?v=30", "./index.html", "./style.css?v=30", "./game.js?v=30", "./app.js?v=30", "./traffic.js?v=30", "./scene.js?v=30", "./market.js?v=30", "./market-scene.js?v=30", "./appearance.js?v=30", "./geometry.js?v=30", "./layout.js?v=30", "./platform.js?v=30", "./manifest.webmanifest?v=30"];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });

@@ -1,8 +1,8 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=29';
-import { assignModels, makePassenger } from './appearance.js?v=29';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=29';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=29';
-import { passengerQueue } from './demand.js?v=29';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=30';
+import { assignModels, makePassenger } from './appearance.js?v=30';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=30';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=30';
+import { passengerQueue } from './demand.js?v=30';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;

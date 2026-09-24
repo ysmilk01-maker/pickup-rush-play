@@ -1,8 +1,8 @@
-import {districtStyle,districtSky,districtStop} from './district-scene.js?v=29';
-import { Scene } from './scene.js?v=29';
-import { BAY, QUEUE, carPose } from './traffic.js?v=29';
-import { vehicleModel, makePassenger } from './appearance.js?v=29';
-import { COLORS } from './game.js?v=29';
+import {districtStyle,districtSky,districtStop} from './district-scene.js?v=30';
+import { Scene } from './scene.js?v=30';
+import { BAY, QUEUE, carPose } from './traffic.js?v=30';
+import { vehicleModel, makePassenger } from './appearance.js?v=30';
+import { COLORS } from './game.js?v=30';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
