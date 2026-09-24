@@ -1,6 +1,8 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=10';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=11';
+import { assignModels, makePassenger } from './appearance.js?v=11';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
+export const ANIMATION_SPEED = 1.5;
 export const DIRECTIONS = {R:[1,0],L:[-1,0],U:[0,-1],D:[0,1],NE:[1,-1],NW:[-1,-1],SE:[1,1],SW:[-1,1]};
 export const PROJECT = (x,y) => ({x:300+(x-y)*30.5,y:682+(x+y)*28});
 export const BAY = i => ({x:65+i*76,y:292});
@@ -52,12 +54,14 @@ export function routeFor(car,state,bayIndex) {
 export class Traffic {
   constructor(level=0) {
     this.state=createGame(level);this.time=0;this.running=[];this.walkers=[];this.puffs=[];this.delivered=0;this.total=0;this.lastBoard=-1;this.undoStack=[];
+    assignModels(this.state.cars);
     // Each vehicle now has a real capacity instead of every type boarding three.
     this.state.queue=this.state.queue.filter((_,i)=>i%3===0).flatMap((color,i)=>{
       const car=this.state.cars.find(c=>c.id===this.solution[i]);
       return Array(CAPACITY[car.type]).fill(color);
     });
     this.total=this.state.queue.length;this.queueVisual=0;this.queueConsumed=0;
+    this.state.people=this.state.queue.map((_,id)=>makePassenger(id));
   }
   get solution(){return this._solution || (this._solution=this.state.cars.length?this.findSolution():[]);}
   findSolution(){const s={...this.state,cars:[...this.state.cars]},ids=[];while(s.cars.length){const c=s.cars.find(c=>canExit(s,c));if(!c)throw Error('Locked level');ids.push(c.id);s.cars=s.cars.filter(a=>a.id!==c.id);}return ids;}
@@ -68,7 +72,7 @@ export class Traffic {
     const slot=this.state.bays.findIndex(b=>!b);if(slot<0)return {ok:false,reason:'full'};
     if(!this.running.length&&!this.walkers.length)this.undoStack.push(this.snapshot());
     this.state.status='playing';this.state.cars=this.state.cars.filter(c=>c.id!==id);this.state.moves++;
-    const vehicle={...car,slot,capacity:CAPACITY[car.type],loaded:0,pending:0,phase:'driving',elapsed:0,path:routeFor(car,this.state,slot)};
+    const vehicle={...car,slot,capacity:CAPACITY[car.type],loaded:0,pending:0,passengers:[],phase:'driving',elapsed:0,path:routeFor(car,this.state,slot)};
     vehicle.duration=vehicle.path.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-vehicle.path[i].x,p.y-vehicle.path[i].y),0)/390;
     vehicle.pose=carPose(car,this.state);this.state.bays[slot]=vehicle;this.running.push(vehicle);
     return {ok:true,slot};
@@ -76,8 +80,13 @@ export class Traffic {
   snapshot(){return JSON.stringify({state:this.state,delivered:this.delivered,queueConsumed:this.queueConsumed});}
   undo(){if(this.running.length||this.walkers.length||!this.undoStack.length)return false;const bays=this.state.bays.length;Object.assign(this,JSON.parse(this.undoStack.pop()));while(this.state.bays.length<bays)this.state.bays.push(null);this.queueVisual=this.queueConsumed;return true;}
   addBay(){if(this.state.bays.length>=7||this.state.status==='won')return false;this.state.bays.push(null);this.state.status='playing';return true;}
+  sortQueue(color){
+    const people=this.state.queue.map((color,i)=>({color,person:this.state.people[i]}));
+    const sorted=[...people.filter(p=>p.color===color),...people.filter(p=>p.color!==color)];
+    this.state.queue=sorted.map(p=>p.color);this.state.people=sorted.map(p=>p.person);
+  }
   tick(dt){
-    dt=Math.max(0,Math.min(dt,.05));this.time+=dt;
+    dt=Math.max(0,Math.min(dt,.05))*ANIMATION_SPEED;this.time+=dt;
     this.queueVisual+=(this.queueConsumed-this.queueVisual)*Math.min(1,dt*9);
     for(const car of [...this.running]){
       car.elapsed+=dt;const t=Math.min(1,car.elapsed/car.duration);car.pose=pathPose(car.path,t);
@@ -86,10 +95,10 @@ export class Traffic {
     }
     if(this.time-this.lastBoard>.13&&this.state.queue.length){
       const car=this.state.bays.find(c=>c?.phase==='parked'&&c.color===this.state.queue[0]&&c.loaded+c.pending<c.capacity);
-      if(car){this.lastBoard=this.time;const color=this.state.queue.shift();this.queueConsumed++;car.pending++;
-        this.walkers.push({color,car,elapsed:0,duration:.6,path:[QUEUE(0),{x:136,y:221},{x:car.pose.x-20,y:221},{x:car.pose.x-11,y:car.pose.y-10}]});}
+      if(car){this.lastBoard=this.time;const color=this.state.queue.shift(),person=this.state.people.shift();this.queueConsumed++;car.pending++;
+        this.walkers.push({color,person,car,elapsed:0,duration:.6,path:[QUEUE(0),{x:136,y:221},{x:car.pose.x-20,y:221},{x:car.pose.x-11,y:car.pose.y-10}]});}
     }
-    for(const p of [...this.walkers]){p.elapsed+=dt;p.pose=pathPose(p.path,p.elapsed/p.duration);if(p.elapsed>=p.duration){p.car.pending--;p.car.loaded++;this.delivered++;this.walkers=this.walkers.filter(w=>w!==p);}}
+    for(const p of [...this.walkers]){p.elapsed+=dt;p.pose=pathPose(p.path,p.elapsed/p.duration);if(p.elapsed>=p.duration){p.car.pending--;p.car.loaded++;p.car.passengers.push(p.person);this.delivered++;this.walkers=this.walkers.filter(w=>w!==p);}}
     for(const car of this.state.bays.filter(Boolean)){
       if(car.phase==='parked'&&car.loaded===car.capacity){car.phase='leaving';car.elapsed=0;car.duration=1.05;car.path=smoothPath([car.pose,{x:car.pose.x+41,y:363},{x:655,y:363}]);this.running.push(car);}
     }
