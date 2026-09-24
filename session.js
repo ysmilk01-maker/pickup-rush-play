@@ -1,6 +1,6 @@
-import {Market} from './market.js?v=34';
-import {pendingCars} from './garage.js?v=34';
-import {CAPACITY} from './traffic.js?v=34';
+import {Market} from './market.js?v=36';
+import {pendingCars} from './garage.js?v=36';
+import {CAPACITY} from './traffic.js?v=36';
 // Only save settled moments, so reload can never strand a person or a car mid-route.
 export function checkpoint(m,run){
   if(m.busy||m.state.status!=='playing')return null;
@@ -24,6 +24,7 @@ export function restoreSession(raw,unlocked){
         if(!Array.isArray(s.garage.waves)||s.garage.waves.length!==plan.waves.length||!Number.isInteger(s.garage.arrived))return null;
         for(let i=0;i<plan.waves.length;i++){
           const a=plan.waves[i],b=s.garage.waves[i];
+          if(b.preferredId!==undefined&&(!a.cars.some(c=>c.id===b.preferredId)||raw.level<14||(raw.level+1)%5))return null;
           if(a.gate!==b.gate||a.trigger!==b.trigger||!Array.isArray(b.cars)||b.cars.length>a.cars.length)return null;
           // Automatic admissions can remove a needed color from the middle of a wave.
           // Remaining cars must still be an ordered subset of that same wave.
@@ -42,6 +43,8 @@ export function restoreSession(raw,unlocked){
     }
     if(!Number.isInteger(d.delivered)||d.delivered<0||d.delivered+s.queue.length!==m.total||d.queueConsumed!==d.delivered||!Number.isInteger(s.moves)||s.moves<0)return null;
     if(!raw.run||!['hints','undos','seconds'].every(k=>Number.isFinite(raw.run[k])&&raw.run[k]>=0))return null;
+    if(s.combo!==undefined&&(!s.combo||!Number.isInteger(s.combo.chain)||!Number.isInteger(s.combo.best)||s.combo.chain<0||s.combo.best<s.combo.chain||s.combo.best>m.allCars.length))return null;
+    s.combo??={chain:0,best:0};
     Object.assign(m,d);m.queueVisual=m.queueConsumed;
     m.demandVersion=raw.rules>=3?raw.rules:raw.rules===2?2:1;
     if(typeof raw.undo==='string'){

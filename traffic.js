@@ -1,8 +1,8 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=34';
-import { assignModels, makePassenger } from './appearance.js?v=34';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=34';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=34';
-import { passengerQueue } from './demand.js?v=34';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=36';
+import { assignModels, makePassenger } from './appearance.js?v=36';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=36';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=36';
+import { passengerQueue } from './demand.js?v=36';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -68,6 +68,7 @@ export class Traffic {
     this.allCars=this.state.cars.map(c=>({...c}));this.arriving=[];
     this.state.garage=garages?garagePlan(this.state.cars,this.state.levelIndex):null;
     const reserved=new Set(pendingCars(this.state).map(c=>c.id));this.state.cars=this.state.cars.filter(c=>!reserved.has(c.id));
+    this.state.combo={chain:0,best:0};
     this.total=this.state.queue.length;this.queueVisual=0;this.queueConsumed=0;
     this.state.people=this.state.queue.map((_,id)=>makePassenger(id));
   }
@@ -80,6 +81,7 @@ export class Traffic {
     if(!canExit(this.state,car))return {ok:false,reason:'blocked'};
     const slot=this.state.bays.findIndex(b=>!b);if(slot<0)return {ok:false,reason:'full'};
     if(!this.running.length&&!this.walkers.length)this.undoStack.push(this.snapshot());
+    this.state.combo??={chain:0,best:0};this.state.combo.chain=0;
     this.state.status='playing';this.state.cars=this.state.cars.filter(c=>c.id!==id);this.state.moves++;
     const vehicle={...car,slot,capacity:CAPACITY[car.type],loaded:0,pending:0,passengers:[],phase:'driving',elapsed:0,path:routeFor(car,this.state,slot)};
     vehicle.duration=vehicle.path.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-vehicle.path[i].x,p.y-vehicle.path[i].y),0)/390;
@@ -140,11 +142,17 @@ export class Traffic {
     const wave=nextWave(this.state);if(!wave||this.state.moves<wave.trigger)return;
     const checkKey=`${this.state.moves}:${this.state.garage.arrived}`;
     if(this.garageCheckKey===checkKey)return;this.garageCheckKey=checkKey;
-    const car=wave.cars[0];if(!canExit(this.state,car))return;
-    const path=this.entryPath(car,wave.gate);
-    // Check the complete swept route, including corners, before reserving it.
-    for(let i=0;i<=150;i++){const pose=pathPose(path,i/150);if(this.state.cars.some(other=>overlaps({...car,...pose},other,1)))return;}
-    wave.cars.shift();this.arriving.push({car,gate:wave.gate,path,pose:{...path[0],angle:car.angle},elapsed:0,
+    const preferred=wave.cars.find(c=>c.id===wave.preferredId);
+    const candidates=[...new Set([preferred,wave.cars[0]].filter(Boolean))];
+    let car,path;
+    for(const candidate of candidates){
+      if(!canExit(this.state,candidate))continue;
+      const route=this.entryPath(candidate,wave.gate);let clear=true;
+      for(let i=0;i<=150;i++){const pose=pathPose(route,i/150);if(this.state.cars.some(other=>overlaps({...candidate,...pose},other,1))){clear=false;break;}}
+      if(clear){car=candidate;path=route;break;}
+    }
+    if(!car)return;
+    wave.cars=wave.cars.filter(c=>c.id!==car.id);this.arriving.push({car,gate:wave.gate,path,pose:{...path[0],angle:car.angle},elapsed:0,
       duration:path.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-path[i].x,p.y-path[i].y),0)/390});
   }
   tick(dt){
@@ -162,7 +170,7 @@ export class Traffic {
     }
     for(const p of [...this.walkers]){p.elapsed+=dt;p.pose=pathPose(p.path,p.elapsed/p.duration);if(p.elapsed>=p.duration){p.car.pending--;p.car.loaded++;p.car.passengers.push(p.person);this.delivered++;this.walkers=this.walkers.filter(w=>w!==p);}}
     for(const car of this.state.bays.filter(Boolean)){
-      if(car.phase==='parked'&&car.loaded===car.capacity){car.phase='leaving';car.elapsed=0;car.duration=1.05;car.path=smoothPath([car.pose,{x:car.pose.x+41,y:363},{x:655,y:363}]);this.running.push(car);}
+      if(car.phase==='parked'&&car.loaded===car.capacity){this.state.combo??={chain:0,best:0};this.state.combo.chain++;this.state.combo.best=Math.max(this.state.combo.best,this.state.combo.chain);car.phase='leaving';car.elapsed=0;car.duration=1.05;car.path=smoothPath([car.pose,{x:car.pose.x+41,y:363},{x:655,y:363}]);this.running.push(car);}
     }
     this.puffs.forEach(p=>p.age+=dt);this.puffs=this.puffs.filter(p=>p.age<.5);
     this.updateGarage(dt);

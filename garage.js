@@ -16,3 +16,15 @@ export function garageStatus(state,arriving=[]){
  const left=Math.max(0,wave.trigger-state.moves);
  return {text:`차고 ${wave.gate?'B':'A'} · ${left?`${left}대 배차 후`:'진입로가 비면'} 입차`,pending,wave};
 }
+
+// Optional priority only: original car order/membership and automatic entry remain intact.
+export function routeOptions(state){
+ const wave=nextWave(state);
+ if(state.status!=='playing'||state.levelIndex<14||(state.levelIndex+1)%5||!wave||wave.preferredId||state.moves>=wave.trigger)return [];
+ const first=wave.cars[0],other=wave.cars.find(c=>c.color!==first?.color);
+ return first&&other?[first,other]:[];
+}
+export function chooseRoute(state,id){
+ if(!routeOptions(state).some(c=>c.id===id))return false;
+ nextWave(state).preferredId=id;return true;
+}

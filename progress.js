@@ -1,4 +1,4 @@
-import {TOTAL_LEVELS} from './campaign.js?v=34';
+import {TOTAL_LEVELS} from './campaign.js?v=36';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},
@@ -13,8 +13,9 @@ export function normalize(raw={}){
   const owned=[...new Set(['lantern',...(r.mint?['mint']:[]),...(Array.isArray(r.owned)?r.owned:[])])].filter(id=>THEMES.some(t=>t.id===id));
   const unlocked=Math.min(TOTAL_LEVELS-1,Math.max(integer(r.unlocked??r.level,0,TOTAL_LEVELS-1),...cleared.map(n=>n+1),0));
   const best={};for(const [k,v] of Object.entries(r.best||{}))if(cleared.includes(Number(k))&&Number.isFinite(v)&&v>0)best[k]=Math.round(v);
+  const comboBest=Object.fromEntries(cleared.map(n=>[n,integer(r.comboBest?.[n],0,48)]));
   const selected=Number(r.version||0)<3&&r.level===35&&cleared.includes(35)?36:integer(r.level,0,unlocked);
-  return {version:3,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(selected,unlocked),cleared,stars,best,owned,
+  return {version:3,comboBest,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(selected,unlocked),cleared,stars,best,owned,
     decoration:owned.includes(r.decoration)?r.decoration:'lantern',tutorial:!!r.tutorial,
     sound:r.sound!==false,vibration:r.vibration!==false,music:r.music!==false,
     musicTrack:['auto','lantern'].includes(r.musicTrack)?r.musicTrack:'auto',musicVolume:Number.isFinite(r.musicVolume)?Math.max(0,Math.min(1,r.musicVolume)):.3,
@@ -25,13 +26,17 @@ export function starsFor({hints=0,undos=0,bays=4}={}){return bays>4?1:hints||und
 export function complete(save,index,run){
   if(!Number.isInteger(index)||index<0||index>=TOTAL_LEVELS||index>save.unlocked)return null;
   const stars=starsFor(run),previous=save.stars[index]||0,fresh=!save.cleared.includes(index);
-  const reward=(fresh?40:5)+Math.max(0,stars-previous)*10;
+  const combo=integer(run.combo,0,48),previousCombo=save.comboBest?.[index]||0;
+  const comboValue=n=>Math.max(0,Math.min(7,n)-1)*5;
+  const comboReward=Math.max(0,comboValue(combo)-comboValue(previousCombo));
+  save.comboBest??={};save.comboBest[index]=Math.max(combo,previousCombo);
+  const reward=(fresh?40:5)+Math.max(0,stars-previous)*10+comboReward;
   if(fresh)save.cleared.push(index);
   save.stars[index]=Math.max(stars,previous);save.coins+=reward;save.wins++;
   save.boarded+=Math.max(0,Math.floor(run.passengers||0));
   save.best[index]=Math.min(save.best[index]||Infinity,Math.max(1,Math.round(run.seconds||1)));
   save.unlocked=Math.min(TOTAL_LEVELS-1,Math.max(save.unlocked,index+1));save.level=Math.min(index+1,TOTAL_LEVELS-1);
-  return {reward,stars,fresh,all:save.cleared.length===TOTAL_LEVELS};
+  return {reward,comboReward,combo,stars,fresh,all:save.cleared.length===TOTAL_LEVELS};
 }
 export function buyTheme(save,id){
   const theme=THEMES.find(t=>t.id===id);if(!theme)return false;
@@ -47,4 +52,10 @@ export function claimMission(save,id){
   const m=MISSIONS.find(m=>m.id===id);
   if(!m||save.claimed.includes(id)||m.value(save)<m.target)return false;
   save.claimed.push(id);save.coins+=m.reward;return true;
+}
+
+export const MARKET_STALLS=['등불 찻집','강변 꽃집','항구 공방','벚꽃 사진관','노을 빵집','별빛 오락실','반딧불 책방','무지개 잡화점','심야 음반점','백야 축제장'];
+export function marketGrowth(save){
+ const regions=MARKET_STALLS.map((name,index)=>({name,index,cleared:Array.from({length:10},(_,i)=>index*10+i).filter(n=>save.cleared.includes(n)).length}));
+ return {regions,opened:regions.filter(r=>r.cleared===10).length,next:regions.find(r=>r.cleared<10)};
 }
