@@ -1,5 +1,5 @@
-import { assignModels } from './appearance.js?v=24';
-import { bounds, blockers, overlaps, LOT } from './geometry.js?v=24';
+import { assignModels } from './appearance.js?v=25';
+import { bounds, blockers, overlaps, LOT } from './geometry.js?v=25';
 
 const ANGLES={R:Math.PI/4,L:-3*Math.PI/4,U:-Math.PI/4,D:3*Math.PI/4,NE:0,SW:Math.PI,NW:-Math.PI/2,SE:Math.PI/2};
 const directions=Object.keys(ANGLES);
@@ -16,14 +16,14 @@ function inShape(car,variant) {
   return !(x>435&&y<530)&&!(x<145&&y>855)&&!(x>345&&x<385&&y>620&&y<750);
 }
 
-export function scatterVehicles({seed,count,prefix,colorFor,types}) {
+export function scatterVehicles({seed,count,prefix,colorFor,types,composition,scale=count===48?.9:1}) {
   let best=0;
   for(let attempt=0;attempt<24;attempt++){
     const random=randomFrom(seed+attempt*7919),cars=[],placed=[];
-    for(const [type,amount] of [['bus',count===48?8:6],['van',count===48?24:20],['taxi',count===48?16:14]]){
+    for(const [type,amount] of composition||[['bus',count===48?8:6],['van',count===48?24:20],['taxi',count===48?16:14]]){
       for(let j=0;j<amount;j++){
         const i=cars.length,dir=directions[(i+seed)%8];
-        cars.push({id:`${prefix}${type[0]}${i}`,type,color:colorFor(i),len:types[type].len,dir,r:4,c:4,scale:count===48?.9:1,
+        cars.push({id:`${prefix}${type[0]}${i}`,type,color:colorFor(i),len:types[type].len,dir,r:4,c:4,scale,
           angle:ANGLES[dir]+(random()-.5)*.4});
       }
     }

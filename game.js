@@ -1,6 +1,8 @@
-import { scatterVehicles } from './layout.js?v=24';
-import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=24';
-import { seededRandom } from './demand.js?v=24';
+import { scatterVehicles } from './layout.js?v=25';
+import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=25';
+import { seededRandom } from './demand.js?v=25';
+import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=25';
+import campaignLayouts from './campaign-layouts.js?v=25';
 
 export const COLORS = {
   red: { label: "빨강", short: "●", hex: "#ff5f6d" },
@@ -34,7 +36,7 @@ function colorFor(index, shift) {
   return PALETTE[(index * 3 + shift) % PALETTE.length];
 }
 
-function solutionFor(cars, rows = 9, cols = 9, seed=1) {
+export function solutionFor(cars, rows = 9, cols = 9, seed=1) {
   const remaining = cars.map((car) => ({ ...car }));
   const solution = [],random=seededRandom(seed);let previous;
   while (remaining.length) {
@@ -64,7 +66,7 @@ function denseStage({ prefix, title, district, difficulty, count, layoutSeed, co
     get cars(){return build().cars;},get queue(){return build().queue;},get solution(){return build().solution;}};
 }
 
-export const LEVELS = [
+export const LEGACY_LEVELS = [
   denseStage({ prefix: "s1", title: "출근 대혼잡", district: "다운타운", difficulty: 2, count: 40, layoutSeed: 101 }),
   denseStage({ prefix: "s2", title: "사방 환승로", district: "다운타운", difficulty: 2, count: 40, layoutSeed: 211, colorShift: 1 }),
   denseStage({ prefix: "s3", title: "도심 밀집 구역", district: "다운타운", difficulty: 3, count: 40, layoutSeed: 307, colorShift: 2 }),
@@ -80,17 +82,34 @@ export const LEVELS = [
 ];
 
 // Two additional districts have independent layouts, not recolored copies.
-for(let i=12;i<36;i++)LEVELS.push(denseStage({
+for(let i=12;i<36;i++)LEGACY_LEVELS.push(denseStage({
  prefix:`s${i+1}`,title:`야시장 ${i+1}번 노선`,district:i<24?'달빛 강변':'별빛 항구',
  difficulty:i<24?4:5,count:i<18?40:48,layoutSeed:2003+i*137,colorShift:i%7,rows:10,cols:10
 }));
 
+export function buildCampaignCars(index){
+ const p=stageProfile(index),stride=p.colors===6?5:3;
+ const cars=scatterVehicles({seed:p.seed,count:p.count,prefix:`n${index+1}-`,types:VEHICLE_TYPES,
+  colorFor:i=>PALETTE[(i*stride+index)%p.colors],scale:p.scale,
+  composition:[['bus',p.buses],['van',p.vans],['taxi',p.taxis]]});
+ const ids=solutionFor(cars,10,10,p.seed+1709),byId=new Map(cars.map(c=>[c.id,c]));
+ return ids.map(id=>byId.get(id));
+}
+export const LEVELS=Array.from({length:TOTAL_LEVELS},(_,i)=>{
+ const profile=stageProfile(i);let cars=campaignLayouts[i];
+ const getCars=()=>cars||(cars=buildCampaignCars(i));
+ return {...profile,profile,title:`${i+1}번째 밤`,district:DISTRICTS[profile.district].name,cols:10,rows:10,
+  get cars(){return getCars();},get solution(){return getCars().map(c=>c.id);},
+  get queue(){return getCars().flatMap(c=>repeat(c.color,3));}};
+});
+
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
-export function createGame(levelIndex = 0) {
-  const level = LEVELS[Math.max(0, Math.min(levelIndex, LEVELS.length - 1))];
+export function createGame(levelIndex = 0, legacy=false) {
+  const levels=legacy?LEGACY_LEVELS:LEVELS;
+  const level = levels[Math.max(0, Math.min(levelIndex, levels.length - 1))];
   return {
-    levelIndex: LEVELS.indexOf(level),
+    levelIndex: levels.indexOf(level),
     levelTitle: level.title,
     district: level.district,
     difficulty: level.difficulty,

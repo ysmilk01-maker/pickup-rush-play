@@ -1,5 +1,5 @@
-const CACHE = "pickup-rush-v24";
-const ASSETS = ["./demand.js?v=24", "./lobby.css?v=24", "./lobby-scene.js?v=24", "./progress.js?v=24", "./session.js?v=24", "./index.html", "./style.css?v=24", "./game.js?v=24", "./app.js?v=24", "./traffic.js?v=24", "./scene.js?v=24", "./market.js?v=24", "./market-scene.js?v=24", "./appearance.js?v=24", "./geometry.js?v=24", "./layout.js?v=24", "./platform.js?v=24", "./manifest.webmanifest?v=24"];
+const CACHE = "pickup-rush-v25";
+const ASSETS = ["./campaign.js?v=25", "./campaign-layouts.js?v=25", "./demand.js?v=25", "./lobby.css?v=25", "./lobby-scene.js?v=25", "./progress.js?v=25", "./session.js?v=25", "./index.html", "./style.css?v=25", "./game.js?v=25", "./app.js?v=25", "./traffic.js?v=25", "./scene.js?v=25", "./market.js?v=25", "./market-scene.js?v=25", "./appearance.js?v=25", "./geometry.js?v=25", "./layout.js?v=25", "./platform.js?v=25", "./manifest.webmanifest?v=25"];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });

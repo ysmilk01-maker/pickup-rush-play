@@ -1,5 +1,5 @@
-import {Scene} from './scene.js?v=24';
-import {makePassenger} from './appearance.js?v=24';
+import {Scene} from './scene.js?v=25';
+import {makePassenger} from './appearance.js?v=25';
 
 // Original vector illustration. It uses no screenshots or artwork from another game.
 export class LobbyScene extends Scene{

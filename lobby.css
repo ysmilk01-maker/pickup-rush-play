@@ -12,3 +12,5 @@
 #app{max-width:100vw}
 
 .play-button{top:78.8%;height:9.2%}.resume-button{top:89.3%}
+
+.district-picker{display:flex;gap:8px}.district-picker select{min-width:0;flex:1;border-radius:12px;background:#ffe1b3;color:#62474a;border:1px solid #eebc8a;padding:12px 8px;font-weight:800;font-size:3.2cqw}.district-picker button{width:12%;border:1px solid #657187;border-radius:12px;background:#343d57;color:#ffe1b3;font-size:6cqw}.difficulty-note{margin:0 0 17px;color:#f5ce97;font-size:2.7cqw}

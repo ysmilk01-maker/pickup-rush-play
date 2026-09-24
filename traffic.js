@@ -1,7 +1,7 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=24';
-import { assignModels, makePassenger } from './appearance.js?v=24';
-import { isFreeform, bounds, LOT, GROUND_SCALE } from './geometry.js?v=24';
-import { passengerQueue } from './demand.js?v=24';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=25';
+import { assignModels, makePassenger } from './appearance.js?v=25';
+import { isFreeform, bounds, LOT, GROUND_SCALE } from './geometry.js?v=25';
+import { passengerQueue } from './demand.js?v=25';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -58,12 +58,12 @@ export function routeFor(car,state,bayIndex) {
   return smoothPath(path);
 }
 export class Traffic {
-  constructor(level=0) {
-    this.state=createGame(level);this.time=0;this.running=[];this.walkers=[];this.puffs=[];this.delivered=0;this.total=0;this.lastBoard=-1;this.undoStack=[];
+  constructor(level=0,legacy=false) {
+    this.state=createGame(level,legacy);this.time=0;this.running=[];this.walkers=[];this.puffs=[];this.delivered=0;this.total=0;this.lastBoard=-1;this.undoStack=[];
     if(this.state.cars.some(car=>!car.model))assignModels(this.state.cars);
     const byId=new Map(this.state.cars.map(car=>[car.id,car]));
-    this.state.queue=passengerQueue(this.solution.map(id=>byId.get(id)),this.state.levelIndex,CAPACITY);
-    this.demandVersion=2;
+    this.state.queue=passengerQueue(this.solution.map(id=>byId.get(id)),this.state.levelIndex,CAPACITY,legacy);
+    this.demandVersion=legacy?2:3;
     this.total=this.state.queue.length;this.queueVisual=0;this.queueConsumed=0;
     this.state.people=this.state.queue.map((_,id)=>makePassenger(id));
   }
