@@ -1,15 +1,15 @@
-import {pendingCars,garageStatus} from './garage.js?v=30';
-import {MusicPlayer,TRACKS} from './music.js?v=30';
-import {LEVELS_PER_DISTRICT,districtFor,stageProfile} from './campaign.js?v=30';
-import {Market,MARKET_LEVELS,DISTRICTS,STALL_ICONS} from './market.js?v=30';
-import {MarketScene} from './market-scene.js?v=30';
-import {LobbyScene} from './lobby-scene.js?v=30';
-import {carPose,BAY,CAPACITY} from './traffic.js?v=30';
-import {canExit,COLORS,LEVELS} from './game.js?v=30';
-import {VEHICLE_MODELS} from './appearance.js?v=30';
-import {platform} from './platform.js?v=30';
-import {normalize,complete,buyTheme,claimMission,MISSIONS,THEMES,TOTAL_LEVELS} from './progress.js?v=30';
-import {checkpoint,restoreSession} from './session.js?v=30';
+import {pendingCars,garageStatus} from './garage.js?v=31';
+import {MusicPlayer,TRACKS} from './music.js?v=31';
+import {LEVELS_PER_DISTRICT,districtFor,stageProfile} from './campaign.js?v=31';
+import {Market,MARKET_LEVELS,DISTRICTS,STALL_ICONS} from './market.js?v=31';
+import {MarketScene} from './market-scene.js?v=31';
+import {LobbyScene} from './lobby-scene.js?v=31';
+import {carPose,BAY,CAPACITY} from './traffic.js?v=31';
+import {canExit,COLORS,LEVELS} from './game.js?v=31';
+import {VEHICLE_MODELS} from './appearance.js?v=31';
+import {platform} from './platform.js?v=31';
+import {normalize,complete,buyTheme,claimMission,MISSIONS,THEMES,TOTAL_LEVELS} from './progress.js?v=31';
+import {checkpoint,restoreSession} from './session.js?v=31';
 const $=s=>document.querySelector(s),SAVE='night-bite-market-v1',SESSION='night-bite-session-v1';
 function read(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
 let save=normalize(read(SAVE)),market=null,run=null,view='home',tab='home',district=districtFor(save.level),selected=null,last=0,finished=false,adBusy=false,toastUntil=0,returnFocus=null,primaryAction=null,checkpointSignature='',queueSignature='',audio,practiceReturn=null,boardSignature='',garageSignature='';
@@ -97,7 +97,7 @@ function dispatch(id){if(view!=='game'||adBusy||!$('#modal').hidden)return;check
 $('#scene').addEventListener('pointerup',e=>{if(!market)return;const r=$('#scene').getBoundingClientRect(),car=scene.pick((e.clientX-r.left)*600/r.width,(e.clientY-r.top)*1080/r.height);if(car)dispatch(car.id);});
 function undo(){if(market.undo()){run.undos++;finished=false;targets();hideModal();checkpointRun();toast('배차 전으로 돌아왔어요.');}else toast('주행과 탑승이 끝나면 되돌릴 수 있어요.');}
 $('#undo').onclick=undo;
-$('#guide').onclick=()=>{const car=market.readySuggestion();if(!car){toast('이동 중인 셔틀을 기다려 주세요.');return;}run.hints++;selected={id:car.id,until:market.time+3};toast(`${COLORS[car.color].label} ${VEHICLE_MODELS[car.model||car.type].label}의 길이 열려 있어요.`,3000);};
+$('#guide').onclick=()=>{const request=market.garageRequest();if(request?.ready){toast(`${COLORS[request.car.color].label} 셔틀은 차고에 있어요. 위의 ‘바로 호출’을 눌러 주세요.`,4000);return;}const car=market.readySuggestion();if(!car){toast('이동 중인 셔틀을 기다려 주세요.');return;}run.hints++;selected={id:car.id,until:market.time+3};toast(`${COLORS[car.color].label} ${VEHICLE_MODELS[car.model||car.type].label}의 길이 열려 있어요.`,3000);};
 function pause(){showModal(`${market.state.levelIndex+1}단계 · 잠시 쉬어가기`,'<p>지금은 운행이 멈춰 있습니다.</p><button class="secondary" id="pause-retry">이 단계 다시 시작</button><button class="secondary" id="pause-home">대기실로 돌아가기</button><button class="secondary" id="pause-settings">설정</button>','계속 운행하기',hideModal);$('#pause-retry').onclick=()=>showModal('다시 시작할까요?','<p>이번 단계의 차량과 손님이 처음 위치로 돌아갑니다.</p>','다시 시작',()=>start(market.state.levelIndex,!!run.practice));$('#pause-home').onclick=()=>showLobby('home');$('#pause-settings').onclick=settings;}
 $('#settings').onclick=pause;$('#town').onclick=()=>showLobby('home');
 async function reward(){
@@ -140,13 +140,25 @@ for(const event of ['pointerdown','keydown'])document.addEventListener(event,()=
 setInterval(syncMusic,500);
 function renderGarage(){
  const button=$('#garage-preview');button.hidden=!market.state.garage;if(button.hidden)return;
- const status=garageStatus(market.state,market.arriving),signature=JSON.stringify(status);
+ const status=garageStatus(market.state,market.arriving),request=market.garageRequest(),signature=JSON.stringify([status,request]);
  if(signature===garageSignature)return;garageSignature=signature;
+ button.classList.toggle('call-ready',!!request?.ready);
+ if(request){
+  const color=COLORS[request.car.color];button.style.setProperty('--car-color',color.hex);
+  const action=request.ready?'바로 호출 →':market.busy?'운행 후 호출':'빈 승강장 필요';
+  button.innerHTML=`<b>${color.short} ${color.label} 셔틀 · 차고에 대기</b><span>${action}</span>`;
+  button.setAttribute('aria-label',`${color.label} 셔틀이 차고에 있습니다. ${action}`);return;
+ }
  button.innerHTML=`<b>${status.text}</b><span>${status.wave?status.wave.cars.slice(0,5).map(c=>`<i style="--car-color:${COLORS[c.color].hex}" aria-hidden="true">${c.type==='bus'?'▰':c.type==='van'?'▣':'▪'}</i>`).join(''):'✓'} <small>${status.pending}대 남음</small></span>`;
  button.setAttribute('aria-label',`${status.text}, ${status.pending}대 남음. 다음 차량 보기`);
 }
-$('#garage-preview').onclick=()=>{const s=garageStatus(market.state,market.arriving);showModal('차고 입차 예고',`<p>${s.text}</p><div class="arrival-list">${market.state.garage.waves.map((w,i)=>`<article><b>${i+1}차 · 차고 ${w.gate?'B':'A'}</b><small>${w.trigger}대 배차 후, 진입로가 비면</small><div>${w.cars.map(c=>`<span style="--car-color:${COLORS[c.color].hex}">${COLORS[c.color].short} ${COLORS[c.color].label} ${VEHICLE_MODELS[c.model].label}</span>`).join('')||'입차 완료'}</div></article>`).join('')}</div><p class="subtle">셔틀이 들어오는 동안 잠시 배차를 멈춥니다.<br>다시 도전해도 같은 차가 같은 순서로 들어와요.</p>`,'확인',hideModal);};
+$('#garage-preview').onclick=()=>{
+ if(view!=='game'||adBusy||!$('#modal').hidden)return;
+ const request=market.garageRequest();
+ if(request?.ready){checkpointRun();if(market.callGarage().ok){haptic();beep();targets();toast(`${COLORS[request.car.color].label} 셔틀이 차고에서 승강장으로 옵니다.`);}return;}
+ const s=garageStatus(market.state,market.arriving);showModal('차고 입차 예고',`<p>${s.text}</p><div class="arrival-list">${market.state.garage.waves.map((w,i)=>`<article><b>${i+1}차 · 차고 ${w.gate?'B':'A'}</b><small>${w.trigger}대 배차 후, 진입로가 비면</small><div>${w.cars.map(c=>`<span style="--car-color:${COLORS[c.color].hex}">${COLORS[c.color].short} ${COLORS[c.color].label} ${VEHICLE_MODELS[c.model].label}</span>`).join('')||'입차 완료'}</div></article>`).join('')}</div><p class="subtle">맨 앞 손님의 색이 차고에만 남으면<br>빈 승강장으로 무료 호출할 수 있어요.<br>주행과 탑승 중에는 잠시 기다려 주세요.</p>`,'확인',hideModal);
+};
 document.addEventListener('visibilitychange',syncMusic);
 window.addEventListener('resize',()=>{scene.resize();lobbyScene.resize();});document.addEventListener('visibilitychange',()=>{last=0;checkpointRun();});window.addEventListener('pagehide',checkpointRun);
 showLobby();syncMusic();if(restored&&market.demandVersion<5)toast('새 색상은 새 운행부터 적용돼요. 기존 판은 그대로 이어져요.',5000);$('#loading').hidden=true;requestAnimationFrame(frame);
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=30').catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=31').catch(()=>{});
