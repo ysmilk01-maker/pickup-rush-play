@@ -3,8 +3,8 @@
   "short_name": "픽업 러시",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#07111f",
-  "theme_color": "#07111f",
+  "background_color": "#74bdf0",
+  "theme_color": "#7ecbff",
   "orientation": "any",
   "lang": "ko"
 }

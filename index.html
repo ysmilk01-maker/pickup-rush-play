@@ -3,53 +3,68 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-  <meta name="theme-color" content="#07111f">
-  <meta name="description" content="차량의 길을 열고 같은 색 승객을 태우는 터치 퍼즐 프로토타입">
+  <meta name="theme-color" content="#7ecbff">
+  <meta name="description" content="차량의 길을 열고 같은 색 승객을 태우는 모바일 교통 퍼즐">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ffcf55'/%3E%3Cpath d='M7 12h18v11H7z' fill='%23152233'/%3E%3Cpath d='M11 8h10l3 4H8z' fill='%234597ff'/%3E%3Ccircle cx='11' cy='24' r='3' fill='%23fff'/%3E%3Ccircle cx='22' cy='24' r='3' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23ffd23f'/%3E%3Cpath d='M7 12h18v11H7z' fill='%2325599c'/%3E%3Cpath d='M11 8h10l3 4H8z' fill='%2349a3ff'/%3E%3Ccircle cx='11' cy='24' r='3' fill='%23fff'/%3E%3Ccircle cx='22' cy='24' r='3' fill='%23fff'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./style.css">
   <title>픽업 러시: 컬러 정류장</title>
 </head>
 <body>
+  <div class="city-scene" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
   <main class="app-shell">
     <header class="topbar">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true">▣</span>
-        <div><strong>픽업 러시</strong><small>컬러 정류장</small></div>
+      <button id="help" class="round-button" aria-label="게임 방법"><span aria-hidden="true">?</span></button>
+      <div class="brand" aria-label="픽업 러시 컬러 정류장">
+        <span class="brand-bus" aria-hidden="true">▰</span>
+        <span><strong>픽업 러시</strong><small>COLOR STATION</small></span>
       </div>
-      <button id="help" class="icon-button" aria-label="게임 방법">?</button>
+      <div class="coin-pill" aria-label="보유 코인"><span aria-hidden="true">★</span><strong id="coin-count">60</strong></div>
     </header>
 
-    <section class="stage-head" aria-labelledby="level-title">
-      <div><span id="level-label" class="eyebrow"></span><h1 id="level-title"></h1></div>
-      <select id="level-picker" class="stage-select" aria-label="스테이지 선택"></select>
+    <section class="stage-card" aria-labelledby="level-title">
+      <div class="stage-meta"><span id="district-label"></span><span id="difficulty-label"></span></div>
+      <div class="stage-title-row">
+        <div><span id="level-label" class="eyebrow"></span><h1 id="level-title"></h1></div>
+        <select id="level-picker" class="stage-select" aria-label="스테이지 선택"></select>
+      </div>
+      <div class="level-track" aria-hidden="true"><span id="level-progress"></span></div>
     </section>
 
     <section class="station" aria-label="정류장 승객과 차량 대기 칸">
-      <div class="station-row"><span class="station-label">다음 승객</span><span id="queue-count" class="queue-count"></span></div>
-      <div id="queue" class="queue" aria-live="polite"></div>
+      <div class="station-roof"><span>COLOR STOP</span><span id="queue-count" class="queue-count"></span></div>
+      <div class="station-body">
+        <div class="queue-label">다음 승객</div>
+        <div id="queue" class="queue" aria-live="polite"></div>
+      </div>
+      <div class="bay-label"><span>차량 대기 구역</span><span id="bay-total"></span></div>
       <div id="bays" class="bays"></div>
     </section>
 
     <section class="board-wrap" aria-label="교통 퍼즐">
+      <div class="road-sign" aria-hidden="true">P</div>
       <div id="board" class="board"></div>
     </section>
 
     <p id="message" class="status-line" aria-live="polite"></p>
 
-    <nav class="controls" aria-label="게임 조작">
-      <button id="undo" class="control"><span class="control-icon">↶</span><span class="control-label">되돌리기</span></button>
-      <button id="reset" class="control"><span class="control-icon">↻</span><span class="control-label">다시 시작 · <span id="move-count">0수</span></span></button>
-      <button id="rotate" class="control accent"><span class="control-icon">⇥</span><span class="control-label">줄 바꾸기 <span id="rotate-count" class="badge">1</span></span></button>
-      <button id="extra-bay" class="control accent"><span class="control-icon">▤</span><span class="control-label">칸 추가 <span id="bay-count" class="badge">1</span></span></button>
+    <nav class="controls" aria-label="게임 부스터">
+      <button id="undo" class="control"><span class="control-icon" aria-hidden="true">↶</span><span class="control-label">되돌리기</span></button>
+      <button id="rotate" class="control"><span class="control-icon" aria-hidden="true">⇥</span><span class="control-label">줄 바꾸기</span><span id="rotate-count" class="badge">1</span></button>
+      <button id="extra-bay" class="control"><span class="control-icon" aria-hidden="true">＋</span><span class="control-label">무료 칸</span><span id="bay-count" class="badge">1</span></button>
+      <button id="rewarded-bay" class="control ad-control"><span class="control-icon play-icon" aria-hidden="true">▶</span><span class="control-label">광고 보고 +1칸</span><span class="ad-tag">AD</span></button>
+      <button id="reset" class="reset-button"><span aria-hidden="true">↻</span> 다시 시작 · <span id="move-count">0수</span></button>
     </nav>
   </main>
 
   <section id="result-overlay" class="result-overlay" hidden>
+    <div class="confetti" aria-hidden="true"></div>
     <div class="result-card" role="dialog" aria-modal="true" aria-labelledby="result-title">
       <div class="result-emoji" aria-hidden="true">🚌</div>
+      <span class="result-kicker">STAGE CLEAR</span>
       <h2 id="result-title"></h2>
       <p id="result-copy"></p>
       <button id="next-level" class="primary"></button>
@@ -57,12 +72,26 @@
     </div>
   </section>
 
+  <dialog id="ad-dialog" class="ad-dialog">
+    <div class="ad-screen">
+      <span class="test-ad-label">웹 테스트 광고</span>
+      <div class="ad-visual" aria-hidden="true"><span>＋1</span><small>대기 칸</small></div>
+      <h2>혼잡한 정류장에 여유를!</h2>
+      <p>테스트 광고가 끝나면 현재 스테이지의 차량 대기 칸이 1개 늘어납니다.</p>
+      <div class="ad-progress" aria-hidden="true"><span id="ad-progress-bar"></span></div>
+      <p id="ad-status" class="ad-status" aria-live="polite">광고 준비 중…</p>
+      <button id="finish-ad" class="primary" disabled>보상 받기</button>
+      <button id="cancel-ad" class="link-button">닫기</button>
+    </div>
+  </dialog>
+
   <dialog id="help-dialog">
     <h2>게임 방법</h2>
     <ol>
       <li>화살표 방향의 길이 비어 있는 차량을 누릅니다.</li>
-      <li>정류장에 온 차량은 같은 색 승객 3명을 태웁니다.</li>
-      <li>대기 칸이 다른 색 차량으로 모두 막히기 전에 승객을 모두 태우세요.</li>
+      <li>정류장 차량은 같은 색 승객 3명을 태웁니다.</li>
+      <li>대기 칸이 다른 색 차량으로 막히기 전에 모든 승객을 보내세요.</li>
+      <li>부스터와 테스트 광고 보상은 스테이지마다 한 번 사용할 수 있습니다.</li>
     </ol>
     <button id="close-help" class="primary">게임으로 돌아가기</button>
   </dialog>
