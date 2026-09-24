@@ -1,4 +1,4 @@
-import {TOTAL_LEVELS} from './campaign.js?v=25';
+import {TOTAL_LEVELS} from './campaign.js?v=27';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},
@@ -16,7 +16,8 @@ export function normalize(raw={}){
   const selected=Number(r.version||0)<3&&r.level===35&&cleared.includes(35)?36:integer(r.level,0,unlocked);
   return {version:3,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(selected,unlocked),cleared,stars,best,owned,
     decoration:owned.includes(r.decoration)?r.decoration:'lantern',tutorial:!!r.tutorial,
-    sound:r.sound!==false,vibration:r.vibration!==false,
+    sound:r.sound!==false,vibration:r.vibration!==false,music:r.music!==false,
+    musicTrack:['auto','lantern'].includes(r.musicTrack)?r.musicTrack:'auto',musicVolume:Number.isFinite(r.musicVolume)?Math.max(0,Math.min(1,r.musicVolume)):.3,
     boarded:integer(r.boarded,0,9999999),wins:integer(r.wins,0,9999999),
     claimed:(Array.isArray(r.claimed)?r.claimed:[]).filter(x=>['first','crowd','explorer'].includes(x))};
 }

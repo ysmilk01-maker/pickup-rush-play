@@ -1,7 +1,8 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=25';
-import { assignModels, makePassenger } from './appearance.js?v=25';
-import { isFreeform, bounds, LOT, GROUND_SCALE } from './geometry.js?v=25';
-import { passengerQueue } from './demand.js?v=25';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=27';
+import { assignModels, makePassenger } from './appearance.js?v=27';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=27';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=27';
+import { passengerQueue } from './demand.js?v=27';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -58,12 +59,15 @@ export function routeFor(car,state,bayIndex) {
   return smoothPath(path);
 }
 export class Traffic {
-  constructor(level=0,legacy=false) {
+  constructor(level=0,legacy=false,garages=!legacy) {
     this.state=createGame(level,legacy);this.time=0;this.running=[];this.walkers=[];this.puffs=[];this.delivered=0;this.total=0;this.lastBoard=-1;this.undoStack=[];
     if(this.state.cars.some(car=>!car.model))assignModels(this.state.cars);
     const byId=new Map(this.state.cars.map(car=>[car.id,car]));
     this.state.queue=passengerQueue(this.solution.map(id=>byId.get(id)),this.state.levelIndex,CAPACITY,legacy);
-    this.demandVersion=legacy?2:3;
+    this.demandVersion=legacy?2:garages?4:3;
+    this.allCars=this.state.cars.map(c=>({...c}));this.arriving=[];
+    this.state.garage=garages?garagePlan(this.state.cars,this.state.levelIndex):null;
+    const reserved=new Set(pendingCars(this.state).map(c=>c.id));this.state.cars=this.state.cars.filter(c=>!reserved.has(c.id));
     this.total=this.state.queue.length;this.queueVisual=0;this.queueConsumed=0;
     this.state.people=this.state.queue.map((_,id)=>makePassenger(id));
   }
@@ -71,6 +75,7 @@ export class Traffic {
   findSolution(){const s={...this.state,cars:[...this.state.cars]},ids=[];while(s.cars.length){const c=s.cars.find(c=>canExit(s,c));if(!c)throw Error('Locked level');ids.push(c.id);s.cars=s.cars.filter(a=>a.id!==c.id);}return ids;}
   dispatch(id) {
     if(this.state.status==='won')return {ok:false,reason:'won'};
+    if(this.arriving.length)return {ok:false,reason:'incoming'};
     const car=this.state.cars.find(c=>c.id===id);if(!car)return {ok:false,reason:'missing'};
     if(!canExit(this.state,car))return {ok:false,reason:'blocked'};
     const slot=this.state.bays.findIndex(b=>!b);if(slot<0)return {ok:false,reason:'full'};
@@ -82,12 +87,41 @@ export class Traffic {
     return {ok:true,slot};
   }
   snapshot(){return JSON.stringify({state:this.state,delivered:this.delivered,queueConsumed:this.queueConsumed});}
-  undo(){if(this.running.length||this.walkers.length||!this.undoStack.length)return false;const bays=this.state.bays.length;Object.assign(this,JSON.parse(this.undoStack.pop()));while(this.state.bays.length<bays)this.state.bays.push(null);this.queueVisual=this.queueConsumed;return true;}
+  undo(){if(this.arriving.length||this.running.length||this.walkers.length||!this.undoStack.length)return false;const bays=this.state.bays.length;Object.assign(this,JSON.parse(this.undoStack.pop()));while(this.state.bays.length<bays)this.state.bays.push(null);this.queueVisual=this.queueConsumed;this.garageCheckKey=null;return true;}
   addBay(){if(this.state.bays.length>=7||this.state.status==='won')return false;this.state.bays.push(null);this.state.status='playing';return true;}
   sortQueue(color){
     const people=this.state.queue.map((color,i)=>({color,person:this.state.people[i]}));
     const sorted=[...people.filter(p=>p.color===color),...people.filter(p=>p.color!==color)];
     this.state.queue=sorted.map(p=>p.color);this.state.people=sorted.map(p=>p.person);
+  }
+  entryPath(car,gate){
+    const p=carPose(car,this.state),dx=Math.cos(p.angle),dy=Math.sin(p.angle)*GROUND_SCALE;
+    let q=p;
+    for(let distance=4;distance<900;distance+=4){q={x:p.x+dx*distance,y:p.y+dy*distance};const b=bounds({...car,x:q.x,y:q.y});if(b.right<LOT.left-8||b.left>LOT.right+8||b.bottom<LOT.top-8||b.top>LOT.bottom+8)break;}
+    const side=q.x<300?-60:660,start={x:gate?660:-60,y:386};
+    const points=[start];
+    if(q.y>400){points.push({x:side,y:386},{x:side,y:q.y},q,p);}
+    else points.push({x:q.x,y:386},q,p);
+    return smoothPath(points.filter((v,i,a)=>!i||Math.hypot(v.x-a[i-1].x,v.y-a[i-1].y)>1));
+  }
+  updateGarage(dt){
+    for(const incoming of [...this.arriving]){
+      incoming.elapsed+=dt;const t=Math.min(1,incoming.elapsed/incoming.duration);
+      incoming.pose=pathPose(incoming.path,t);
+      // Back into the parking space along the proven clear exit corridor.
+      incoming.pose.angle+=Math.PI;
+      if(t===1){this.state.cars.push(incoming.car);this.state.cars.sort((a,b)=>this.solution.indexOf(a.id)-this.solution.indexOf(b.id));this.state.garage.arrived++;this.arriving=[];}
+    }
+    if(this.arriving.length||this.running.length||this.walkers.length||this.state.status!=='playing')return;
+    const wave=nextWave(this.state);if(!wave||this.state.moves<wave.trigger)return;
+    const checkKey=`${this.state.moves}:${this.state.garage.arrived}`;
+    if(this.garageCheckKey===checkKey)return;this.garageCheckKey=checkKey;
+    const car=wave.cars[0];if(!canExit(this.state,car))return;
+    const path=this.entryPath(car,wave.gate);
+    // Check the complete swept route, including corners, before reserving it.
+    for(let i=0;i<=150;i++){const pose=pathPose(path,i/150);if(this.state.cars.some(other=>overlaps({...car,...pose},other,1)))return;}
+    wave.cars.shift();this.arriving.push({car,gate:wave.gate,path,pose:{...path[0],angle:car.angle},elapsed:0,
+      duration:path.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-path[i].x,p.y-path[i].y),0)/390});
   }
   tick(dt){
     dt=Math.max(0,Math.min(dt,.05))*ANIMATION_SPEED;this.time+=dt;
@@ -107,7 +141,8 @@ export class Traffic {
       if(car.phase==='parked'&&car.loaded===car.capacity){car.phase='leaving';car.elapsed=0;car.duration=1.05;car.path=smoothPath([car.pose,{x:car.pose.x+41,y:363},{x:655,y:363}]);this.running.push(car);}
     }
     this.puffs.forEach(p=>p.age+=dt);this.puffs=this.puffs.filter(p=>p.age<.5);
-    if(!this.state.cars.length&&!this.state.queue.length&&!this.running.length&&!this.walkers.length&&this.state.bays.every(b=>!b))this.state.status='won';
+    this.updateGarage(dt);
+    if(!pendingCars(this.state).length&&!this.arriving.length&&!this.state.cars.length&&!this.state.queue.length&&!this.running.length&&!this.walkers.length&&this.state.bays.every(b=>!b))this.state.status='won';
     else if(this.state.bays.every(Boolean)&&!this.running.length&&!this.walkers.length&&!this.state.bays.some(c=>c.color===this.state.queue[0]))this.state.status='lost';
   }
 }
