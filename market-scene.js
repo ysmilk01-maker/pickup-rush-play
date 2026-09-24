@@ -1,7 +1,7 @@
-import { Scene } from './scene.js?v=20';
-import { BAY, QUEUE, carPose } from './traffic.js?v=20';
-import { vehicleModel, makePassenger } from './appearance.js?v=20';
-import { COLORS } from './game.js?v=20';
+import { Scene } from './scene.js?v=23';
+import { BAY, QUEUE, carPose } from './traffic.js?v=23';
+import { vehicleModel, makePassenger } from './appearance.js?v=23';
+import { COLORS } from './game.js?v=23';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
@@ -14,7 +14,7 @@ export class MarketScene extends Scene {
     }
     c.strokeStyle='#b7a08d';c.lineWidth=1.5;c.beginPath();c.moveTo(0,67);c.quadraticCurveTo(300,120,600,67);c.stroke();
     for(let i=0;i<13;i++){
-      const x=i*50,y=67+25*Math.sin(i/12*Math.PI),col=this.decoration==='mint'?'#a5f1d0':'#ffd58a';
+      const x=i*50,y=67+25*Math.sin(i/12*Math.PI),col=this.decoration==='mint'?'#a5f1d0':this.decoration==='sakura'?'#ffbad7':'#ffd58a';
       const glow=c.createRadialGradient(x,y+5,0,x,y+5,22);glow.addColorStop(0,col+'55');glow.addColorStop(1,col+'00');this.ellipse(x,y+5,22,22,glow);
       this.rect(x-5,y,10,13,4,col);this.rect(x-3,y-3,6,3,1,'#795f59');
     }

@@ -1,5 +1,5 @@
-import { scatterVehicles } from './layout.js?v=20';
-import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=20';
+import { scatterVehicles } from './layout.js?v=23';
+import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=23';
 
 export const COLORS = {
   red: { label: "빨강", short: "●", hex: "#ff5f6d" },
@@ -46,10 +46,15 @@ function solutionFor(cars, rows = 9, cols = 9) {
 }
 
 function denseStage({ prefix, title, district, difficulty, count, layoutSeed, colorShift = 0, rows = 9, cols = 9 }) {
-  const cars=scatterVehicles({seed:layoutSeed,count,prefix,colorFor:i=>colorFor(i,colorShift),types:VEHICLE_TYPES});
-  const solution=solutionFor(cars,rows,cols);
-  const byId=Object.fromEntries(cars.map(car=>[car.id,car]));
-  return {title,district,difficulty,cols,rows,cars,queue:solution.flatMap(id=>repeat(byId[id].color,3)),solution};
+  let content;
+  const build=()=>{
+    if(content)return content;
+    const cars=scatterVehicles({seed:layoutSeed,count,prefix,colorFor:i=>colorFor(i,colorShift),types:VEHICLE_TYPES});
+    const solution=solutionFor(cars,rows,cols),byId=Object.fromEntries(cars.map(car=>[car.id,car]));
+    return content={cars,solution,queue:solution.flatMap(id=>repeat(byId[id].color,3))};
+  };
+  return {title,district,difficulty,cols,rows,count,
+    get cars(){return build().cars;},get queue(){return build().queue;},get solution(){return build().solution;}};
 }
 
 export const LEVELS = [
@@ -66,6 +71,12 @@ export const LEVELS = [
   denseStage({ prefix: "s11", title: "차고지 완전 봉쇄", district: "나이트 시티", difficulty: 5, count: 48, layoutSeed: 1193, colorShift: 5, rows: 10, cols: 10 }),
   denseStage({ prefix: "s12", title: "마지막 초대형 정체", district: "나이트 시티", difficulty: 5, count: 48, layoutSeed: 1297, colorShift: 6, rows: 10, cols: 10 })
 ];
+
+// Two additional districts have independent layouts, not recolored copies.
+for(let i=12;i<36;i++)LEVELS.push(denseStage({
+ prefix:`s${i+1}`,title:`야시장 ${i+1}번 노선`,district:i<24?'달빛 강변':'별빛 항구',
+ difficulty:i<24?4:5,count:i<18?40:48,layoutSeed:2003+i*137,colorShift:i%7,rows:10,cols:10
+}));
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
