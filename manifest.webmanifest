@@ -1,0 +1,10 @@
+{
+  "name": "픽업 러시: 컬러 정류장",
+  "short_name": "픽업 러시",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "orientation": "any",
+  "lang": "ko"
+}
