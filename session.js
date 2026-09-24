@@ -1,6 +1,6 @@
-import {Market} from './market.js?v=31';
-import {pendingCars} from './garage.js?v=31';
-import {CAPACITY} from './traffic.js?v=31';
+import {Market} from './market.js?v=32';
+import {pendingCars} from './garage.js?v=32';
+import {CAPACITY} from './traffic.js?v=32';
 // Only save settled moments, so reload can never strand a person or a car mid-route.
 export function checkpoint(m,run){
   if(m.busy||m.state.status!=='playing')return null;
@@ -25,7 +25,7 @@ export function restoreSession(raw,unlocked){
         for(let i=0;i<plan.waves.length;i++){
           const a=plan.waves[i],b=s.garage.waves[i];
           if(a.gate!==b.gate||a.trigger!==b.trigger||!Array.isArray(b.cars)||b.cars.length>a.cars.length)return null;
-          // Direct calls can remove a needed color from the middle of a wave.
+          // Automatic admissions can remove a needed color from the middle of a wave.
           // Remaining cars must still be an ordered subset of that same wave.
           let cursor=-1;
           for(const car of b.cars){const index=a.cars.findIndex(c=>c.id===car.id);if(index<=cursor)return null;cursor=index;}

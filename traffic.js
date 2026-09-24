@@ -1,8 +1,8 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=31';
-import { assignModels, makePassenger } from './appearance.js?v=31';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=31';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=31';
-import { passengerQueue } from './demand.js?v=31';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=32';
+import { assignModels, makePassenger } from './appearance.js?v=32';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=32';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=32';
+import { passengerQueue } from './demand.js?v=32';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -87,7 +87,7 @@ export class Traffic {
     return {ok:true,slot};
   }
   snapshot(){return JSON.stringify({state:this.state,delivered:this.delivered,queueConsumed:this.queueConsumed});}
-  garageRequest(){
+  garageTransfer(){
     const color=this.state.queue[0];
     if(!color||this.state.status!=='playing'||[...this.state.cars,...this.state.bays.filter(Boolean)].some(c=>c.color===color))return null;
     const wave=this.state.garage?.waves.find(w=>this.state.moves>=w.trigger&&w.cars.some(c=>c.color===color));
@@ -95,17 +95,17 @@ export class Traffic {
     return {car:wave.cars.find(c=>c.color===color),gate:wave.gate,
       ready:!this.running.length&&!this.walkers.length&&!this.arriving.length&&this.state.bays.some(b=>!b)};
   }
-  callGarage(){
-    const request=this.garageRequest();
+  admitGarageToBay(){
+    const request=this.garageTransfer();
     if(!request?.ready)return {ok:false,reason:'unavailable'};
-    this.undoStack.push(this.snapshot());
+    // Automatic admission belongs to the preceding player move for undo.
     const {car,gate}=request,slot=this.state.bays.findIndex(b=>!b),bay=BAY(slot);
     const wave=this.state.garage.waves.find(w=>w.cars.some(c=>c.id===car.id));
     wave.cars=wave.cars.filter(c=>c.id!==car.id);this.state.garage.arrived++;this.state.moves++;
-    // The garage's road runs above the lot, so a requested shuttle can reach
+    // The garage's road runs above the lot, so an automatic shuttle can reach
     // an empty bay without crossing parked cars or changing its saved origin.
     const path=smoothPath([{x:gate?660:-60,y:363},{x:bay.x+41,y:363},bay]);
-    const vehicle={...car,slot,capacity:CAPACITY[car.type],loaded:0,pending:0,passengers:[],phase:'driving',elapsed:0,path};
+    const vehicle={...car,slot,capacity:CAPACITY[car.type],loaded:0,pending:0,passengers:[],phase:'driving',elapsed:0,path,fromGarage:true};
     vehicle.duration=path.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-path[i].x,p.y-path[i].y),0)/390;
     vehicle.pose=pathPose(path,0);this.state.bays[slot]=vehicle;this.running.push(vehicle);
     return {ok:true,slot};
@@ -136,6 +136,7 @@ export class Traffic {
       if(t===1){this.state.cars.push(incoming.car);this.state.cars.sort((a,b)=>this.solution.indexOf(a.id)-this.solution.indexOf(b.id));this.state.garage.arrived++;this.arriving=[];}
     }
     if(this.arriving.length||this.running.length||this.walkers.length||this.state.status!=='playing')return;
+    if(this.garageTransfer()?.ready){this.admitGarageToBay();return;}
     const wave=nextWave(this.state);if(!wave||this.state.moves<wave.trigger)return;
     const checkKey=`${this.state.moves}:${this.state.garage.arrived}`;
     if(this.garageCheckKey===checkKey)return;this.garageCheckKey=checkKey;
