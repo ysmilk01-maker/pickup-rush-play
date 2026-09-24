@@ -27,4 +27,7 @@ export function makePassenger(id) {
   };
 }
 
-export const vehicleModel = car => VEHICLE_MODELS[car.model || car.type];
+export const vehicleModel = car => {
+  const model=VEHICLE_MODELS[car.model || car.type],scale=car.scale||1;
+  return scale===1?model:{...model,length:model.length*scale,width:model.width*scale,body:model.body*scale,roof:model.roof*scale};
+};

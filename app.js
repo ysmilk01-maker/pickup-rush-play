@@ -1,8 +1,8 @@
-import { Traffic, carPose, BAY } from './traffic.js?v=11';
-import { vehicleModel } from './appearance.js?v=11';
-import { Scene } from './scene.js?v=11';
-import { LEVELS, COLORS, VEHICLE_TYPES, canExit } from './game.js?v=11';
-import { platform } from './platform.js?v=11';
+import { Traffic, carPose, BAY } from './traffic.js?v=13';
+import { vehicleModel } from './appearance.js?v=13';
+import { Scene } from './scene.js?v=13';
+import { LEVELS, COLORS, VEHICLE_TYPES, canExit } from './game.js?v=13';
+import { platform } from './platform.js?v=13';
 const $=s=>document.querySelector(s),canvas=$('#scene'),scene=new Scene(canvas);
 let traffic=new Traffic(Math.min(11,platform.loadProgress())),coins=platform.loadCoins(),last=0,selected=null,toastUntil=0,finished=false,modalMode='',adBusy=false,sorts=1;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -34,4 +34,4 @@ function frame(now){const dt=last?Math.min((now-last)/1000,.05):0;last=now;if($(
  if(traffic.state.status!=='playing'&&!finished){finished=true;if(traffic.state.status==='won'){coins+=30;platform.saveCoins(coins);platform.saveProgress(Math.min(traffic.state.levelIndex+1,11));$('#coin-count').textContent=coins;open('모두 탑승했어요!',`<p>${traffic.total}명의 승객이 출발했습니다.<br>레벨 ${traffic.state.levelIndex+1} 완료 · 🟡 +30</p>`,'다음 레벨','win');}else open('정류장이 꽉 찼어요',`<p>같은 색 승객을 기다리는 차량으로<br>모든 정류장이 채워졌습니다.</p>`,traffic.state.bays.length<7?'광고 보고 한 칸 더':'다시 도전','lost');}
  requestAnimationFrame(frame);}
 window.addEventListener('resize',()=>scene.resize());document.addEventListener('visibilitychange',()=>{last=0;});targets();requestAnimationFrame(frame);
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=11').catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=13').catch(()=>{});

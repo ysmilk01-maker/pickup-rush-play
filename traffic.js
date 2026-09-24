@@ -1,5 +1,6 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=11';
-import { assignModels, makePassenger } from './appearance.js?v=11';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=13';
+import { assignModels, makePassenger } from './appearance.js?v=13';
+import { isFreeform, bounds, LOT, GROUND_SCALE } from './geometry.js?v=13';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -8,6 +9,7 @@ export const PROJECT = (x,y) => ({x:300+(x-y)*30.5,y:682+(x+y)*28});
 export const BAY = i => ({x:65+i*76,y:292});
 export const QUEUE = i => i < 18 ? {x:136+i*21,y:189} : {x:493,y:189-(i-17)*16};
 export function carPose(car,state) {
+  if(isFreeform(car))return {x:car.x,y:car.y,angle:car.angle};
   const x=car.c+(car.dir==='L'||car.dir==='R'?(car.len-1)/2:0)-(state.cols-1)/2;
   const y=car.r+(car.dir==='U'||car.dir==='D'?(car.len-1)/2:0)-(state.rows-1)/2;
   const p=PROJECT(x,y), d=DIRECTIONS[car.dir];
@@ -29,19 +31,22 @@ function pathPose(path,t) {
   for(let i=0;i<distances.length;i++) {
     if(length<=distances[i]||i===distances.length-1) {
       const a=path[i],b=path[i+1],f=distances[i]?Math.min(1,length/distances[i]):1;
-      return {x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f,angle:Math.atan2(b.y-a.y,b.x-a.x)};
+      return {x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f,angle:Math.atan2((b.y-a.y)/GROUND_SCALE,b.x-a.x)};
     }
     length-=distances[i];
   }
   return {...path[0],angle:0};
 }
 export function routeFor(car,state,bayIndex) {
-  const p=carPose(car,state),dx=Math.cos(p.angle),dy=Math.sin(p.angle);
+  const p=carPose(car,state),dx=Math.cos(p.angle),dy=Math.sin(p.angle)*GROUND_SCALE;
   // Leave along the real arrow, then travel around the outside of the lot.
   let distance=0,q=p;
   while(distance<800) {
     distance+=4;q={x:p.x+dx*distance,y:p.y+dy*distance};
-    if(Math.abs((q.x-300)/30.5)+Math.abs((q.y-682)/28)>state.rows+1.6) break;
+    if(isFreeform(car)){
+      const box=bounds({...car,x:q.x,y:q.y});
+      if(box.right<LOT.left||box.left>LOT.right||box.bottom<LOT.top||box.top>LOT.bottom)break;
+    }else if(Math.abs((q.x-300)/30.5)+Math.abs((q.y-682)/28)>state.rows+1.6)break;
   }
   const side=q.x<300?18:582;
   const path=[p,q];
@@ -54,7 +59,7 @@ export function routeFor(car,state,bayIndex) {
 export class Traffic {
   constructor(level=0) {
     this.state=createGame(level);this.time=0;this.running=[];this.walkers=[];this.puffs=[];this.delivered=0;this.total=0;this.lastBoard=-1;this.undoStack=[];
-    assignModels(this.state.cars);
+    if(this.state.cars.some(car=>!car.model))assignModels(this.state.cars);
     // Each vehicle now has a real capacity instead of every type boarding three.
     this.state.queue=this.state.queue.filter((_,i)=>i%3===0).flatMap((color,i)=>{
       const car=this.state.cars.find(c=>c.id===this.solution[i]);

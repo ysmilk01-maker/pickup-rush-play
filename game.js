@@ -1,3 +1,6 @@
+import { scatterVehicles } from './layout.js?v=13';
+import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=13';
+
 export const COLORS = {
   red: { label: "빨강", short: "●", hex: "#ff5f6d" },
   blue: { label: "파랑", short: "◆", hex: "#438df3" },
@@ -30,92 +33,6 @@ function colorFor(index, shift) {
   return PALETTE[(index * 3 + shift) % PALETTE.length];
 }
 
-function seededRandom(seed) {
-  let value = seed >>> 0;
-  return () => {
-    value += 0x6D2B79F5;
-    let result = value;
-    result = Math.imul(result ^ (result >>> 15), result | 1);
-    result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
-    return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function shuffle(items, random) {
-  for (let index = items.length - 1; index > 0; index -= 1) {
-    const target = Math.floor(random() * (index + 1));
-    [items[index], items[target]] = [items[target], items[index]];
-  }
-  return items;
-}
-
-function vehiclePlan(count) {
-  if (count <= 20) return { taxi: 4, van: 12, bus: 4 };
-  if (count <= 24) return { taxi: 6, van: 14, bus: 4 };
-  if (count <= 28) return { taxi: 8, van: 14, bus: 6 };
-  if (count <= 32) return { taxi: 8, van: 18, bus: 6 };
-  if (count <= 36) return { taxi: 12, van: 18, bus: 6 };
-  if (count <= 40) return { taxi: 14, van: 20, bus: 6 };
-  return { taxi: 16, van: 24, bus: 8 };
-}
-
-function packedVehicles(seed, count, rows = 9, cols = 9) {
-  const random = seededRandom(seed);
-  const occupied = new Set();
-  const vehicles = [];
-  const remaining = vehiclePlan(count);
-  let holes = rows * cols - Object.entries(remaining).reduce((sum, [type, amount]) => sum + VEHICLE_TYPES[type].len * amount, 0);
-  const key = (r, c) => `${r}:${c}`;
-  const available = (cells) => cells.every((cell) => cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols && !occupied.has(key(cell.r, cell.c)));
-
-  const fill = () => {
-    if (occupied.size === rows * cols) return holes === 0 && Object.values(remaining).every((amount) => amount === 0);
-    let first = null;
-    for (let r = 0; r < rows; r += 1) {
-      for (let c = 0; c < cols; c += 1) {
-        if (!occupied.has(key(r, c))) { first = { r, c }; break; }
-      }
-      if (first) break;
-    }
-    if (!first) return false;
-
-    const options = [];
-    if (holes > 0) options.push({ type: null, cells: [first] });
-    if (remaining.taxi > 0) options.push({ type: "taxi", cells: [first] });
-    if (remaining.van > 0) {
-      options.push({ type: "van", cells: [first, { r: first.r, c: first.c + 1 }] });
-      options.push({ type: "van", cells: [first, { r: first.r + 1, c: first.c }] });
-    }
-    if (remaining.bus > 0) {
-      options.push({ type: "bus", cells: [first, { r: first.r, c: first.c + 1 }, { r: first.r, c: first.c + 2 }] });
-      options.push({ type: "bus", cells: [first, { r: first.r + 1, c: first.c }, { r: first.r + 2, c: first.c }] });
-    }
-
-    shuffle(options, random);
-    for (const option of options.filter((item) => available(item.cells))) {
-      option.cells.forEach((cell) => occupied.add(key(cell.r, cell.c)));
-      if (option.type) {
-        remaining[option.type] -= 1;
-        vehicles.push(option);
-      } else {
-        holes -= 1;
-      }
-      if (fill()) return true;
-      if (option.type) {
-        vehicles.pop();
-        remaining[option.type] += 1;
-      } else {
-        holes += 1;
-      }
-      option.cells.forEach((cell) => occupied.delete(key(cell.r, cell.c)));
-    }
-    return false;
-  };
-
-  if (!fill()) return null;
-  return shuffle(vehicles, random);
-}
-
 function solutionFor(cars, rows = 9, cols = 9) {
   const remaining = cars.map((car) => ({ ...car }));
   const solution = [];
@@ -129,45 +46,10 @@ function solutionFor(cars, rows = 9, cols = 9) {
 }
 
 function denseStage({ prefix, title, district, difficulty, count, layoutSeed, colorShift = 0, rows = 9, cols = 9 }) {
-  for (let attempt = 0; attempt < 96; attempt += 1) {
-    const placements = packedVehicles(layoutSeed + attempt * 7919, count, rows, cols);
-    if (!placements) continue;
-    let taxiIndex = 0;
-    const cars = placements.map(({ type, cells }, index) => {
-      const cellRows = cells.map((cell) => cell.r);
-      const cellCols = cells.map((cell) => cell.c);
-      const r = Math.min(...cellRows);
-      const c = Math.min(...cellCols);
-      let dir;
-      if (type === "taxi") {
-        dir = DIAGONALS[(taxiIndex + layoutSeed) % DIAGONALS.length];
-        taxiIndex += 1;
-      } else if (new Set(cellRows).size === 1) {
-        dir = cellCols.reduce((sum, value) => sum + value, 0) / cellCols.length < (cols - 1) / 2 ? "L" : "R";
-      } else {
-        dir = cellRows.reduce((sum, value) => sum + value, 0) / cellRows.length < (rows - 1) / 2 ? "U" : "D";
-      }
-      return { id: `${prefix}${type[0]}${index}`, color: colorFor(index, colorShift), type, r, c, dir, len: VEHICLE_TYPES[type].len };
-    });
-    if (!Object.keys(DIRECTION_STEPS).every((dir) => cars.some((car) => car.dir === dir))) continue;
-    try {
-      const solution = solutionFor(cars, rows, cols);
-      const byId = Object.fromEntries(cars.map((car) => [car.id, car]));
-      return {
-        title,
-        district,
-        difficulty,
-        cols,
-        rows,
-        cars,
-        queue: solution.flatMap((id) => repeat(byId[id].color, 3)),
-        solution
-      };
-    } catch {
-      // Try the next deterministic packing when a dense arrangement locks.
-    }
-  }
-  throw new Error(`Unable to build a solvable mixed vehicle stage for ${prefix}`);
+  const cars=scatterVehicles({seed:layoutSeed,count,prefix,colorFor:i=>colorFor(i,colorShift),types:VEHICLE_TYPES});
+  const solution=solutionFor(cars,rows,cols);
+  const byId=Object.fromEntries(cars.map(car=>[car.id,car]));
+  return {title,district,difficulty,cols,rows,cars,queue:solution.flatMap(id=>repeat(byId[id].color,3)),solution};
 }
 
 export const LEVELS = [
@@ -228,6 +110,10 @@ function occupiedMap(state, ignoreId = null) {
 }
 
 export function exitPath(state, car) {
+  if(isFreeform(car)) {
+    const hits=blockers(car,state.cars);
+    return Array.from({length:24},(_,i)=>{const distance=(i+1)*40;return {x:car.x+Math.cos(car.angle)*distance,y:car.y+Math.sin(car.angle)*distance*GROUND_SCALE,blocked:hits.some(({hit})=>hit.entry<=distance&&hit.exit>=distance-40)};});
+  }
   const occupied = occupiedMap(state, car.id);
   const cells = cellsFor(car);
   const [dr, dc] = DIRECTION_STEPS[car.dir];
@@ -244,7 +130,7 @@ export function exitPath(state, car) {
 }
 
 export function canExit(state, car) {
-  return exitPath(state, car).every((cell) => !cell.blocked);
+  return isFreeform(car) ? blockers(car,state.cars).length===0 : exitPath(state, car).every((cell) => !cell.blocked);
 }
 
 function saveHistory(state) {
