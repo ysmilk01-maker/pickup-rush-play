@@ -1,5 +1,5 @@
-const CACHE = "pickup-rush-v19";
-const ASSETS = ["./index.html", "./style.css?v=19", "./game.js?v=19", "./app.js?v=19", "./traffic.js?v=19", "./scene.js?v=19", "./market.js?v=19", "./market-scene.js?v=19", "./appearance.js?v=19", "./geometry.js?v=19", "./layout.js?v=19", "./platform.js?v=19", "./manifest.webmanifest?v=19"];
+const CACHE = "pickup-rush-v20";
+const ASSETS = ["./index.html", "./style.css?v=20", "./game.js?v=20", "./app.js?v=20", "./traffic.js?v=20", "./scene.js?v=20", "./market.js?v=20", "./market-scene.js?v=20", "./appearance.js?v=20", "./geometry.js?v=20", "./layout.js?v=20", "./platform.js?v=20", "./manifest.webmanifest?v=20"];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
