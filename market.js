@@ -1,5 +1,5 @@
-import { Traffic, BAY, ANIMATION_SPEED, pathPose, smoothPath } from './traffic.js?v=16';
-import { canExit } from './game.js?v=16';
+import { Traffic, BAY, ANIMATION_SPEED, pathPose, smoothPath } from './traffic.js?v=18';
+import { canExit } from './game.js?v=18';
 
 export const INGREDIENTS = {
   dough: {name:'반죽',icon:'🥟',color:'#f5d9a0'},
@@ -10,12 +10,12 @@ export const INGREDIENTS = {
   rice: {name:'떡',icon:'🍡',color:'#fff2cf'}
 };
 export const RECIPES = {
-  pizza: {name:'화덕 피자',short:'피자',icon:'🍕',color:'red',needs:{dough:1,tomato:1,cheese:1}},
-  burger: {name:'수제 버거',short:'버거',icon:'🍔',color:'yellow',needs:{dough:1,greens:1,meat:1}},
-  tteok: {name:'달콤 떡볶이',short:'떡볶이',icon:'🍢',color:'orange',needs:{rice:2,tomato:1}},
-  taco: {name:'바삭 타코',short:'타코',icon:'🌮',color:'green',needs:{dough:1,greens:1,tomato:1}},
-  skewer: {name:'직화 꼬치',short:'꼬치',icon:'🍖',color:'purple',needs:{meat:2,greens:1}},
-  melt: {name:'치즈 토스트',short:'토스트',icon:'🥪',color:'cyan',needs:{dough:2,cheese:1}}
+  pizza: {name:'화덕 피자',short:'피자',icon:'🍕',mark:'●',color:'red',needs:{dough:1,tomato:1,cheese:1}},
+  burger: {name:'수제 버거',short:'버거',icon:'🍔',mark:'▲',color:'yellow',needs:{dough:1,greens:1,meat:1}},
+  tteok: {name:'달콤 떡볶이',short:'떡볶이',icon:'🍢',mark:'■',color:'orange',needs:{rice:2,tomato:1}},
+  taco: {name:'바삭 타코',short:'타코',icon:'🌮',mark:'◆',color:'green',needs:{dough:1,greens:1,tomato:1}},
+  skewer: {name:'직화 꼬치',short:'꼬치',icon:'🍖',mark:'★',color:'purple',needs:{meat:2,greens:1}},
+  melt: {name:'치즈 토스트',short:'토스트',icon:'🥪',mark:'✚',color:'cyan',needs:{dough:2,cheese:1}}
 };
 export const MARKET_LEVELS = [
   '첫 번째 불빛','골목의 저녁','치즈 쟁탈전','타코의 등장',
@@ -111,7 +111,10 @@ export class Market extends Traffic {
         const key=Object.keys(RECIPES[car.recipe].needs).find(k=>(car.ingredients[k]||0)+(car.incoming[k]||0)<RECIPES[car.recipe].needs[k]&&this.stock[k]>0);
         if(!key)continue;
         this.lastBoard=this.time;this.stock[key]--;car.incoming[key]=(car.incoming[key]||0)+1;car.pending++;
-        const start=PANTRY(key);
+        // Ingredients now visibly emerge from their own large recipe card.
+        const column=this.orders.findIndex(o=>o.id===car.orderId);
+        const row=Object.keys(RECIPES[car.recipe].needs).indexOf(key);
+        const start={x:110+column*194,y:151+row*25};
         this.walkers.push({key,car,elapsed:0,duration:.76,path:[start,{x:start.x,y:244},{x:car.pose.x-19,y:249},{x:car.pose.x-10,y:car.pose.y-10}]});
         break;
       }

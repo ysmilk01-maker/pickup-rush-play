@@ -1,8 +1,8 @@
-import { Scene } from './scene.js?v=16';
-import { BAY, carPose } from './traffic.js?v=16';
-import { vehicleModel, makePassenger } from './appearance.js?v=16';
-import { COLORS } from './game.js?v=16';
-import { RECIPES, INGREDIENTS, PANTRY } from './market.js?v=16';
+import { Scene } from './scene.js?v=18';
+import { BAY, carPose } from './traffic.js?v=18';
+import { vehicleModel, makePassenger } from './appearance.js?v=18';
+import { COLORS } from './game.js?v=18';
+import { RECIPES, INGREDIENTS, PANTRY } from './market.js?v=18';
 
 const shade=(hex,n)=>'#'+hex.slice(1).match(/../g).map(v=>Math.max(0,Math.min(255,parseInt(v,16)+n)).toString(16).padStart(2,'0')).join('');
 export class MarketScene extends Scene {
@@ -21,13 +21,7 @@ export class MarketScene extends Scene {
       this.rect(x-5,y,10,13,4,col);this.rect(x-3,y-3,6,3,1,'#795f59');
     }
     this.text(`NIGHT ${String(t.state.levelIndex+1).padStart(2,'0')}  ·  ${t.state.levelTitle}`,300,87,13,'#f0d4ae');
-    // Ingredient counter, never a floor grid.
-    this.rect(12,188,576,52,13,'#513e48','#886557');
-    for(const [key,info] of Object.entries(INGREDIENTS)){
-      const p=PANTRY(key);this.rect(p.x-36,198,75,35,7,'#2b293c');
-      this.ingredient(p.x-16,p.y+9,key,t.time,.71,false);
-      this.text(t.stock[key],p.x+16,p.y+3,17,'#ffe6b6');
-    }
+    // The expanded recipe cards above show named ingredients and loaded counts.
     // Serving deck and the outer driving lane.
     this.rect(12,250,576,87,13,'#79656b');
     c.fillStyle='#cfad82';c.fillRect(0,337,600,5);
@@ -42,7 +36,7 @@ export class MarketScene extends Scene {
       glow.addColorStop(0,'#ffdaa916');glow.addColorStop(1,'#ffdaa900');this.ellipse(x,y,80,80,glow);
     }
     for(let i=0;i<26;i++){const x=34+(i*163)%530,y=432+(i*83)%459;this.rect(x,y,3,2,1,'#d4b0a51f');}
-    this.text('화살표로 길을 열고 · 주문한 메뉴를 요리해요',300,417,12,'#ffe5b7');
+    this.text('같은 색 + 같은 도형의 트럭을 찾아요',300,417,14,'#ffe5b7');
     for(let i=0;i<7;i++){
       const b=BAY(i),open=i<t.state.bays.length;
       this.ellipse(b.x,b.y+23,30,10,open?'#f3cb9340':'#24223344');
@@ -92,7 +86,7 @@ export class MarketScene extends Scene {
     }
     const badge=p(-l*.33,0,h+4),recipe=RECIPES[car.recipe];
     this.ellipse(badge.x,badge.y-3,car.type==='taxi'?10:13,car.type==='taxi'?8:10,'#fff4d4');
-    this.text(recipe.icon,badge.x,badge.y-4,car.type==='taxi'?17:22);
+    this.text(recipe.mark,badge.x,badge.y-4,car.type==='taxi'?18:24,'#302438');
     if(car.type==='bus'){
       const vent=p(-l*.77,0,h+3);this.ellipse(vent.x,vent.y,5,3,'#536271');
     }
@@ -117,11 +111,18 @@ export class MarketScene extends Scene {
     const cars=t.state.cars.map(car=>({car,pose:carPose(car,t.state),board:true}));
     for(const car of t.state.bays.filter(Boolean))cars.push({car,pose:{...car.pose},board:false});
     cars.sort((a,b)=>a.pose.y-b.pose.y);
+    const preferred=t.orders.find(o=>o.id===t.preferred)?.recipe;
     for(const {car,pose,board} of cars){
       if(selected?.id===car.id&&selected.until>t.time){
         this.ellipse(pose.x,pose.y+5,vehicleModel(car).length*.55,20,'#ffe29788');
       }
-      this.truck(car,pose,board);if(board)this.hit.push({car,pose});
+      if(board&&preferred&&car.recipe===preferred){
+        const model=vehicleModel(car),ca=Math.cos(pose.angle),sa=Math.sin(pose.angle);
+        const outline=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([u,v])=>{u*=model.length/2+4;v*=model.width/2+4;return {x:pose.x+u*ca-v*sa,y:pose.y+(u*sa+v*ca)*.83};});
+        this.polygon(outline,'#fff1bf28','#fff1bc',2.5);
+      }
+      this.c.globalAlpha=board&&preferred&&car.recipe!==preferred ? .65 : 1;
+      this.truck(car,pose,board);this.c.globalAlpha=1;if(board)this.hit.push({car,pose});
     }
     for(const ingredient of t.walkers){
       if(!ingredient.pose)continue;

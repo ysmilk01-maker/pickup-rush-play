@@ -1,6 +1,6 @@
-import { COLORS, canExit } from './game.js?v=16';
-import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=16';
-import { vehicleModel, makePassenger } from './appearance.js?v=16';
+import { COLORS, canExit } from './game.js?v=18';
+import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=18';
+import { vehicleModel, makePassenger } from './appearance.js?v=18';
 
 const shade=(hex,f)=>'#'+hex.slice(1).match(/../g).map(v=>Math.max(0,Math.min(255,parseInt(v,16)+f)).toString(16).padStart(2,'0')).join('');
 export class Scene {
