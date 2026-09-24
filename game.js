@@ -1,5 +1,6 @@
-import { scatterVehicles } from './layout.js?v=23';
-import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=23';
+import { scatterVehicles } from './layout.js?v=24';
+import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=24';
+import { seededRandom } from './demand.js?v=24';
 
 export const COLORS = {
   red: { label: "빨강", short: "●", hex: "#ff5f6d" },
@@ -33,13 +34,19 @@ function colorFor(index, shift) {
   return PALETTE[(index * 3 + shift) % PALETTE.length];
 }
 
-function solutionFor(cars, rows = 9, cols = 9) {
+function solutionFor(cars, rows = 9, cols = 9, seed=1) {
   const remaining = cars.map((car) => ({ ...car }));
-  const solution = [];
+  const solution = [],random=seededRandom(seed);let previous;
   while (remaining.length) {
-    const index = remaining.findIndex((car) => canExit({ cars: remaining, rows, cols }, car));
+    const available=remaining.filter(car=>canExit({cars:remaining,rows,cols},car));
+    // Break the old taxi -> van -> bus order without changing safe geometry.
+    const varied=available.filter(car=>car.type!==previous?.type&&car.color!==previous?.color);
+    const choices=varied.length?varied:available;
+    const chosen=choices[Math.floor(random()*choices.length)];
+    const index=remaining.indexOf(chosen);
     if (index < 0) throw new Error("Generated traffic layout is locked");
     solution.push(remaining[index].id);
+    previous=remaining[index];
     remaining.splice(index, 1);
   }
   return solution;
@@ -50,8 +57,8 @@ function denseStage({ prefix, title, district, difficulty, count, layoutSeed, co
   const build=()=>{
     if(content)return content;
     const cars=scatterVehicles({seed:layoutSeed,count,prefix,colorFor:i=>colorFor(i,colorShift),types:VEHICLE_TYPES});
-    const solution=solutionFor(cars,rows,cols),byId=Object.fromEntries(cars.map(car=>[car.id,car]));
-    return content={cars,solution,queue:solution.flatMap(id=>repeat(byId[id].color,3))};
+    const solution=solutionFor(cars,rows,cols,layoutSeed+1709),byId=Object.fromEntries(cars.map(car=>[car.id,car]));
+    return content={cars:solution.map(id=>byId[id]),solution,queue:solution.flatMap(id=>repeat(byId[id].color,3))};
   };
   return {title,district,difficulty,cols,rows,count,
     get cars(){return build().cars;},get queue(){return build().queue;},get solution(){return build().solution;}};

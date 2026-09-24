@@ -1,12 +1,12 @@
-import {Market,MARKET_LEVELS,DISTRICTS,STALL_ICONS} from './market.js?v=23';
-import {MarketScene} from './market-scene.js?v=23';
-import {LobbyScene} from './lobby-scene.js?v=23';
-import {carPose,BAY,CAPACITY} from './traffic.js?v=23';
-import {canExit,COLORS,LEVELS} from './game.js?v=23';
-import {VEHICLE_MODELS} from './appearance.js?v=23';
-import {platform} from './platform.js?v=23';
-import {normalize,complete,buyTheme,claimMission,MISSIONS,THEMES,TOTAL_LEVELS} from './progress.js?v=23';
-import {checkpoint,restoreSession} from './session.js?v=23';
+import {Market,MARKET_LEVELS,DISTRICTS,STALL_ICONS} from './market.js?v=24';
+import {MarketScene} from './market-scene.js?v=24';
+import {LobbyScene} from './lobby-scene.js?v=24';
+import {carPose,BAY,CAPACITY} from './traffic.js?v=24';
+import {canExit,COLORS,LEVELS} from './game.js?v=24';
+import {VEHICLE_MODELS} from './appearance.js?v=24';
+import {platform} from './platform.js?v=24';
+import {normalize,complete,buyTheme,claimMission,MISSIONS,THEMES,TOTAL_LEVELS} from './progress.js?v=24';
+import {checkpoint,restoreSession} from './session.js?v=24';
 const $=s=>document.querySelector(s),SAVE='night-bite-market-v1',SESSION='night-bite-session-v1';
 function read(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
 let save=normalize(read(SAVE)),market=null,run=null,view='home',tab='home',district=Math.floor(save.level/12),selected=null,last=0,finished=false,adBusy=false,toastUntil=0,returnFocus=null,primaryAction=null,checkpointSignature='',queueSignature='',audio;
@@ -67,9 +67,9 @@ for(const b of document.querySelectorAll('[data-tab]'))b.onclick=()=>{beep();sho
 $('#wallet').onclick=()=>showLobby('shop');$('#profile').onclick=()=>showLobby('records');
 function missions(){showModal('오늘도 한 걸음',`<div class="mission-list">${MISSIONS.map(m=>`<article><div><strong>${m.name}</strong><small>${m.description}</small><progress value="${Math.min(m.target,m.value(save))}" max="${m.target}"></progress><small>${Math.min(m.target,m.value(save))}/${m.target}</small></div><button data-claim="${m.id}" ${save.claimed.includes(m.id)||m.value(save)<m.target?'disabled':''}>${save.claimed.includes(m.id)?'받음':`● ${m.reward}`}</button></article>`).join('')}</div>`,'확인',hideModal);document.querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>{if(claimMission(save,b.dataset.claim)){persist();home();missions();beep(true);}});}
 $('#missions').onclick=missions;
-function help(done=hideModal){showModal('야시장행 셔틀 안내',`<div class="tutorial"><div><b>1</b><p><strong>맨 앞 손님의 옷 색을 보세요.</strong><br>같은 색 셔틀에만 탈 수 있어요.</p></div><div><b>2</b><p><strong>화살표 앞이 열린 차를 꺼내요.</strong><br>다른 차가 막으면 먼저 길을 열어 주세요.</p></div><div><b>3</b><p><strong>가득 차면 야시장으로 출발!</strong><br>4·6·10명이 직접 걸어와 탑승해요.</p></div></div><p class="subtle">승강장 기본 4칸 · 최대 7칸<br>시간제한 없이 천천히 생각해도 괜찮아요.</p>`,'알겠어요',done);}
+function help(done=hideModal){showModal('야시장행 셔틀 안내',`<div class="tutorial"><div><b>1</b><p><strong>맨 앞 손님의 옷 색을 보세요.</strong><br>같은 색 셔틀에만 탈 수 있어요.</p></div><div><b>2</b><p><strong>화살표 앞이 열린 차를 꺼내요.</strong><br>다른 차가 막으면 먼저 길을 열어 주세요.</p></div><div><b>3</b><p><strong>가득 차면 야시장으로 출발!</strong><br>덜 탄 차는 다음 같은 색 손님을 기다려요.</p></div></div><p class="subtle">승강장 기본 4칸 · 최대 7칸<br>시간제한 없이 천천히 생각해도 괜찮아요.</p>`,'알겠어요',done);}
 $('#howto').onclick=()=>help();
-function settings(){showModal('편안한 운행을 위해',`<div class="setting-row"><label for="sound-toggle">효과음</label><input id="sound-toggle" type="checkbox" ${save.sound?'checked':''}></div><div class="setting-row"><label for="vibration-toggle">진동</label><input id="vibration-toggle" type="checkbox" ${save.vibration?'checked':''}></div><button id="settings-help" class="secondary">게임 방법</button><button id="settings-info" class="secondary">저장 및 서비스 안내</button><p class="subtle">버전 0.2.0 · 야시장 한입특급</p>`,'확인',hideModal);$('#sound-toggle').onchange=e=>{save.sound=e.target.checked;persist();beep();};$('#vibration-toggle').onchange=e=>{save.vibration=e.target.checked;persist();haptic();};$('#settings-help').onclick=()=>help(settings);$('#settings-info').onclick=()=>showModal('저장 및 서비스 안내','<p>계정 없이 플레이하며 진행·코인·설정은 이 기기의 브라우저에 저장됩니다. 다른 기기와 동기화되지 않습니다.</p><p>운행 중에는 차량과 손님의 이동이 끝난 시점을 저장합니다. 새로고침하면 마지막 저장 지점에서 이어할 수 있습니다.</p><p class="subtle">현재 공개 웹 체험판입니다. 실제 광고 서비스가 연결되지 않은 환경에서는 확장 버튼에 테스트 광고임을 표시합니다. 유료 결제는 제공하지 않습니다.</p>','설정으로 돌아가기',settings);}
+function settings(){showModal('편안한 운행을 위해',`<div class="setting-row"><label for="sound-toggle">효과음</label><input id="sound-toggle" type="checkbox" ${save.sound?'checked':''}></div><div class="setting-row"><label for="vibration-toggle">진동</label><input id="vibration-toggle" type="checkbox" ${save.vibration?'checked':''}></div><button id="settings-help" class="secondary">게임 방법</button><button id="settings-info" class="secondary">저장 및 서비스 안내</button><p class="subtle">버전 0.2.1 · 야시장 한입특급</p>`,'확인',hideModal);$('#sound-toggle').onchange=e=>{save.sound=e.target.checked;persist();beep();};$('#vibration-toggle').onchange=e=>{save.vibration=e.target.checked;persist();haptic();};$('#settings-help').onclick=()=>help(settings);$('#settings-info').onclick=()=>showModal('저장 및 서비스 안내','<p>계정 없이 플레이하며 진행·코인·설정은 이 기기의 브라우저에 저장됩니다. 다른 기기와 동기화되지 않습니다.</p><p>운행 중에는 차량과 손님의 이동이 끝난 시점을 저장합니다. 새로고침하면 마지막 저장 지점에서 이어할 수 있습니다.</p><p class="subtle">현재 공개 웹 체험판입니다. 실제 광고 서비스가 연결되지 않은 환경에서는 확장 버튼에 테스트 광고임을 표시합니다. 유료 결제는 제공하지 않습니다.</p>','설정으로 돌아가기',settings);}
 $('#lobby-settings').onclick=settings;
 function requestStart(index){
  if(index<0||index>save.unlocked)return;
@@ -77,7 +77,7 @@ function requestStart(index){
 }
 function start(index){
  hideModal();market=new Market(index);run={hints:0,undos:0,seconds:0};save.level=index;persist();finished=false;selected=null;checkpointSignature='';queueSignature='';
- enterGame();checkpointRun();beep();if(!save.tutorial)help(()=>{save.tutorial=true;persist();hideModal();});else toast('맨 앞 손님과 같은 색 셔틀을 찾아보세요.');
+ enterGame();checkpointRun();beep();if(!save.tutorial)help(()=>{save.tutorial=true;persist();hideModal();});else toast('덜 탄 차는 다음 같은 색 손님을 기다려요.');
 }
 function enterGame(){hideModal();view='game';$('#lobby').hidden=true;$('#game').hidden=false;targets();$('#game-level').textContent=`${market.state.levelIndex+1}단계 · ${DISTRICTS[Math.floor(market.state.levelIndex/12)].name}`;}
 function resume(){if(!market)return;enterGame();}
@@ -127,5 +127,5 @@ function frame(now){
  if(now>toastUntil)$('#toast').classList.remove('show');requestAnimationFrame(frame);
 }
 window.addEventListener('resize',()=>{scene.resize();lobbyScene.resize();});document.addEventListener('visibilitychange',()=>{last=0;checkpointRun();});window.addEventListener('pagehide',checkpointRun);
-showLobby();$('#loading').hidden=true;requestAnimationFrame(frame);
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=23').catch(()=>{});
+showLobby();if(restored&&market.demandVersion===1)toast('새 배차 방식은 새 운행부터 적용돼요.',5000);$('#loading').hidden=true;requestAnimationFrame(frame);
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=24').catch(()=>{});

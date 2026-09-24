@@ -1,5 +1,5 @@
-import { Traffic } from './traffic.js?v=23';
-import { canExit, LEVELS } from './game.js?v=23';
+import { Traffic } from './traffic.js?v=24';
+import { canExit, LEVELS } from './game.js?v=24';
 
 // Presentation only. Dispatch, FIFO loading, capacity, departure, undo and loss
 // are inherited unchanged from the original passenger game.

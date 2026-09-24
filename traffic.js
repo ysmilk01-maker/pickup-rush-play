@@ -1,6 +1,7 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=23';
-import { assignModels, makePassenger } from './appearance.js?v=23';
-import { isFreeform, bounds, LOT, GROUND_SCALE } from './geometry.js?v=23';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=24';
+import { assignModels, makePassenger } from './appearance.js?v=24';
+import { isFreeform, bounds, LOT, GROUND_SCALE } from './geometry.js?v=24';
+import { passengerQueue } from './demand.js?v=24';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -60,11 +61,9 @@ export class Traffic {
   constructor(level=0) {
     this.state=createGame(level);this.time=0;this.running=[];this.walkers=[];this.puffs=[];this.delivered=0;this.total=0;this.lastBoard=-1;this.undoStack=[];
     if(this.state.cars.some(car=>!car.model))assignModels(this.state.cars);
-    // Each vehicle now has a real capacity instead of every type boarding three.
-    this.state.queue=this.state.queue.filter((_,i)=>i%3===0).flatMap((color,i)=>{
-      const car=this.state.cars.find(c=>c.id===this.solution[i]);
-      return Array(CAPACITY[car.type]).fill(color);
-    });
+    const byId=new Map(this.state.cars.map(car=>[car.id,car]));
+    this.state.queue=passengerQueue(this.solution.map(id=>byId.get(id)),this.state.levelIndex,CAPACITY);
+    this.demandVersion=2;
     this.total=this.state.queue.length;this.queueVisual=0;this.queueConsumed=0;
     this.state.people=this.state.queue.map((_,id)=>makePassenger(id));
   }

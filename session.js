@@ -1,9 +1,9 @@
-import {Market} from './market.js?v=23';
-import {CAPACITY} from './traffic.js?v=23';
+import {Market} from './market.js?v=24';
+import {CAPACITY} from './traffic.js?v=24';
 // Only save settled moments, so reload can never strand a person or a car mid-route.
 export function checkpoint(m,run){
   if(m.busy||m.state.status!=='playing')return null;
-  return {level:m.state.levelIndex,data:JSON.parse(m.snapshot()),run:{...run},undo:m.undoStack.at(-1)||null};
+  return {rules:m.demandVersion,level:m.state.levelIndex,data:JSON.parse(m.snapshot()),run:{...run},undo:m.undoStack.at(-1)||null};
 }
 export function restoreSession(raw,unlocked){
   try{
@@ -25,6 +25,7 @@ export function restoreSession(raw,unlocked){
     if(!Number.isInteger(d.delivered)||d.delivered<0||d.delivered+s.queue.length!==m.total||d.queueConsumed!==d.delivered||!Number.isInteger(s.moves)||s.moves<0)return null;
     if(!raw.run||!['hints','undos','seconds'].every(k=>Number.isFinite(raw.run[k])&&raw.run[k]>=0))return null;
     Object.assign(m,d);m.queueVisual=m.queueConsumed;
+    m.demandVersion=raw.rules===2?2:1;
     if(typeof raw.undo==='string'){
       try{const previous=restoreSession({level:raw.level,data:JSON.parse(raw.undo),run:raw.run},unlocked);if(previous&&previous.market.state.moves<s.moves)m.undoStack=[raw.undo];}catch{}
     }

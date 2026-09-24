@@ -1,7 +1,7 @@
-import { Scene } from './scene.js?v=23';
-import { BAY, QUEUE, carPose } from './traffic.js?v=23';
-import { vehicleModel, makePassenger } from './appearance.js?v=23';
-import { COLORS } from './game.js?v=23';
+import { Scene } from './scene.js?v=24';
+import { BAY, QUEUE, carPose } from './traffic.js?v=24';
+import { vehicleModel, makePassenger } from './appearance.js?v=24';
+import { COLORS } from './game.js?v=24';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
