@@ -1,5 +1,5 @@
-import { COLORS, LEVELS, MAX_BAYS, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=5";
-import { platform } from "./platform.js?v=5";
+import { COLORS, LEVELS, MAX_BAYS, addBay, canExit, createGame, grantRewardedBay, moveCar, rotateQueue, undo } from "./game.js?v=6";
+import { platform } from "./platform.js?v=6";
 
 const $ = (selector) => document.querySelector(selector);
 const board = $("#board");
@@ -97,7 +97,9 @@ function render() {
   $("#level-label").textContent = `LEVEL ${state.levelIndex + 1} / ${LEVELS.length}`;
   $("#level-title").textContent = state.levelTitle;
   $("#district-label").textContent = state.district;
-  $("#traffic-label").textContent = `남은 차량 ${state.cars.length}대`;
+  const horizontal = state.cars.filter((car) => car.dir === "L" || car.dir === "R").length;
+  const vertical = state.cars.length - horizontal;
+  $("#traffic-label").textContent = `${state.cars.length}대 · ↔${horizontal} ↕${vertical}`;
   $("#difficulty-label").textContent = `난이도 ${"★".repeat(state.difficulty)}${"☆".repeat(5 - state.difficulty)}`;
   $("#level-progress").style.width = `${((state.levelIndex + 1) / LEVELS.length) * 100}%`;
   $("#coin-count").textContent = coins;
@@ -276,5 +278,5 @@ picker.replaceChildren(...LEVELS.map((level, index) => {
 render();
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {
-  navigator.serviceWorker.register("./sw.js?v=5").catch(() => {});
+  navigator.serviceWorker.register("./sw.js?v=6").catch(() => {});
 }

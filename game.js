@@ -18,58 +18,99 @@ function colorFor(index, shift) {
   return PALETTE[(index * 3 + shift) % PALETTE.length];
 }
 
-function denseStage({ prefix, title, district, difficulty, count, mode, colorShift = 0 }) {
-  const cars = [];
+function seededRandom(seed) {
+  let value = seed >>> 0;
+  return () => {
+    value += 0x6D2B79F5;
+    let result = value;
+    result = Math.imul(result ^ (result >>> 15), result | 1);
+    result ^= result + Math.imul(result ^ (result >>> 7), result | 61);
+    return ((result ^ (result >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffle(items, random) {
+  for (let index = items.length - 1; index > 0; index -= 1) {
+    const target = Math.floor(random() * (index + 1));
+    [items[index], items[target]] = [items[target], items[index]];
+  }
+  return items;
+}
+
+function mixedDominoes(seed, rows = 8, cols = 8) {
+  const random = seededRandom(seed);
+  const occupied = new Set();
+  const dominoes = [];
+  const key = (r, c) => `${r}:${c}`;
+
+  const fill = () => {
+    if (occupied.size === rows * cols) return true;
+    let minimum = 5;
+    let candidates = [];
+    for (let r = 0; r < rows; r += 1) {
+      for (let c = 0; c < cols; c += 1) {
+        if (occupied.has(key(r, c))) continue;
+        const options = [[0, 1], [1, 0], [0, -1], [-1, 0]]
+          .map(([dr, dc]) => ({ r: r + dr, c: c + dc }))
+          .filter((cell) => cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols && !occupied.has(key(cell.r, cell.c)));
+        if (options.length < minimum) {
+          minimum = options.length;
+          candidates = [{ r, c, options }];
+        } else if (options.length === minimum) {
+          candidates.push({ r, c, options });
+        }
+      }
+    }
+
+    const candidate = candidates[Math.floor(random() * candidates.length)];
+    if (!candidate) return false;
+    shuffle(candidate.options, random);
+    for (const partner of candidate.options) {
+      occupied.add(key(candidate.r, candidate.c));
+      occupied.add(key(partner.r, partner.c));
+      dominoes.push([{ r: candidate.r, c: candidate.c }, partner]);
+      if (fill()) return true;
+      dominoes.pop();
+      occupied.delete(key(candidate.r, candidate.c));
+      occupied.delete(key(partner.r, partner.c));
+    }
+    return false;
+  };
+
+  if (!fill()) throw new Error(`Unable to build mixed traffic layout for seed ${seed}`);
+  return shuffle(dominoes, random);
+}
+
+function solutionFor(cars, rows = 8, cols = 8) {
+  const remaining = cars.map((car) => ({ ...car }));
   const solution = [];
+  while (remaining.length) {
+    const index = remaining.findIndex((car) => canExit({ cars: remaining, rows, cols }, car));
+    if (index < 0) throw new Error("Generated traffic layout is locked");
+    solution.push(remaining[index].id);
+    remaining.splice(index, 1);
+  }
+  return solution;
+}
+
+function denseStage({ prefix, title, district, difficulty, count, layoutSeed, colorShift = 0 }) {
+  const cars = [];
   const addCar = (id, r, c, dir) => {
     cars.push({ id, color: colorFor(cars.length, colorShift), r, c, dir, len: 2 });
     return id;
   };
 
-  if (mode === "horizontal") {
-    const laneCount = count / 4;
-    const rowOffset = Math.floor((8 - laneCount) / 2);
-    for (let lane = 0; lane < laneCount; lane += 1) {
-      const r = rowOffset + lane;
-      const ids = [
-        addCar(`${prefix}r${lane}a`, r, 0, "L"),
-        addCar(`${prefix}r${lane}b`, r, 2, "L"),
-        addCar(`${prefix}r${lane}c`, r, 4, "R"),
-        addCar(`${prefix}r${lane}d`, r, 6, "R")
-      ];
-      solution.push(ids[0], ids[3], ids[1], ids[2]);
+  mixedDominoes(layoutSeed).slice(0, count).forEach(([first, second], index) => {
+    if (first.r === second.r) {
+      const c = Math.min(first.c, second.c);
+      addCar(`${prefix}h${index}`, first.r, c, c + 0.5 < 3.5 ? "L" : "R");
+    } else {
+      const r = Math.min(first.r, second.r);
+      addCar(`${prefix}v${index}`, r, first.c, r + 0.5 < 3.5 ? "U" : "D");
     }
-  } else if (mode === "vertical") {
-    const laneCount = count / 4;
-    const colOffset = Math.floor((8 - laneCount) / 2);
-    for (let lane = 0; lane < laneCount; lane += 1) {
-      const c = colOffset + lane;
-      const ids = [
-        addCar(`${prefix}c${lane}a`, 0, c, "U"),
-        addCar(`${prefix}c${lane}b`, 2, c, "U"),
-        addCar(`${prefix}c${lane}c`, 4, c, "D"),
-        addCar(`${prefix}c${lane}d`, 6, c, "D")
-      ];
-      solution.push(ids[0], ids[3], ids[1], ids[2]);
-    }
-  } else {
-    const down = [];
-    const up = [];
-    for (let c = 0; c < 8; c += 1) down.push(addCar(`${prefix}d${c}`, 6, c, "D"));
-    for (let r = 0; r < 4; r += 1) {
-      const ids = [
-        addCar(`${prefix}h${r}a`, r, 0, "L"),
-        addCar(`${prefix}h${r}b`, r, 2, "L"),
-        addCar(`${prefix}h${r}c`, r, 4, "R"),
-        addCar(`${prefix}h${r}d`, r, 6, "R")
-      ];
-      solution.push(ids[0], ids[3], ids[1], ids[2]);
-    }
-    for (let c = 0; c < 8; c += 1) up.push(addCar(`${prefix}u${c}`, 4, c, "U"));
-    solution.unshift(...down);
-    solution.push(...up);
-  }
+  });
 
+  const solution = solutionFor(cars);
   const byId = Object.fromEntries(cars.map((car) => [car.id, car]));
   return {
     title,
@@ -84,18 +125,18 @@ function denseStage({ prefix, title, district, difficulty, count, mode, colorShi
 }
 
 export const LEVELS = [
-  denseStage({ prefix: "s1", title: "출근 대혼잡", district: "다운타운", difficulty: 2, count: 20, mode: "horizontal" }),
-  denseStage({ prefix: "s2", title: "수직 환승로", district: "다운타운", difficulty: 2, count: 20, mode: "vertical", colorShift: 1 }),
-  denseStage({ prefix: "s3", title: "도심 밀집 구역", district: "다운타운", difficulty: 3, count: 24, mode: "horizontal", colorShift: 2 }),
-  denseStage({ prefix: "s4", title: "시장 앞 병목", district: "다운타운", difficulty: 3, count: 24, mode: "vertical", colorShift: 3 }),
-  denseStage({ prefix: "s5", title: "강변 정체", district: "리버사이드", difficulty: 3, count: 28, mode: "horizontal", colorShift: 4 }),
-  denseStage({ prefix: "s6", title: "무지개 차고", district: "리버사이드", difficulty: 4, count: 28, mode: "vertical", colorShift: 5 }),
-  denseStage({ prefix: "s7", title: "공원 만차", district: "리버사이드", difficulty: 4, count: 32, mode: "horizontal", colorShift: 6 }),
-  denseStage({ prefix: "s8", title: "퇴근 러시아워", district: "리버사이드", difficulty: 4, count: 32, mode: "vertical" }),
-  denseStage({ prefix: "s9", title: "네온 교차 봉쇄", district: "나이트 시티", difficulty: 5, count: 32, mode: "interlocked", colorShift: 1 }),
-  denseStage({ prefix: "s10", title: "심야 터미널", district: "나이트 시티", difficulty: 5, count: 32, mode: "interlocked", colorShift: 3 }),
-  denseStage({ prefix: "s11", title: "차고지 완전 봉쇄", district: "나이트 시티", difficulty: 5, count: 32, mode: "interlocked", colorShift: 5 }),
-  denseStage({ prefix: "s12", title: "마지막 초대형 정체", district: "나이트 시티", difficulty: 5, count: 32, mode: "interlocked", colorShift: 6 })
+  denseStage({ prefix: "s1", title: "출근 대혼잡", district: "다운타운", difficulty: 2, count: 20, layoutSeed: 101 }),
+  denseStage({ prefix: "s2", title: "사방 환승로", district: "다운타운", difficulty: 2, count: 20, layoutSeed: 211, colorShift: 1 }),
+  denseStage({ prefix: "s3", title: "도심 밀집 구역", district: "다운타운", difficulty: 3, count: 24, layoutSeed: 307, colorShift: 2 }),
+  denseStage({ prefix: "s4", title: "시장 앞 병목", district: "다운타운", difficulty: 3, count: 24, layoutSeed: 419, colorShift: 3 }),
+  denseStage({ prefix: "s5", title: "강변 교차 정체", district: "리버사이드", difficulty: 3, count: 28, layoutSeed: 523, colorShift: 4 }),
+  denseStage({ prefix: "s6", title: "무지개 차고", district: "리버사이드", difficulty: 4, count: 28, layoutSeed: 631, colorShift: 5 }),
+  denseStage({ prefix: "s7", title: "공원 사방 만차", district: "리버사이드", difficulty: 4, count: 32, layoutSeed: 743, colorShift: 6 }),
+  denseStage({ prefix: "s8", title: "퇴근 러시아워", district: "리버사이드", difficulty: 4, count: 32, layoutSeed: 857 }),
+  denseStage({ prefix: "s9", title: "네온 교차 봉쇄", district: "나이트 시티", difficulty: 5, count: 32, layoutSeed: 967, colorShift: 1 }),
+  denseStage({ prefix: "s10", title: "심야 터미널", district: "나이트 시티", difficulty: 5, count: 32, layoutSeed: 1087, colorShift: 3 }),
+  denseStage({ prefix: "s11", title: "차고지 완전 봉쇄", district: "나이트 시티", difficulty: 5, count: 32, layoutSeed: 1193, colorShift: 5 }),
+  denseStage({ prefix: "s12", title: "마지막 초대형 정체", district: "나이트 시티", difficulty: 5, count: 32, layoutSeed: 1297, colorShift: 6 })
 ];
 
 const clone = (value) => JSON.parse(JSON.stringify(value));

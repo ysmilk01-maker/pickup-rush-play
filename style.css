@@ -91,10 +91,15 @@ h1 { margin: 0; font-size: clamp(20px, 5.8vw, 27px); line-height: 1.05; letter-s
 .board.changing { opacity: .2; transform: translateY(7px); }
 .car { position: absolute; z-index: 2; border: 3px solid #fff; border-radius: 13px; display: flex; align-items: center; justify-content: space-evenly; color: #17304d; box-shadow: inset 0 -8px #17304d2e, 0 5px 0 #314556, 0 8px 9px #23374766; cursor: pointer; transition: transform 160ms var(--ease-out), filter 160ms var(--ease-out), opacity 160ms var(--ease-out); }
 .car::before, .car::after { content: ""; width: 9px; height: 56%; border-radius: 4px; background: #24405e; border: 1px solid #ffffffb5; }
+.car[data-dir="U"], .car[data-dir="D"] { flex-direction: column; }
+.car[data-dir="U"]::before, .car[data-dir="U"]::after,
+.car[data-dir="D"]::before, .car[data-dir="D"]::after { width: 56%; height: 9px; }
+.car[data-dir="U"] { box-shadow: inset 8px 0 #17304d24, 0 5px 0 #314556, 0 8px 9px #23374766; }
+.car[data-dir="D"] { box-shadow: inset -8px 0 #17304d24, 0 5px 0 #314556, 0 8px 9px #23374766; }
 .car.blocked { filter: saturate(.75) brightness(.88); }
 .car.ready { animation: ready-pulse 2.2s var(--ease-in-out) infinite; }
 .car-mark { font-size: clamp(11px, 3.6vw, 18px); color: #fff; text-shadow: 0 2px #17304d80; }
-.car-arrow { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: #ffffffdf; font-weight: 1000; }
+.car-arrow { display: grid; place-items: center; width: 23px; height: 23px; flex: 0 0 23px; border-radius: 50%; background: #ffffffea; font-size: 16px; font-weight: 1000; box-shadow: 0 2px 0 #17304d35; }
 .car.is-blocked { animation: blocked-shake 220ms var(--ease-in-out); }
 .car.is-leaving { pointer-events: none; animation-play-state: paused; }
 .travel-car { position: fixed; z-index: 50; margin: 0; pointer-events: none; animation: none !important; }
