@@ -1,8 +1,8 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=27';
-import { assignModels, makePassenger } from './appearance.js?v=27';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=27';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=27';
-import { passengerQueue } from './demand.js?v=27';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=29';
+import { assignModels, makePassenger } from './appearance.js?v=29';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=29';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=29';
+import { passengerQueue } from './demand.js?v=29';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -59,12 +59,12 @@ export function routeFor(car,state,bayIndex) {
   return smoothPath(path);
 }
 export class Traffic {
-  constructor(level=0,legacy=false,garages=!legacy) {
-    this.state=createGame(level,legacy);this.time=0;this.running=[];this.walkers=[];this.puffs=[];this.delivered=0;this.total=0;this.lastBoard=-1;this.undoStack=[];
+  constructor(level=0,legacy=false,garages=!legacy,campaignVersion=garages?5:3) {
+    this.state=createGame(level,legacy,campaignVersion<5);this.time=0;this.running=[];this.walkers=[];this.puffs=[];this.delivered=0;this.total=0;this.lastBoard=-1;this.undoStack=[];
     if(this.state.cars.some(car=>!car.model))assignModels(this.state.cars);
     const byId=new Map(this.state.cars.map(car=>[car.id,car]));
     this.state.queue=passengerQueue(this.solution.map(id=>byId.get(id)),this.state.levelIndex,CAPACITY,legacy);
-    this.demandVersion=legacy?2:garages?4:3;
+    this.demandVersion=legacy?2:campaignVersion;
     this.allCars=this.state.cars.map(c=>({...c}));this.arriving=[];
     this.state.garage=garages?garagePlan(this.state.cars,this.state.levelIndex):null;
     const reserved=new Set(pendingCars(this.state).map(c=>c.id));this.state.cars=this.state.cars.filter(c=>!reserved.has(c.id));

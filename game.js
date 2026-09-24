@@ -1,8 +1,9 @@
-import { scatterVehicles } from './layout.js?v=27';
-import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=27';
-import { seededRandom } from './demand.js?v=27';
-import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=27';
-import campaignLayouts from './campaign-layouts.js?v=27';
+import { scatterVehicles } from './layout.js?v=29';
+import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=29';
+import { seededRandom } from './demand.js?v=29';
+import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=29';
+import campaignLayouts from './campaign-layouts.js?v=29';
+import previousLayouts from './campaign-layouts-v4.js?v=29';
 
 export const COLORS = {
   red: { label: "빨강", short: "●", hex: "#ff5f6d" },
@@ -105,8 +106,10 @@ export const LEVELS=Array.from({length:TOTAL_LEVELS},(_,i)=>{
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
-export function createGame(levelIndex = 0, legacy=false) {
-  const levels=legacy?LEGACY_LEVELS:LEVELS;
+const PREVIOUS_LEVELS=LEVELS.map((level,i)=>({...level,cars:previousLayouts[i],solution:previousLayouts[i].map(c=>c.id),queue:previousLayouts[i].flatMap(c=>repeat(c.color,3))}));
+
+export function createGame(levelIndex = 0, legacy=false, previousCampaign=false) {
+  const levels=legacy?LEGACY_LEVELS:previousCampaign?PREVIOUS_LEVELS:LEVELS;
   const level = levels[Math.max(0, Math.min(levelIndex, levels.length - 1))];
   return {
     levelIndex: levels.indexOf(level),

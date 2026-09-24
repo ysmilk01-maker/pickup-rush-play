@@ -1,37 +1,35 @@
-import { Scene } from './scene.js?v=27';
-import { BAY, QUEUE, carPose } from './traffic.js?v=27';
-import { vehicleModel, makePassenger } from './appearance.js?v=27';
-import { COLORS } from './game.js?v=27';
+import {districtStyle,districtSky,districtStop} from './district-scene.js?v=29';
+import { Scene } from './scene.js?v=29';
+import { BAY, QUEUE, carPose } from './traffic.js?v=29';
+import { vehicleModel, makePassenger } from './appearance.js?v=29';
+import { COLORS } from './game.js?v=29';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
   background(t){
-    const c=this.c,g=c.createLinearGradient(0,0,0,1080);
-    g.addColorStop(0,'#161831');g.addColorStop(.37,'#302940');g.addColorStop(1,'#211e33');c.fillStyle=g;c.fillRect(0,0,600,1080);
-    for(let i=0;i<15;i++){
-      const x=i*44,h=25+(i*31)%55;this.rect(x,78-h,39,h,3,'#252641');
-      for(let j=0;j<3;j++)this.rect(x+8+j*9,67-h,4,7,1,i%3?'#ffc77b65':'#7e81bb50');
-    }
-    c.strokeStyle='#b7a08d';c.lineWidth=1.5;c.beginPath();c.moveTo(0,67);c.quadraticCurveTo(300,120,600,67);c.stroke();
+    const c=this.c,p=districtStyle(t.state.levelIndex),g=c.createLinearGradient(0,0,0,1080);
+    g.addColorStop(0,p.sky);g.addColorStop(.37,p.horizon);g.addColorStop(1,p.deep);c.fillStyle=g;c.fillRect(0,0,600,1080);
+    districtSky(this,p);
+    c.strokeStyle=p.edge;c.lineWidth=1.5;c.beginPath();c.moveTo(0,67);c.quadraticCurveTo(300,120,600,67);c.stroke();
     for(let i=0;i<13;i++){
-      const x=i*50,y=67+25*Math.sin(i/12*Math.PI),col=this.decoration==='mint'?'#a5f1d0':this.decoration==='sakura'?'#ffbad7':'#ffd58a';
+      const x=i*50,y=67+25*Math.sin(i/12*Math.PI),col=this.decoration==='mint'?'#a5f1d0':this.decoration==='sakura'?'#ffbad7':p.accent;
       const glow=c.createRadialGradient(x,y+5,0,x,y+5,22);glow.addColorStop(0,col+'55');glow.addColorStop(1,col+'00');this.ellipse(x,y+5,22,22,glow);
       this.rect(x-5,y,10,13,4,col);this.rect(x-3,y-3,6,3,1,'#795f59');
     }
     this.text(`NIGHT ${String(t.state.levelIndex+1).padStart(2,'0')}  ·  ${t.state.levelTitle}`,300,87,13,'#f0d4ae');
     // Night-market visitors wait for their color-coded shuttle.
-    this.rect(21,155,83,57,9,'#2a263b','#ad8564');
+    this.rect(21,155,83,57,9,p.building,p.edge);
     this.text(t.state.queue.length,62,176,24,'#fff1c9');this.text('대기 손님',62,199,11,'#e7bf8a');
     this.rect(115,196,397,13,6,'#836b6e');
     c.strokeStyle='#d7aa77';c.lineWidth=2;c.beginPath();c.moveTo(126,212);c.lineTo(522,212);c.lineTo(522,94);c.stroke();
     this.text('↓ 탑승',137,230,12,'#ffe2aa');
     // Shuttle platform and the road leading to the night market.
-    this.rect(12,250,576,87,13,'#79656b');
-    c.fillStyle='#cfad82';c.fillRect(0,337,600,5);
-    c.fillStyle='#232536';c.fillRect(0,343,600,49);
+    this.rect(12,250,576,87,13,p.platform);
+    c.fillStyle=p.edge;c.fillRect(0,337,600,5);
+    c.fillStyle=p.road;c.fillRect(0,343,600,49);
     c.setLineDash([13,18]);c.strokeStyle='#b3997150';c.lineWidth=2;c.beginPath();c.moveTo(0,368);c.lineTo(600,368);c.stroke();c.setLineDash([]);
-    this.rect(13,401,574,515,26,'#514953','#8d7779');
-    const floor=c.createLinearGradient(0,400,0,916);floor.addColorStop(0,'#756574');floor.addColorStop(1,'#5b505e');
+    this.rect(13,401,574,515,26,p.lotBottom,p.edge);
+    const floor=c.createLinearGradient(0,400,0,916);floor.addColorStop(0,p.lotTop);floor.addColorStop(1,p.lotBottom);
     this.rect(18,406,564,505,23,floor);
     // Soft pools of light and scattered paper flecks break up the pavement.
     for(let i=0;i<5;i++){
@@ -41,7 +39,8 @@ export class MarketScene extends Scene {
     for(let i=0;i<26;i++){const x=34+(i*163)%530,y=432+(i*83)%459;this.rect(x,y,3,2,1,'#d4b0a51f');}
     if(!t.state.garage)this.text('같은 색 셔틀을 타고 야시장으로!',300,417,14,'#ffe5b7');
     if(t.state.garage)for(let g=0;g<(t.state.levelIndex>=30?2:1);g++){const x=g?566:34,open=t.arriving.some(a=>a.gate===g);this.rect(x-26,386,52,34,7,open?'#efbc78':'#473a50','#c59e80');this.text(g?'B':'A',x,405,18,open?'#553c44':'#f7d8a9');}
-    this.rect(424,348,160,30,7,'#5c4149','#c19b6c');this.text('야시장 입구 →',504,363,15,'#ffe5b7');
+    districtStop(this,p,t.state.levelIndex);
+    this.rect(424,348,160,30,7,p.building,p.edge);this.text('야시장 입구 →',504,363,15,'#ffe5b7');
     for(let i=0;i<7;i++){
       const b=BAY(i),open=i<t.state.bays.length;
       this.ellipse(b.x,b.y+23,30,10,open?'#f3cb9340':'#24223344');
