@@ -1,6 +1,6 @@
-import {BAY} from './traffic.js?v=55';
-import {COLORS} from './game.js?v=55';
-import {districtLabel} from './district-scene.js?v=55';
+import {BAY} from './traffic.js?v=56';
+import {COLORS} from './game.js?v=56';
+import {districtLabel} from './district-scene.js?v=56';
 
 const line=(s,points,color,width=1)=>{const c=s.c;c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.strokeStyle=color;c.lineWidth=width;c.stroke();};
 const poly=(s,points,color)=>s.polygon(points.map(([x,y])=>({x,y})),color);

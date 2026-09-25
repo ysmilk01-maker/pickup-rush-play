@@ -1,10 +1,10 @@
-import {validShuffleSlots} from './shuffle.js?v=55';
-import {validQueueCut} from './queue-cut.js?v=55';
-import {validPuzzle} from './puzzle.js?v=55';
-import {Market} from './market.js?v=55';
-import {pendingCars} from './garage.js?v=55';
-import {CAPACITY} from './traffic.js?v=55';
-import {emergencyLimit} from './emergency.js?v=55';
+import {validShuffleSlots} from './shuffle.js?v=56';
+import {validQueueCut} from './queue-cut.js?v=56';
+import {validPuzzle} from './puzzle.js?v=56';
+import {Market} from './market.js?v=56';
+import {pendingCars} from './garage.js?v=56';
+import {CAPACITY} from './traffic.js?v=56';
+import {emergencyLimit} from './emergency.js?v=56';
 // Only save settled moments, so reload can never strand a person or a car mid-route.
 export function checkpoint(m,run){
   if(m.busy||m.state.status!=='playing')return null;

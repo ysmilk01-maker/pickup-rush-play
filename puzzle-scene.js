@@ -1,5 +1,5 @@
-import {vehicleModel} from './appearance.js?v=55';
-import {GROUND_SCALE} from './geometry.js?v=55';
+import {vehicleModel} from './appearance.js?v=56';
+import {GROUND_SCALE} from './geometry.js?v=56';
 
 export function keyBadge(scene,x,y,label){
  scene.ellipse(x,y,11,11,'#172c3e');scene.ellipse(x-3,y-2,3.5,3.5,'#ffdb79');scene.ellipse(x-3,y-2,1.4,1.4,'#172c3e');

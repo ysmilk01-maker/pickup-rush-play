@@ -1,7 +1,7 @@
-import {canExit} from './game.js?v=55';
-import {vehicleModel} from './appearance.js?v=55';
-import {pendingCars} from './garage.js?v=55';
-import {revealCars} from './puzzle.js?v=55';
+import {canExit} from './game.js?v=56';
+import {vehicleModel} from './appearance.js?v=56';
+import {pendingCars} from './garage.js?v=56';
+import {revealCars} from './puzzle.js?v=56';
 
 const poseKeys=['x','y','angle','dir'];
 const pose=c=>Object.fromEntries(poseKeys.map(k=>[k,c[k]]));

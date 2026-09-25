@@ -1,15 +1,16 @@
-import {tickQueueCut} from './queue-cut.js?v=55';
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=55';
-import { assignModels, makePassenger } from './appearance.js?v=55';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=55';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=55';
-import { passengerQueue } from './demand.js?v=55';
-import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=55';
+import {tickQueueCut} from './queue-cut.js?v=56';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=56';
+import { assignModels, makePassenger } from './appearance.js?v=56';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=56';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=56';
+import { passengerQueue } from './demand.js?v=56';
+import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=56';
 
-import {createPuzzle,revealCars,unlockFromVehicle,hiddenCar} from './puzzle.js?v=55';
+import {createPuzzle,revealCars,unlockFromVehicle,hiddenCar} from './puzzle.js?v=56';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
+export const VEHICLE_SPEED = 1.5; // Relative to the previous vehicle pace; passenger timing stays unchanged.
 export const DIRECTIONS = {R:[1,0],L:[-1,0],U:[0,-1],D:[0,1],NE:[1,-1],NW:[-1,-1],SE:[1,1],SW:[-1,1]};
 export const PROJECT = (x,y) => ({x:300+(x-y)*30.5,y:682+(x+y)*28});
 export const BAY = i => ({x:65+i*76,y:292});
@@ -143,7 +144,7 @@ export class Traffic {
   }
   updateGarage(dt){
     for(const incoming of [...this.arriving]){
-      incoming.elapsed+=dt;const t=Math.min(1,incoming.elapsed/incoming.duration);
+      incoming.elapsed+=dt*VEHICLE_SPEED;const t=Math.min(1,incoming.elapsed/incoming.duration);
       incoming.pose=pathPose(incoming.path,t);
       // Back into the parking space along the proven clear exit corridor.
       incoming.pose.angle+=Math.PI;
@@ -180,7 +181,7 @@ export class Traffic {
     dt=Math.max(0,Math.min(dt,.05))*ANIMATION_SPEED;this.time+=dt;
     this.queueVisual+=(this.queueConsumed-this.queueVisual)*Math.min(1,dt*9);
     for(const car of [...this.running]){
-      car.elapsed+=dt;const t=Math.min(1,car.elapsed/car.duration);car.pose=pathPose(car.path,t);unlockFromVehicle(this,car);
+      car.elapsed+=dt*VEHICLE_SPEED;const t=Math.min(1,car.elapsed/car.duration);car.pose=pathPose(car.path,t);unlockFromVehicle(this,car);
       if(Math.random()<dt*25)this.puffs.push({x:car.pose.x-Math.cos(car.pose.angle)*30,y:car.pose.y-Math.sin(car.pose.angle)*30,age:0});
       if(t===1){this.running=this.running.filter(c=>c!==car);if(car.phase==='leaving'){this.state.bays[car.slot]=null;}else{car.phase='parked';car.pose={...BAY(car.slot),angle:-2.1};this.onEvent?.({type:'arrival',carId:car.id});}}
     }

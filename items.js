@@ -1,16 +1,16 @@
-import {shuffleParking} from './shuffle.js?v=55';
-import {checkpoint} from './session.js?v=55';
-import {canExit} from './game.js?v=55';
-import {hiddenCar} from './puzzle.js?v=55';
+import {shuffleParking} from './shuffle.js?v=56';
+import {checkpoint} from './session.js?v=56';
+import {canExit} from './game.js?v=56';
+import {hiddenCar} from './puzzle.js?v=56';
 
 export const ITEMS=[
- {id:'undo',name:'되돌리기',icon:'↶',price:100,color:'#ddcdf6',description:'마지막 배차 전으로 한 번 돌아가요.',detail:'1개당 1회 · 승강장이 가득 차도 사용 가능 · 경과 시간 유지'},
- {id:'bay',name:'승강장 확장권',icon:'＋',price:100,color:'#ffdaa1',description:'광고 없이 승강장 한 칸을 즉시 열어요.',detail:'이번 운행에서만 적용 · 최대 7칸 · 별은 완료 시간으로 평가'},
- {id:'navigator',name:'자동 길잡이',icon:'➤',price:100,color:'#bce9dd',description:'다음에 보낼 수 있는 셔틀을 계속 표시해요.',detail:'이번 운행 내내 적용 · 자동 배차 아님 · 별은 완료 시간으로 평가'},
- {id:'manifest',name:'대기열 미리보기',icon:'▤',price:100,color:'#ddcdf6',description:'화면 밖 손님까지 전체 색상 순서를 확인해요.',detail:'이번 운행에서 여러 번 열람 · 별은 완료 시간으로 평가'},
- {id:'shuffle',name:'랜덤 섞기',icon:'⤨',price:100,color:'#ffcfdd',description:'주차장 차량들의 자리를 랜덤으로 바꿔요.',detail:'손님 줄·승강장 유지 · 섞기 전 되돌리기 기록 초기화'}
+ {id:'undo',name:'되돌리기',icon:'↶',price:200,color:'#ddcdf6',description:'마지막 배차 전으로 한 번 돌아가요.',detail:'1개당 1회 · 승강장이 가득 차도 사용 가능 · 경과 시간 유지'},
+ {id:'bay',name:'승강장 확장권',icon:'＋',price:200,color:'#ffdaa1',description:'광고 없이 승강장 한 칸을 즉시 열어요.',detail:'이번 운행에서만 적용 · 최대 7칸 · 별은 완료 시간으로 평가'},
+ {id:'navigator',name:'자동 길잡이',icon:'➤',price:200,color:'#bce9dd',description:'다음에 보낼 수 있는 셔틀을 계속 표시해요.',detail:'이번 운행 내내 적용 · 자동 배차 아님 · 별은 완료 시간으로 평가'},
+ {id:'manifest',name:'대기열 미리보기',icon:'▤',price:200,color:'#ddcdf6',description:'화면 밖 손님까지 전체 색상 순서를 확인해요.',detail:'이번 운행에서 여러 번 열람 · 별은 완료 시간으로 평가'},
+ {id:'shuffle',name:'랜덤 섞기',icon:'⤨',price:200,color:'#ffcfdd',description:'주차장 차량들의 자리를 랜덤으로 바꿔요.',detail:'손님 줄·승강장 유지 · 섞기 전 되돌리기 기록 초기화'}
 ];
-export const BUNDLE={id:'starter',name:'든든한 운행 세트',price:110,contents:{bay:1,navigator:1,manifest:1}};
+export const BUNDLE={id:'starter',name:'든든한 운행 세트',price:500,contents:{bay:1,navigator:1,manifest:1}};
 export const ITEM_LIMIT=99;
 export function inventory(raw){return Object.fromEntries(ITEMS.map(({id})=>[id,Number.isInteger(raw?.[id])?Math.max(0,Math.min(ITEM_LIMIT,raw[id])):0]));}
 export function purchase(save,id,commit=()=>{}){
