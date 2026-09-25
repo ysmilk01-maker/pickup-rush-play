@@ -1,6 +1,6 @@
-import { COLORS, canExit } from './game.js?v=37';
-import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=37';
-import { vehicleModel, makePassenger } from './appearance.js?v=37';
+import { COLORS, canExit } from './game.js?v=38';
+import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=38';
+import { vehicleModel, makePassenger } from './appearance.js?v=38';
 
 const shade=(hex,f)=>'#'+hex.slice(1).match(/../g).map(v=>Math.max(0,Math.min(255,parseInt(v,16)+f)).toString(16).padStart(2,'0')).join('');
 export class Scene {
@@ -51,9 +51,9 @@ export class Scene {
     c.strokeStyle='#a65f53';c.lineWidth=.8;c.beginPath();c.arc(0,-25+bob,1.5,0,Math.PI);c.stroke();c.restore();
   }
   vehicle(car,pose,{parked=false,arrow=true}={}){
-    const c=this.c,col=COLORS[car.color].hex;
+    const c=this.c,col=car.emergency?'#e9eff0':COLORS[car.color].hex;
     const model=vehicleModel(car),{length,width,body:height,roof:roofHeight}=model;
-    const kind=car.model||car.type,passengerCar=kind==='sedan'||kind==='taxi'||kind==='suv';
+    const kind=car.emergency?'van':car.model||car.type,passengerCar=kind==='sedan'||kind==='taxi'||kind==='suv';
     const a=pose.angle,ca=Math.cos(a),sa=Math.sin(a);
     // A true extruded body: every face, wheel and window uses the same projection.
     const p=(u,v,z=0)=>({x:pose.x+u*ca-v*sa,y:pose.y+(u*sa+v*ca)*.83-z});
@@ -98,6 +98,14 @@ export class Scene {
     }
     for(const v of [-8,8]){const q=p(length/2+.3,v,7);this.ellipse(q.x,q.y,2.4,2,'#fff5bb');const rear=p(-length/2-.3,v,7);this.ellipse(rear.x,rear.y,2,2,'#fa504c');}
     if(arrow){const s=Math.min(length*.26,20),z=roofHeight+7,offset=kind==='taxi'?6:kind==='bus'?8:0;const ar=(u,v)=>p(u+offset,v,z);this.polygon([ar(-s,-2.5),ar(s*.3,-2.5),ar(s*.3,-6),ar(s,0),ar(s*.3,6),ar(s*.3,2.5),ar(-s,2.5)],'#fff', '#42525b',1.3);}
+    if(car.emergency){
+      // Orange rescue chevrons and a two-tone light bar, without a medical emblem.
+      for(const v of [-w-.5,w+.5])this.polygon([p(-l*.65,v,5),p(l*.7,v,5),p(l*.7,v,9),p(-l*.65,v,9)],COLORS[car.color].hex);
+      this.polygon([p(-8,-8,roofHeight+4),p(3,-8,roofHeight+4),p(3,8,roofHeight+4),p(-8,8,roofHeight+4)],'#273b53');
+      for(const [v,color] of [[-5,'#ff7857'],[5,'#58bbff']]){const q=p(-3,v,roofHeight+7);this.ellipse(q.x,q.y,4,3,color);}
+      const q=p(-length*.23,0,roofHeight+7);this.text('!',q.x,q.y,13,'#e77a36');
+      this.rect(pose.x-28,pose.y-43,56,15,6,COLORS[car.color].hex,'#fff');this.text('긴급 '+COLORS[car.color].label,pose.x,pose.y-35,9,'#10263b');
+    }
     if(parked){
       for(let i=0;i<car.loaded;i++){const q=p(-length*.27+(i%5)*length*.13,(Math.floor(i/5)-.5)*11,roofHeight+6);this.person(q.x,q.y,car.color,0,.45,false,car.passengers?.[i]);}
       this.rect(pose.x-17,pose.y+17,34,17,6,'#274767');this.text(`${car.loaded}/${car.capacity}`,pose.x,pose.y+26,11);

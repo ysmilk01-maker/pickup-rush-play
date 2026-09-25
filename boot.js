@@ -25,8 +25,13 @@ if (typeof document !== 'undefined') {
   surfaces.forEach(el => { el.inert = true; });
   retry.onclick = () => location.reload();
   let failed = false;
+  const intro=document.querySelector('#studio-intro');
+  let dismissIntro;
+  const introduction=new Promise(resolve=>{dismissIntro=()=>{intro.hidden=true;resolve();};});
+  const introTimer=setTimeout(dismissIntro,1500);
+  document.querySelector('#studio-skip').onclick=()=>{clearTimeout(introTimer);dismissIntro();};
   prepareStartup({
-    loadGame: () => import('./app.js?v=37'),
+    loadGame: () => import('./app.js?v=38'),
     loadArt: () => {
       const art = document.querySelector('#lobby-art');
       return art.decode(); // A missing illustration falls back to the existing Canvas lobby.
@@ -43,11 +48,12 @@ if (typeof document !== 'undefined') {
       status.textContent = '연결이 조금 느려요. 기다리거나 다시 연결해 주세요.';
       retry.hidden = false;
     }
-  }).then(() => {
+  }).then(async () => {
+    await introduction;
     status.textContent = '준비 완료! 야시장으로 출발해요';
     retry.hidden = true;
     loading.classList.add('boot-ready');
-    // Only the short exit transition remains; cached starts have no minimum wait.
+    // Startup work runs in parallel with the skippable studio introduction.
     setTimeout(() => {
       const wasFocused = loading.contains(document.activeElement);
       loading.hidden = true;
@@ -55,6 +61,7 @@ if (typeof document !== 'undefined') {
       if (wasFocused) document.querySelector('#play').focus();
     }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 240);
   }).catch(() => {
+    clearTimeout(introTimer);dismissIntro();
     failed = true;
     loading.classList.add('boot-error');
     status.textContent = '운행 정보를 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.';

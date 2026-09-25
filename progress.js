@@ -1,4 +1,4 @@
-import {TOTAL_LEVELS} from './campaign.js?v=37';
+import {TOTAL_LEVELS} from './campaign.js?v=38';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},
@@ -15,7 +15,8 @@ export function normalize(raw={}){
   const best={};for(const [k,v] of Object.entries(r.best||{}))if(cleared.includes(Number(k))&&Number.isFinite(v)&&v>0)best[k]=Math.round(v);
   const comboBest=Object.fromEntries(cleared.map(n=>[n,integer(r.comboBest?.[n],0,48)]));
   const selected=Number(r.version||0)<3&&r.level===35&&cleared.includes(35)?36:integer(r.level,0,unlocked);
-  return {version:3,comboBest,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(selected,unlocked),cleared,stars,best,owned,
+  const emergencyWins=(Array.isArray(r.emergencyWins)?r.emergencyWins:[]).filter((n,i,a)=>cleared.includes(n)&&n>=10&&a.indexOf(n)===i);
+  return {version:3,comboBest,emergencyWins,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(selected,unlocked),cleared,stars,best,owned,
     decoration:owned.includes(r.decoration)?r.decoration:'lantern',tutorial:!!r.tutorial,
     sound:r.sound!==false,soundVolume:Number.isFinite(r.soundVolume)?Math.max(0,Math.min(1,r.soundVolume)):.65,vibration:r.vibration!==false,music:r.music!==false,
     musicTrack:['auto','lantern'].includes(r.musicTrack)?r.musicTrack:'auto',musicVolume:Number.isFinite(r.musicVolume)?Math.max(0,Math.min(1,r.musicVolume)):.3,
@@ -30,13 +31,16 @@ export function complete(save,index,run){
   const comboValue=n=>Math.max(0,Math.min(7,n)-1)*5;
   const comboReward=Math.max(0,comboValue(combo)-comboValue(previousCombo));
   save.comboBest??={};save.comboBest[index]=Math.max(combo,previousCombo);
-  const reward=(fresh?40:5)+Math.max(0,stars-previous)*10+comboReward;
+  save.emergencyWins??=[];
+  const emergencyReward=run.emergency===true&&index>=10&&!save.emergencyWins.includes(index)?20:0;
+  if(emergencyReward)save.emergencyWins.push(index);
+  const reward=(fresh?40:5)+Math.max(0,stars-previous)*10+comboReward+emergencyReward;
   if(fresh)save.cleared.push(index);
   save.stars[index]=Math.max(stars,previous);save.coins+=reward;save.wins++;
   save.boarded+=Math.max(0,Math.floor(run.passengers||0));
   save.best[index]=Math.min(save.best[index]||Infinity,Math.max(1,Math.round(run.seconds||1)));
   save.unlocked=Math.min(TOTAL_LEVELS-1,Math.max(save.unlocked,index+1));save.level=Math.min(index+1,TOTAL_LEVELS-1);
-  return {reward,comboReward,combo,stars,fresh,all:save.cleared.length===TOTAL_LEVELS};
+  return {reward,comboReward,emergencyReward,combo,stars,fresh,all:save.cleared.length===TOTAL_LEVELS};
 }
 export function buyTheme(save,id){
   const theme=THEMES.find(t=>t.id===id);if(!theme)return false;

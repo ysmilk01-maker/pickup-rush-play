@@ -1,8 +1,8 @@
-import {districtStyle,districtSky,districtStop} from './district-scene.js?v=37';
-import { Scene } from './scene.js?v=37';
-import { BAY, QUEUE, carPose } from './traffic.js?v=37';
-import { vehicleModel, makePassenger } from './appearance.js?v=37';
-import { COLORS } from './game.js?v=37';
+import {districtStyle,districtSky,districtStop} from './district-scene.js?v=38';
+import { Scene } from './scene.js?v=38';
+import { BAY, QUEUE, carPose } from './traffic.js?v=38';
+import { vehicleModel, makePassenger } from './appearance.js?v=38';
+import { COLORS } from './game.js?v=38';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
@@ -67,6 +67,7 @@ export class MarketScene extends Scene {
     cars.sort((a,b)=>a.pose.y-b.pose.y);
 
     for(const {car,pose,board} of cars){
+      if(car.emergency){const pulse=this.reduceMotion?.24:.16+.15*(1+Math.sin(t.time*3));this.c.globalAlpha=pulse;this.ellipse(pose.x,pose.y-12,31,20,'#70cfff');this.c.globalAlpha=1;}
       if(selected?.id===car.id&&selected.until>t.time){
         this.ellipse(pose.x,pose.y+5,vehicleModel(car).length*.55,20,'#ffe29788');
       }

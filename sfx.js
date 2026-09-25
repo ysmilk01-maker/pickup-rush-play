@@ -1,6 +1,6 @@
 // Original procedural effects. No downloads, speech recordings or third-party samples.
-export const EFFECT_NAMES={ui:'메뉴 선택',select:'차량 출발',blocked:'길 막힘',arrival:'승강장 도착',board:'승객 탑승',depart:'만차 출발',combo:'연속 만차',clear:'클리어',lose:'승강장 가득 참'};
-const LIMITS={ui:.07,select:.08,blocked:.22,arrival:.16,board:.07,depart:.18,combo:.25,clear:1,lose:.5};
+export const EFFECT_NAMES={ui:'메뉴 선택',select:'차량 출발',blocked:'길 막힘',arrival:'승강장 도착',board:'승객 탑승',depart:'만차 출발',combo:'연속 만차',clear:'클리어',lose:'승강장 가득 참',emergency:'응급차 사이렌'};
+const LIMITS={ui:.07,select:.08,blocked:.22,arrival:.16,board:.07,depart:.18,combo:.25,clear:1,lose:.5,emergency:2};
 export class SoundEffects{
  constructor(makeContext=()=>new (globalThis.AudioContext||globalThis.webkitAudioContext)()){
   this.makeContext=makeContext;this.context=null;this.enabled=true;this.volume=.65;this.suspended=false;this.unlocked=false;this.voices=new Set();this.last=new Map();this.step=0;
@@ -44,6 +44,7 @@ export class SoundEffects{
   const now=c.currentTime;if(now-(this.last.get(name)??-Infinity)<LIMITS[name])return false;this.last.set(name,now);
   try{
    switch(name){
+    case 'emergency':for(let i=0;i<4;i++)this.tone(i%2?960:600,.42,.055,i*.32,'triangle',i%2?600:960);break;
     case 'ui':this.tone(660,.055,.045);break;
     case 'select':this.tone(740,.065,.065);this.tone(150,.19,.045,.035,'triangle',260);break;
     case 'blocked':this.tone(145,.105,.085,0,'triangle',105);this.tone(145,.12,.065,.13,'triangle',90);this.hiss(.06,.08,480);break;
