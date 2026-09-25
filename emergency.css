@@ -1,15 +1,11 @@
-#studio-intro{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#1c3949,#091421 70%);color:#fff4da;text-align:center}
+/* Same original logo, colors, tagline and layout as BEATWAVE Launch. */
+#studio-intro{position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:32px;background:radial-gradient(ellipse at 50% 45%,#30274380,transparent 60%),#090b12;color:#f3f5fa;font-family:inherit}
 #studio-intro[hidden]{display:none}
-.studio-symbol{width:120px;height:120px;border:1px solid #e8c07970;border-radius:32px;display:grid;place-items:center;position:relative;box-shadow:0 0 70px #edbb5820;animation:studio-reveal 700ms ease-out both}
-.studio-symbol strong{font-size:49px;letter-spacing:-6px;padding-right:6px;color:#ffd58a}
-.studio-symbol::before,.studio-symbol::after{content:'';position:absolute;border-radius:50%;background:#80e0ce;width:8px;height:8px;left:12px;top:12px;box-shadow:0 0 20px #80e0ce80}
-.studio-symbol::after{left:auto;top:auto;right:12px;bottom:12px;background:#ffc276}
-#studio-intro h2{font-size:23px;letter-spacing:2px;margin:30px 0 8px;animation:studio-reveal 800ms ease-out both}
-#studio-intro p{font-size:10px;letter-spacing:4px;color:#c8b999;margin:0}
-#studio-intro small{margin-top:42px;font-size:12px;color:#8eaaa9;letter-spacing:1px}
-#studio-skip{position:absolute;bottom:7%;border:0;color:#abc0c3;background:transparent;padding:16px;font-size:11px}
-@keyframes studio-reveal{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+.studio-wordmark{text-align:center;width:min(78cqw,420px);max-width:100%}
+.studio-wordmark img{display:block;width:100%;height:auto}
+.studio-wordmark p{font-size:14px;color:#b8bccd;letter-spacing:.08em;margin-top:28px}
+#studio-skip{position:absolute;bottom:max(30px,env(safe-area-inset-bottom));right:28px;border:1px solid #ffffff24;border-radius:30px;background:#ffffff08;color:#e2e5f0;padding:14px 22px;font:inherit;font-size:14px}
 #emergency-hud{position:absolute;z-index:5;top:20.3%;left:19%;right:13%;height:4%;padding:3px 9px;border-radius:10px;border:1px solid #ffbd83;background:#172b3cf5;color:#fff4dd;display:flex;align-items:center;justify-content:space-between;gap:5px;font:inherit;font-size:clamp(11px,3cqw,16px);box-shadow:0 3px 14px #0004}
 #emergency-hud[hidden]{display:none}#emergency-hud strong{color:var(--target-color)}#emergency-hud span{font-weight:800;white-space:nowrap}#emergency-hud.urgent{border-color:#ff8d74;background:#442935}
 .emergency-card{padding:18px 10px;border-radius:16px;background:#152e40;border:1px solid var(--target-color);text-align:center;margin:12px 0}.emergency-card b{display:block;color:var(--target-color);font-size:27px;margin-bottom:10px}.emergency-card strong{font-size:20px;color:#fff1c8}
-@media(prefers-reduced-motion:reduce){.studio-symbol,#studio-intro h2{animation:none}}
+

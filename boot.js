@@ -28,10 +28,10 @@ if (typeof document !== 'undefined') {
   const intro=document.querySelector('#studio-intro');
   let dismissIntro;
   const introduction=new Promise(resolve=>{dismissIntro=()=>{intro.hidden=true;resolve();};});
-  const introTimer=setTimeout(dismissIntro,1500);
+  const introTimer=setTimeout(dismissIntro,1600);
   document.querySelector('#studio-skip').onclick=()=>{clearTimeout(introTimer);dismissIntro();};
   prepareStartup({
-    loadGame: () => import('./app.js?v=38'),
+    loadGame: () => import('./app.js?v=39'),
     loadArt: () => {
       const art = document.querySelector('#lobby-art');
       return art.decode(); // A missing illustration falls back to the existing Canvas lobby.
