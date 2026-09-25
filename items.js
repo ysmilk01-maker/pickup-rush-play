@@ -1,9 +1,10 @@
-import {shuffleParking} from './shuffle.js?v=54';
-import {checkpoint} from './session.js?v=54';
-import {canExit} from './game.js?v=54';
-import {hiddenCar} from './puzzle.js?v=54';
+import {shuffleParking} from './shuffle.js?v=55';
+import {checkpoint} from './session.js?v=55';
+import {canExit} from './game.js?v=55';
+import {hiddenCar} from './puzzle.js?v=55';
 
 export const ITEMS=[
+ {id:'undo',name:'되돌리기',icon:'↶',price:100,color:'#ddcdf6',description:'마지막 배차 전으로 한 번 돌아가요.',detail:'1개당 1회 · 승강장이 가득 차도 사용 가능 · 경과 시간 유지'},
  {id:'bay',name:'승강장 확장권',icon:'＋',price:100,color:'#ffdaa1',description:'광고 없이 승강장 한 칸을 즉시 열어요.',detail:'이번 운행에서만 적용 · 최대 7칸 · 별은 완료 시간으로 평가'},
  {id:'navigator',name:'자동 길잡이',icon:'➤',price:100,color:'#bce9dd',description:'다음에 보낼 수 있는 셔틀을 계속 표시해요.',detail:'이번 운행 내내 적용 · 자동 배차 아님 · 별은 완료 시간으로 평가'},
  {id:'manifest',name:'대기열 미리보기',icon:'▤',price:100,color:'#ddcdf6',description:'화면 밖 손님까지 전체 색상 순서를 확인해요.',detail:'이번 운행에서 여러 번 열람 · 별은 완료 시간으로 평가'},
@@ -30,6 +31,7 @@ export function itemAvailability(m,run,id){
  if(m.busy)return 'busy';
  if(m.state.status==='won')return 'ended';
  if(id==='shuffle'&&m.state.cars.length<2)return 'shuffle-unavailable';
+ if(id==='undo')return m.canUndo?null:'no-undo';
  if(id==='bay')return m.state.bays.length>=7?'max':null;
  if(run.tools?.[id])return 'active';
  if(m.state.status!=='playing')return 'lost';
@@ -38,13 +40,14 @@ export function itemAvailability(m,run,id){
 export function useItem(save,m,run,id,commit=()=>{}){
  const reason=itemAvailability(m,run,id);if(reason)return {ok:false,reason};
  const bag=inventory(save.inventory);if(!bag[id])return {ok:false,reason:'empty'};
- const before=m.snapshot(),oldUndo=[...m.undoStack],oldRun=structuredClone(run);let shuffled;
+ const before=m.snapshot(),oldUndo=[...m.undoStack],oldRun=structuredClone(run);let shuffled;const oldVisual=m.queueVisual,oldGarageKey=m.garageCheckKey;
  if(id==='bay'){if(!m.addBay())return {ok:false,reason:'max'};}
+ else if(id==='undo'){if(!m.undo())return {ok:false,reason:'no-undo'};run.undos++;}
  else if(id==='shuffle'){shuffled=shuffleParking(m);if(!shuffled.ok)return shuffled;m.undoStack=[];}
  else {run.tools={...run.tools,[id]:true};run.hints++;}
  const next={...save,inventory:{...bag,[id]:bag[id]-1},activeSession:checkpoint(m,run)};
  try{if(!next.activeSession)throw new Error('unsettled');commit(next);}
- catch{Object.assign(m,JSON.parse(before));m.undoStack=oldUndo;for(const key of Object.keys(run))delete run[key];Object.assign(run,oldRun);return {ok:false,reason:'storage'};}
+ catch{Object.assign(m,JSON.parse(before));m.undoStack=oldUndo;m.queueVisual=oldVisual;m.garageCheckKey=oldGarageKey;for(const key of Object.keys(run))delete run[key];Object.assign(run,oldRun);return {ok:false,reason:'storage'};}
  Object.assign(save,next);return {ok:true,moved:shuffled?.moved};
 }
 // Suggestions show legal, visible options; they do not promise a winning solution.

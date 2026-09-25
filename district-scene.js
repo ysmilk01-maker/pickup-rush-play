@@ -1,4 +1,4 @@
-import {districtFor,DISTRICTS} from './campaign.js?v=54';
+import {districtFor,DISTRICTS} from './campaign.js?v=55';
 
 const STATION_SIGN_BACKGROUND='#eefaf3';
 
