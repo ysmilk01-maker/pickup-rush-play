@@ -1,4 +1,4 @@
-import { vehicleModel } from './appearance.js?v=51';
+import { vehicleModel } from './appearance.js?v=52';
 
 export const GROUND_SCALE = .83;
 export const LOT = { left: 24, right: 576, top: 432, bottom: 913 };

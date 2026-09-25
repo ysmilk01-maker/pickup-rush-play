@@ -1,5 +1,5 @@
-import {inventory} from './items.js?v=51';
-import {TOTAL_LEVELS} from './campaign.js?v=51';
+import {inventory} from './items.js?v=52';
+import {TOTAL_LEVELS} from './campaign.js?v=52';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},
@@ -16,8 +16,8 @@ export function normalize(raw={}){
   const best={};for(const [k,v] of Object.entries(r.best||{}))if(cleared.includes(Number(k))&&Number.isFinite(v)&&v>0)best[k]=Math.round(v);
   const comboBest=Object.fromEntries(cleared.map(n=>[n,integer(r.comboBest?.[n],0,48)]));
   const selected=Number(r.version||0)<3&&r.level===35&&cleared.includes(35)?36:integer(r.level,0,unlocked);
-  const emergencyWins=(Array.isArray(r.emergencyWins)?r.emergencyWins:[]).filter((n,i,a)=>cleared.includes(n)&&n>=10&&a.indexOf(n)===i);
-  const cutWins=(Array.isArray(r.cutWins)?r.cutWins:[]).filter((n,i,a)=>cleared.includes(n)&&n>=4&&a.indexOf(n)===i);
+  const emergencyWins=(Array.isArray(r.emergencyWins)?r.emergencyWins:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=10&&n<=unlocked&&a.indexOf(n)===i);
+  const cutWins=(Array.isArray(r.cutWins)?r.cutWins:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=4&&n<=unlocked&&a.indexOf(n)===i);
   return {version:3,inventory:inventory(r.inventory),activeSession:r.activeSession??null,comboBest,emergencyWins,cutWins,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(selected,unlocked),cleared,stars,best,owned,
     decoration:owned.includes(r.decoration)?r.decoration:'lantern',tutorial:!!r.tutorial,
     colorAssist:r.colorAssist===true,sound:r.sound!==false,soundVolume:Number.isFinite(r.soundVolume)?Math.max(0,Math.min(1,r.soundVolume)):.65,vibration:r.vibration!==false,music:r.music!==false,

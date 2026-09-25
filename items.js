@@ -1,6 +1,6 @@
-import {checkpoint} from './session.js?v=51';
-import {canExit} from './game.js?v=51';
-import {hiddenCar} from './puzzle.js?v=51';
+import {checkpoint} from './session.js?v=52';
+import {canExit} from './game.js?v=52';
+import {hiddenCar} from './puzzle.js?v=52';
 
 export const ITEMS=[
  {id:'bay',name:'승강장 확장권',icon:'＋',price:60,color:'#ffdaa1',description:'광고 없이 승강장 한 칸을 즉시 열어요.',detail:'이번 운행에서만 적용 · 최대 7칸 · 확장 시 별 1개'},

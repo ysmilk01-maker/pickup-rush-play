@@ -1,0 +1,17 @@
+.stage-intro{text-align:center;padding:6px 0 12px;color:#2b626b;animation:stage-arrive 220ms var(--ease-out) both}
+.stage-ticket{position:relative;background:linear-gradient(145deg,#def6e8,#fff7d9);border:3px solid #fff;border-radius:24px;padding:24px 15px 20px;box-shadow:0 5px 0 #b9d8ca;margin:10px 0 20px;overflow:hidden}
+.stage-ticket:before,.stage-ticket:after{content:'';position:absolute;top:50%;width:20px;height:20px;border-radius:50%;background:#fffaf0}.stage-ticket:before{left:-12px}.stage-ticket:after{right:-12px}
+.stage-ticket>small{display:block;letter-spacing:.18em;font-size:11px;font-weight:800;color:#568477}.stage-number{font-size:clamp(48px,15cqw,78px);font-weight:950;line-height:1.1;margin:10px 0;color:#2c746b;font-variant-numeric:tabular-nums}.stage-number span{font-size:22px;margin-left:5px}
+.stage-ticket strong{display:block;font-size:20px}.stage-ticket p{margin:8px 0 0;font-size:13px}.stage-challenge{display:inline-block;padding:5px 12px;background:#f5cf8a;color:#795324;border-radius:20px;font-size:12px;font-weight:800;margin-top:14px}
+.stage-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.stage-facts span{background:#f0f5e9;border:1px solid #d4e5d7;border-radius:13px;padding:11px 3px;font-size:11px;color:#5a7477}.stage-facts b{display:block;font-size:19px;color:#356b69;margin-bottom:4px}
+.mission-payout{display:grid;gap:5px;justify-items:center;border:2px solid #fff2b5;border-radius:17px;padding:15px;background:#fff0bc;margin:15px 0;color:#765123;animation:stage-arrive 240ms var(--ease-out) both}.mission-payout strong{font-size:32px;color:#976020}.mission-payout span{font-size:12px}.mission-payout small{font-size:11px;color:#776748}.mission-paid-note{padding:12px;border-radius:12px;background:#eaf5e7;font-size:13px;color:#3f7163}
+@keyframes stage-arrive{from{opacity:0;transform:translateY(4%) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.stage-intro,.mission-payout{animation:stage-fade 180ms linear both}@keyframes stage-fade{from{opacity:0}to{opacity:1}}}
+@media(max-width:360px),(max-height:720px){
+ .modal[data-stage-start="true"] section{padding:16px}
+ .modal[data-stage-start="true"] h1{margin:4px 0 8px}
+ .stage-intro{padding:2px 0 4px}.stage-ticket{padding:12px 10px;margin:6px 0 12px;border-radius:19px}
+ .stage-number{font-size:48px;margin:6px 0}.stage-ticket strong{font-size:17px}.stage-ticket p{margin:5px 0 0;line-height:1.4}
+ .stage-challenge{margin-top:8px;padding:4px 8px;font-size:11px}.stage-facts span{padding:7px 2px}.stage-facts b{font-size:17px;margin-bottom:2px}
+ .modal[data-stage-start="true"] .subtle{margin:9px 0;line-height:1.5}
+}

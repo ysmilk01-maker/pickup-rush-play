@@ -1,4 +1,4 @@
-import {blockers,bounds,overlaps,LOT,GROUND_SCALE} from './geometry.js?v=51';
+import {blockers,bounds,overlaps,LOT,GROUND_SCALE} from './geometry.js?v=52';
 
 export const closedGates=state=>(state.puzzle?.gates||[]).filter(g=>!g.open);
 export function gateBlockers(car,gates){
