@@ -1,9 +1,9 @@
-import { scatterVehicles } from './layout.js?v=36';
-import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=36';
-import { seededRandom } from './demand.js?v=36';
-import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=36';
-import campaignLayouts from './campaign-layouts.js?v=36';
-import previousLayouts from './campaign-layouts-v4.js?v=36';
+import { scatterVehicles } from './layout.js?v=37';
+import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=37';
+import { seededRandom } from './demand.js?v=37';
+import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=37';
+import campaignLayouts from './campaign-layouts.js?v=37';
+import previousLayouts from './campaign-layouts-v4.js?v=37';
 
 export const COLORS = {
   red: { label: "빨강", short: "●", hex: "#ff5f6d" },

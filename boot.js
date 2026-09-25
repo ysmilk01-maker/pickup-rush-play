@@ -26,7 +26,7 @@ if (typeof document !== 'undefined') {
   retry.onclick = () => location.reload();
   let failed = false;
   prepareStartup({
-    loadGame: () => import('./app.js?v=36'),
+    loadGame: () => import('./app.js?v=37'),
     loadArt: () => {
       const art = document.querySelector('#lobby-art');
       return art.decode(); // A missing illustration falls back to the existing Canvas lobby.
