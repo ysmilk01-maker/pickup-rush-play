@@ -1,9 +1,10 @@
-import {validQueueCut} from './queue-cut.js?v=53';
-import {validPuzzle} from './puzzle.js?v=53';
-import {Market} from './market.js?v=53';
-import {pendingCars} from './garage.js?v=53';
-import {CAPACITY} from './traffic.js?v=53';
-import {emergencyLimit} from './emergency.js?v=53';
+import {validShuffleSlots} from './shuffle.js?v=54';
+import {validQueueCut} from './queue-cut.js?v=54';
+import {validPuzzle} from './puzzle.js?v=54';
+import {Market} from './market.js?v=54';
+import {pendingCars} from './garage.js?v=54';
+import {CAPACITY} from './traffic.js?v=54';
+import {emergencyLimit} from './emergency.js?v=54';
 // Only save settled moments, so reload can never strand a person or a car mid-route.
 export function checkpoint(m,run){
   if(m.busy||m.state.status!=='playing')return null;
@@ -16,9 +17,11 @@ export function restoreSession(raw,unlocked){
     const m=new Market(raw.level,![3,4,5,6,7,8].includes(raw.rules),raw.rules>=4,raw.rules),d=raw.data,s=d?.state;
     if(!s||s.levelIndex!==raw.level||s.status!=='playing'||!Array.isArray(s.cars)||!Array.isArray(s.bays)||s.bays.length<4||s.bays.length>7)return null;
     const originals=new Map(m.allCars.map(c=>[c.id,c])),all=[...s.cars,...s.bays.filter(Boolean),...pendingCars(s)],ids=new Set();
+    if(!validShuffleSlots(s.shuffleSlots,originals))return null;
     for(const car of all){
       const base=originals.get(car.id);if(!base||ids.has(car.id))return null;ids.add(car.id);
-      for(const key of ['x','y','angle','color','type','model','scale'])if(base[key]!==car[key])return null;
+      for(const key of ['color','type','model','scale'])if(base[key]!==car[key])return null;
+      const slot=originals.get(s.shuffleSlots?.[car.id]||car.id);for(const key of ['x','y','angle','dir'])if(slot[key]!==car[key])return null;
     }
     if(raw.rules>=4){
       const plan=m.state.garage;

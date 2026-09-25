@@ -1,4 +1,4 @@
-import {districtFor,DISTRICTS} from './campaign.js?v=53';
+import {districtFor,DISTRICTS} from './campaign.js?v=54';
 
 const STATION_SIGN_BACKGROUND='#eefaf3';
 
@@ -15,7 +15,9 @@ export const DISTRICT_STYLES=[
  {motif:'terminal',sky:'#c8e6ef',horizon:'#e6f4f5',deep:'#dce6ec',platform:'#d5e4e4',edge:'#8aafbb',road:'#9eB8c6',lotTop:'#e0e9ed',lotBottom:'#c6d5dd',accent:'#ffe4aa',building:'#a0c7d0'},
  {motif:'festival',sky:'#ffe1e7',horizon:'#fff1d7',deep:'#e9e3ee',platform:'#ecdce6',edge:'#c3a0b6',road:'#b4adc4',lotTop:'#ece7ef',lotBottom:'#d7cce1',accent:'#ffc59d',building:'#d6b3c7'}
 ];
-export function districtStyle(index){return DISTRICT_STYLES[districtFor(Math.max(0,Math.min(99,index)))];}
+const newSkies=['#ffecd1','#e3d6f5','#daf0df','#b5e7fa','#e1ecfb','#d2d9fa','#ffe6b8','#c7efe6','#e8d9f2','#ffe0ea'];
+DISTRICT_STYLES.push(...DISTRICT_STYLES.map((s,i)=>({...s,sky:newSkies[i],horizon:i%2?'#fff0e7':'#f2f9e9',accent:DISTRICTS[i+10].color})));
+export function districtStyle(index){return DISTRICT_STYLES[districtFor(Math.max(0,Math.min(199,index)))];}
 export function districtLabel(index){return DISTRICTS[districtFor(index)].name;}
 
 export function districtSky(s,p){

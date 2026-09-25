@@ -15,3 +15,6 @@
  .stage-challenge{margin-top:8px;padding:4px 8px;font-size:11px}.stage-facts span{padding:7px 2px}.stage-facts b{font-size:17px;margin-bottom:2px}
  .modal[data-stage-start="true"] .subtle{margin:9px 0;line-height:1.5}
 }
+#run-clock{position:absolute;z-index:6;top:7.2%;left:3%;padding:4px 7px;border:1px solid #fff;border-radius:9px;background:#fff4c8;color:#5d633d;font:800 clamp(9px,2.3cqw,13px)/1.25 system-ui;box-shadow:0 2px 0 #b9cbb3;font-variant-numeric:tabular-nums}
+#run-clock[data-stars="2"]{background:#ffead1;color:#875b33}#run-clock[data-stars="1"]{background:#e4eef2;color:#456775}
+#game:has(#run-clock) #emergency-hud,#game:has(#run-clock) #cut-hud{top:10.3%;left:24%;height:3%}

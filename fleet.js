@@ -34,7 +34,8 @@ export const REGION_FLEETS=[
  {name:'심야 공항 특급',small:['executive','electricTaxi','sedan'],medium:['airport','minibus','van'],large:['coach','electricbus','panorama']},
  {name:'백야 축제 퍼레이드',small:['roadster','electric','executive','taxi'],medium:['retrovan','camper','airport','adventure'],large:['festival','panorama','electricbus']}
 ];
-const stage=index=>Math.max(0,Math.min(99,Math.trunc(index)||0));
+REGION_FLEETS.push(...['햇살 나들이','라벤더 산책','언덕 원정대','바닷길 특급','구름 정원 셔틀','유성 관광 노선','황금 항구 수송대','오로라 순환선','달맞이 야간 특급','카니발 대행진'].map((name,i)=>({name,small:[...REGION_FLEETS[(i+4)%10].small],medium:[...REGION_FLEETS[(i+7)%10].medium],large:[...REGION_FLEETS[(i+8)%10].large]})));
+const stage=index=>Math.max(0,Math.min(199,Math.trunc(index)||0));
 export const fleetFor=index=>REGION_FLEETS[Math.floor(stage(index)/10)];
 export const fleetStyles=index=>{const f=fleetFor(index);return [...f.small,...f.medium,...f.large];};
 export function vehicleStyle(car,index=0){

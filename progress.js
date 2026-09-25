@@ -1,5 +1,6 @@
-import {inventory} from './items.js?v=53';
-import {TOTAL_LEVELS} from './campaign.js?v=53';
+import {timeStars} from './timing.js?v=54';
+import {inventory} from './items.js?v=54';
+import {TOTAL_LEVELS} from './campaign.js?v=54';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},
@@ -14,22 +15,22 @@ export function normalize(raw={}){
   const owned=[...new Set(['lantern',...(r.mint?['mint']:[]),...(Array.isArray(r.owned)?r.owned:[])])].filter(id=>THEMES.some(t=>t.id===id));
   const unlocked=Math.min(TOTAL_LEVELS-1,Math.max(integer(r.unlocked??r.level,0,TOTAL_LEVELS-1),...cleared.map(n=>n+1),0));
   const best={};for(const [k,v] of Object.entries(r.best||{}))if(cleared.includes(Number(k))&&Number.isFinite(v)&&v>0)best[k]=Math.round(v);
-  const comboBest=Object.fromEntries(cleared.map(n=>[n,integer(r.comboBest?.[n],0,48)]));
+  const comboBest=Object.fromEntries(cleared.map(n=>[n,integer(r.comboBest?.[n],0,56)]));
   const selected=Number(r.version||0)<3&&r.level===35&&cleared.includes(35)?36:integer(r.level,0,unlocked);
   const emergencyWins=(Array.isArray(r.emergencyWins)?r.emergencyWins:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=10&&n<=unlocked&&a.indexOf(n)===i);
   const cutWins=(Array.isArray(r.cutWins)?r.cutWins:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=4&&n<=unlocked&&a.indexOf(n)===i);
-  return {version:3,inventory:inventory(r.inventory),activeSession:r.activeSession??null,comboBest,emergencyWins,cutWins,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(selected,unlocked),cleared,stars,best,owned,
+  return {version:3,inventory:inventory(r.inventory),activeSession:r.activeSession??null,comboBest,emergencyWins,cutWins,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(r.level===99&&cleared.includes(99)&&!cleared.includes(100)?100:selected,unlocked),cleared,stars,best,owned,
     decoration:owned.includes(r.decoration)?r.decoration:'lantern',tutorial:!!r.tutorial,
     colorAssist:r.colorAssist===true,sound:r.sound!==false,soundVolume:Number.isFinite(r.soundVolume)?Math.max(0,Math.min(1,r.soundVolume)):.65,vibration:r.vibration!==false,music:r.music!==false,
     musicTrack:['auto','lantern'].includes(r.musicTrack)?r.musicTrack:'auto',musicVolume:Number.isFinite(r.musicVolume)?Math.max(0,Math.min(1,r.musicVolume)):.3,
     boarded:integer(r.boarded,0,9999999),wins:integer(r.wins,0,9999999),
     claimed:(Array.isArray(r.claimed)?r.claimed:[]).filter(x=>['first','crowd','explorer'].includes(x))};
 }
-export function starsFor({hints=0,undos=0,bays=4}={}){return bays>4?1:hints||undos?2:3;}
+export function starsFor({seconds=0}={},index=0){return timeStars(seconds,index);}
 export function complete(save,index,run){
   if(!Number.isInteger(index)||index<0||index>=TOTAL_LEVELS||index>save.unlocked)return null;
-  const stars=starsFor(run),previous=save.stars[index]||0,fresh=!save.cleared.includes(index);
-  const combo=integer(run.combo,0,48),previousCombo=save.comboBest?.[index]||0;
+  const stars=starsFor(run,index),previous=save.stars[index]||0,fresh=!save.cleared.includes(index);
+  const combo=integer(run.combo,0,56),previousCombo=save.comboBest?.[index]||0;
   const comboValue=n=>Math.max(0,Math.min(7,n)-1)*5;
   const comboReward=Math.max(0,comboValue(combo)-comboValue(previousCombo));
   save.comboBest??={};save.comboBest[index]=Math.max(combo,previousCombo);
@@ -63,7 +64,7 @@ export function claimMission(save,id){
   save.claimed.push(id);save.coins+=m.reward;return true;
 }
 
-export const MARKET_STALLS=['등불 찻집','강변 꽃집','항구 공방','벚꽃 사진관','노을 빵집','별빛 오락실','반딧불 책방','무지개 잡화점','심야 음반점','백야 축제장'];
+export const MARKET_STALLS=['등불 찻집','강변 꽃집','항구 공방','벚꽃 사진관','노을 빵집','별빛 오락실','반딧불 책방','무지개 잡화점','심야 음반점','백야 축제장','수변 카페','라벤더 꽃집','언덕 공방','바다 어묵집','구름 디저트','유성 문구점','항구 빵집','오로라 찻집','달맞이 사진관','카니발 광장'];
 export function marketGrowth(save){
  const regions=MARKET_STALLS.map((name,index)=>({name,index,cleared:Array.from({length:10},(_,i)=>index*10+i).filter(n=>save.cleared.includes(n)).length}));
  return {regions,opened:regions.filter(r=>r.cleared===10).length,next:regions.find(r=>r.cleared<10)};

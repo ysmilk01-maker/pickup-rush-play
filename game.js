@@ -1,10 +1,10 @@
-import {exitBlockers} from './puzzle.js?v=53';
-import { scatterVehicles } from './layout.js?v=53';
-import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=53';
-import { seededRandom } from './demand.js?v=53';
-import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=53';
-import campaignLayouts from './campaign-layouts.js?v=53';
-import previousLayouts from './campaign-layouts-v4.js?v=53';
+import {exitBlockers} from './puzzle.js?v=54';
+import { scatterVehicles } from './layout.js?v=54';
+import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=54';
+import { seededRandom } from './demand.js?v=54';
+import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=54';
+import campaignLayouts from './campaign-layouts.js?v=54';
+import previousLayouts from './campaign-layouts-v4.js?v=54';
 
 export const COLORS = {
   red: { label: "빨강", short: "●", hex: "#ff5f6d" },
@@ -91,9 +91,9 @@ for(let i=12;i<36;i++)LEGACY_LEVELS.push(denseStage({
 
 export function buildCampaignCars(index){
  const p=stageProfile(index),stride=p.colors===6?5:3;
- const cars=scatterVehicles({seed:p.seed,count:p.count,prefix:`n${index+1}-`,types:VEHICLE_TYPES,
+ let cars;for(let attempt=0;attempt<8;attempt++){try{cars=scatterVehicles({seed:p.seed+attempt*1543,count:p.count,prefix:`n${index+1}-`,types:VEHICLE_TYPES,
   colorFor:i=>PALETTE[(i*stride+index)%p.colors],scale:p.scale,
-  composition:[['bus',p.buses],['van',p.vans],['taxi',p.taxis]]});
+  composition:[['bus',p.buses],['van',p.vans],['taxi',p.taxis]]});break;}catch(e){if(attempt===7)throw e;}}
  const ids=solutionFor(cars,10,10,p.seed+1709),byId=new Map(cars.map(c=>[c.id,c]));
  return ids.map(id=>byId.get(id));
 }
@@ -107,7 +107,7 @@ export const LEVELS=Array.from({length:TOTAL_LEVELS},(_,i)=>{
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
-const PREVIOUS_LEVELS=LEVELS.map((level,i)=>({...level,cars:previousLayouts[i],solution:previousLayouts[i].map(c=>c.id),queue:previousLayouts[i].flatMap(c=>repeat(c.color,3))}));
+const PREVIOUS_LEVELS=LEVELS.slice(0,previousLayouts.length).map((level,i)=>({...level,cars:previousLayouts[i],solution:previousLayouts[i].map(c=>c.id),queue:previousLayouts[i].flatMap(c=>repeat(c.color,3))}));
 
 export function createGame(levelIndex = 0, legacy=false, previousCampaign=false) {
   const levels=legacy?LEGACY_LEVELS:previousCampaign?PREVIOUS_LEVELS:LEVELS;
