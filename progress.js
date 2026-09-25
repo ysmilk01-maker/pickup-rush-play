@@ -1,4 +1,4 @@
-import {TOTAL_LEVELS} from './campaign.js?v=44';
+import {TOTAL_LEVELS} from './campaign.js?v=47';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},
@@ -18,7 +18,7 @@ export function normalize(raw={}){
   const emergencyWins=(Array.isArray(r.emergencyWins)?r.emergencyWins:[]).filter((n,i,a)=>cleared.includes(n)&&n>=10&&a.indexOf(n)===i);
   return {version:3,comboBest,emergencyWins,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(selected,unlocked),cleared,stars,best,owned,
     decoration:owned.includes(r.decoration)?r.decoration:'lantern',tutorial:!!r.tutorial,
-    sound:r.sound!==false,soundVolume:Number.isFinite(r.soundVolume)?Math.max(0,Math.min(1,r.soundVolume)):.65,vibration:r.vibration!==false,music:r.music!==false,
+    colorAssist:r.colorAssist===true,sound:r.sound!==false,soundVolume:Number.isFinite(r.soundVolume)?Math.max(0,Math.min(1,r.soundVolume)):.65,vibration:r.vibration!==false,music:r.music!==false,
     musicTrack:['auto','lantern'].includes(r.musicTrack)?r.musicTrack:'auto',musicVolume:Number.isFinite(r.musicVolume)?Math.max(0,Math.min(1,r.musicVolume)):.3,
     boarded:integer(r.boarded,0,9999999),wins:integer(r.wins,0,9999999),
     claimed:(Array.isArray(r.claimed)?r.claimed:[]).filter(x=>['first','crowd','explorer'].includes(x))};

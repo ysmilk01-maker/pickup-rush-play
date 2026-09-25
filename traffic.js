@@ -1,9 +1,11 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=44';
-import { assignModels, makePassenger } from './appearance.js?v=44';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=44';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=44';
-import { passengerQueue } from './demand.js?v=44';
-import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=44';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=47';
+import { assignModels, makePassenger } from './appearance.js?v=47';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=47';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=47';
+import { passengerQueue } from './demand.js?v=47';
+import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=47';
+
+import {createPuzzle,revealCars,unlockFromVehicle,hiddenCar} from './puzzle.js?v=47';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -60,15 +62,16 @@ export function routeFor(car,state,bayIndex) {
   return smoothPath(path);
 }
 export class Traffic {
-  constructor(level=0,legacy=false,garages=!legacy,campaignVersion=garages?6:3) {
+  constructor(level=0,legacy=false,garages=!legacy,campaignVersion=garages?7:3) {
     this.state=createGame(level,legacy,campaignVersion<5);this.time=0;this.running=[];this.walkers=[];this.puffs=[];this.delivered=0;this.total=0;this.lastBoard=-1;this.undoStack=[];
     if(this.state.cars.some(car=>!car.model))assignModels(this.state.cars);
     const byId=new Map(this.state.cars.map(car=>[car.id,car]));
-    this.state.queue=passengerQueue(this.solution.map(id=>byId.get(id)),this.state.levelIndex,CAPACITY,legacy);
+    this.state.queue=passengerQueue(this.solution.map(id=>byId.get(id)),this.state.levelIndex,CAPACITY,legacy,campaignVersion);
     this.demandVersion=legacy?2:campaignVersion;
     this.allCars=this.state.cars.map(c=>({...c}));this.arriving=[];
     this.state.garage=garages?garagePlan(this.state.cars,this.state.levelIndex):null;
     const reserved=new Set(pendingCars(this.state).map(c=>c.id));this.state.cars=this.state.cars.filter(c=>!reserved.has(c.id));
+    if(campaignVersion>=7&&!legacy)this.state.puzzle=createPuzzle(this.state.cars,this.allCars,level,this.solution);
     this.state.combo={chain:0,best:0};
     this.total=this.state.queue.length;this.queueVisual=0;this.queueConsumed=0;
     this.state.people=this.state.queue.map((_,id)=>makePassenger(id));
@@ -81,6 +84,7 @@ export class Traffic {
     if(this.arriving.length)return {ok:false,reason:'incoming'};
     const car=this.state.cars.find(c=>c.id===id);if(!car)return {ok:false,reason:'missing'};
     if(!canExit(this.state,car))return {ok:false,reason:'blocked'};
+    revealCars(this);if(hiddenCar(car))return {ok:false,reason:'reveal-wait'};
     const slot=this.state.bays.findIndex(b=>!b);if(slot<0)return {ok:false,reason:'full'};
     if(!this.running.length&&!this.walkers.length)this.undoStack.push(this.snapshot());
     if(this.state.emergency?.status==='active')this.state.emergency.remaining--;
@@ -152,7 +156,7 @@ export class Traffic {
     for(const candidate of candidates){
       // Hold the first rescue dispatch until its proven exit-order predecessors
       // are nearly clear. Leave three turns for FIFO passengers of other colors.
-      if(this.demandVersion>=6&&!this.state.emergency){
+      if(this.demandVersion>=6&&!this.state.puzzle?.tutorial&&!this.state.emergency){
         const index=this.solution.indexOf(candidate.id);
         const ahead=this.state.cars.filter(c=>this.solution.indexOf(c.id)<index).length;
         if(ahead>Math.max(0,emergencyLimit(this.state.levelIndex)-4))continue;
@@ -172,7 +176,7 @@ export class Traffic {
     dt=Math.max(0,Math.min(dt,.05))*ANIMATION_SPEED;this.time+=dt;
     this.queueVisual+=(this.queueConsumed-this.queueVisual)*Math.min(1,dt*9);
     for(const car of [...this.running]){
-      car.elapsed+=dt;const t=Math.min(1,car.elapsed/car.duration);car.pose=pathPose(car.path,t);
+      car.elapsed+=dt;const t=Math.min(1,car.elapsed/car.duration);car.pose=pathPose(car.path,t);unlockFromVehicle(this,car);
       if(Math.random()<dt*25)this.puffs.push({x:car.pose.x-Math.cos(car.pose.angle)*30,y:car.pose.y-Math.sin(car.pose.angle)*30,age:0});
       if(t===1){this.running=this.running.filter(c=>c!==car);if(car.phase==='leaving'){this.state.bays[car.slot]=null;}else{car.phase='parked';car.pose={...BAY(car.slot),angle:-2.1};this.onEvent?.({type:'arrival',carId:car.id});}}
     }
@@ -186,7 +190,7 @@ export class Traffic {
       if(car.phase==='parked'&&car.loaded===car.capacity){if(this.state.emergency?.id===car.id&&this.state.emergency.status==='active')this.state.emergency.status='success';this.state.combo??={chain:0,best:0};this.state.combo.chain++;this.state.combo.best=Math.max(this.state.combo.best,this.state.combo.chain);this.onEvent?.({type:'depart',carId:car.id});car.phase='leaving';car.elapsed=0;car.duration=1.05;car.path=smoothPath([car.pose,{x:car.pose.x+41,y:363},{x:655,y:363}]);this.running.push(car);}
     }
     this.puffs.forEach(p=>p.age+=dt);this.puffs=this.puffs.filter(p=>p.age<.5);
-    this.updateGarage(dt);
+    this.updateGarage(dt);revealCars(this);
     settleEmergency(this);
     if(!pendingCars(this.state).length&&!this.arriving.length&&!this.state.cars.length&&!this.state.queue.length&&!this.running.length&&!this.walkers.length&&this.state.bays.every(b=>!b))this.state.status='won';
     else if(this.state.bays.every(Boolean)&&!this.running.length&&!this.walkers.length&&!this.state.bays.some(c=>c.color===this.state.queue[0]))this.state.status='lost';

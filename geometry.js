@@ -1,10 +1,10 @@
-import { vehicleModel } from './appearance.js?v=44';
+import { vehicleModel } from './appearance.js?v=47';
 
 export const GROUND_SCALE = .83;
 export const LOT = { left: 24, right: 576, top: 432, bottom: 913 };
 export const isFreeform = car => Number.isFinite(car.x) && Number.isFinite(car.y);
 export function footprint(car, margin = 0) {
-  const model=vehicleModel(car),a=car.angle;
+  const model=car.barrier?car:vehicleModel(car),a=car.angle;
   return { x:car.x,y:car.y/GROUND_SCALE,
     u:{x:Math.cos(a),y:Math.sin(a)},v:{x:-Math.sin(a),y:Math.cos(a)},
     halfLength:model.length/2+margin,halfWidth:model.width/2+margin };

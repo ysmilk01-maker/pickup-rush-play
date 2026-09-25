@@ -1,6 +1,6 @@
 // Original procedural effects. No downloads, speech recordings or third-party samples.
-export const EFFECT_NAMES={ui:'메뉴 선택',close:'창 닫기',start:'운행 시작',resume:'운행 재개',pause:'일시정지',select:'차량 출발',blocked:'길 막힘',arrival:'승강장 도착',walk:'승객 발걸음',board:'승객 탑승',depart:'만차 출발',incoming:'차고 입차',parked:'차고 주차 완료',undo:'되돌리기',hint:'길 찾기',reward:'코인 보상',expand:'승강장 확장',notice:'사용 불가',warning:'긴급 운행 임박',success:'긴급 운행 성공',timeout:'긴급 운행 종료',combo:'연속 만차',clear:'클리어',lose:'승강장 가득 참',emergency:'응급차 사이렌'};
-const LIMITS={ui:.07,close:.1,start:.4,resume:.2,pause:.2,select:.08,blocked:.22,arrival:.16,walk:.16,board:.07,depart:.18,incoming:.5,parked:.3,undo:.2,hint:.25,reward:.4,expand:.5,notice:.3,warning:.4,success:.6,timeout:.6,combo:.25,clear:1,lose:.5,emergency:2};
+export const EFFECT_NAMES={reveal:'셔틀 색 공개',gate:'차단기 개방',ui:'메뉴 선택',close:'창 닫기',start:'운행 시작',resume:'운행 재개',pause:'일시정지',select:'차량 출발',blocked:'길 막힘',arrival:'승강장 도착',walk:'승객 발걸음',board:'승객 탑승',depart:'만차 출발',incoming:'차고 입차',parked:'차고 주차 완료',undo:'되돌리기',hint:'길 찾기',reward:'코인 보상',expand:'승강장 확장',notice:'사용 불가',warning:'긴급 운행 임박',success:'긴급 운행 성공',timeout:'긴급 운행 종료',combo:'연속 만차',clear:'클리어',lose:'승강장 가득 참',emergency:'응급차 사이렌'};
+const LIMITS={reveal:.22,gate:.22,ui:.07,close:.1,start:.4,resume:.2,pause:.2,select:.08,blocked:.22,arrival:.16,walk:.16,board:.07,depart:.18,incoming:.5,parked:.3,undo:.2,hint:.25,reward:.4,expand:.5,notice:.3,warning:.4,success:.6,timeout:.6,combo:.25,clear:1,lose:.5,emergency:2};
 // Capture the action before its handler replaces the DOM; play the fallback
 // afterwards so screen-transition stop() calls cannot cut off the menu click.
 export function bindInteractionSounds(root,sfx,canPlay=()=>true){
@@ -54,6 +54,8 @@ export class SoundEffects{
   const now=c.currentTime;if(now-(this.last.get(name)??-Infinity)<LIMITS[name])return false;this.last.set(name,now);this.revision++;
   try{
    switch(name){
+    case 'reveal':this.hiss(.13,.03,2200);[659,988].forEach((n,i)=>this.tone(n,.16,.04,i*.07));break;
+    case 'gate':this.hiss(.23,.05,1000);this.tone(220,.2,.035,0,'triangle',440);this.tone(880,.18,.04,.17);break;
     case 'close':this.tone(560,.08,.035,0,'sine',380);break;
     case 'start':[392,523,784].forEach((n,i)=>this.tone(n,.19,.05,i*.09));break;
     case 'resume':this.tone(440,.10,.04);this.tone(660,.14,.04,.09);break;

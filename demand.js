@@ -1,4 +1,4 @@
-import {stageProfile} from './campaign.js?v=44';
+import {stageProfile} from './campaign.js?v=47';
 // Reproducible levels: changing a queue on retry would punish planning.
 export function seededRandom(seed){
   let n=seed>>>0;
@@ -9,9 +9,9 @@ export function seededRandom(seed){
 // Interleave their passengers instead of filling one car at a time. Because
 // each color's demand equals its seats in that window, all slots can empty
 // before the next window, even when two vehicles share a color.
-export function passengerQueue(cars,level,capacity,legacy=false){
+export function passengerQueue(cars,level,capacity,legacy=false,version=7){
   const random=seededRandom(7301+level*104729),queue=[];
-  const profile=stageProfile(level);
+  const profile=stageProfile(level,version);
   let offset=0,wave=0;
   while(offset<cars.length){
     const width=legacy?(level<3?2:level<12?3:level<24?(wave%3===0?4:3):4)

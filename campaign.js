@@ -13,13 +13,14 @@ export const DISTRICTS=[
  {name:'백야 축제',subtitle:'100번째 밤을 향한 마지막 운행',icon:'🎆',color:'#ffcf94'}
 ];
 
-export function stageProfile(index){
+export function stageProfile(index,version=7){
  const i=Math.max(0,Math.min(TOTAL_LEVELS-1,Math.trunc(index)||0));
  const count=40+Math.floor(i/12),buses=6+Math.floor(i/20),vans=20+Math.floor((count-40)/2);
  return {index:i,number:i+1,district:Math.floor(i/LEVELS_PER_DISTRICT),
   count,colors:i<10?4:i<25?5:i<50?6:7,buses,vans,taxis:count-buses-vans,
-  // Average simultaneous demand grows continuously from two to four cars.
-  pressure:2+2*i/99,maxBatch:i<30?3:i<65?2:1,
+  // Demand rises within each district, recovers after its challenge, and grows across districts.
+  rhythm:i%10===9?'도전 운행':i%10===0?'새 골목 적응':'골목 운행',
+  pressure:version<7?2+2*i/99:Math.min(4,2+1.35*i/99+.65*(i%10)/9),maxBatch:i<30?3:i<65?2:1,
   scale:1-(count-40)*.013,difficulty:i+1,seed:101+i*211};
 }
 export const districtFor=index=>Math.floor(index/LEVELS_PER_DISTRICT);

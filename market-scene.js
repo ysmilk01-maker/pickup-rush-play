@@ -1,9 +1,10 @@
-import {stationEnvironment,stationBays} from './station-scene.js?v=44';
-import {districtStyle,districtSky} from './district-scene.js?v=44';
-import { Scene } from './scene.js?v=44';
-import { BAY, QUEUE, carPose } from './traffic.js?v=44';
-import { vehicleModel, makePassenger } from './appearance.js?v=44';
-import { COLORS } from './game.js?v=44';
+import {drawGates,drawBlockage} from './puzzle-scene.js?v=47';
+import {stationEnvironment,stationBays} from './station-scene.js?v=47';
+import {districtStyle,districtSky} from './district-scene.js?v=47';
+import { Scene } from './scene.js?v=47';
+import { BAY, QUEUE, carPose } from './traffic.js?v=47';
+import { vehicleModel, makePassenger } from './appearance.js?v=47';
+import { COLORS } from './game.js?v=47';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
@@ -38,7 +39,9 @@ export class MarketScene extends Scene {
     }
   }
   draw(t,selected=null){
-    this.levelIndex=t.state.levelIndex;this.background(t);this.hit=[];
+    if(this.lastTraffic!==t){this.lastTraffic=t;this.gateFrames=new Map();this.revealFrames=new Map();}
+    this.levelIndex=t.state.levelIndex;this.puzzleKeys=new Map((t.state.puzzle?.gates||[]).filter(g=>!g.open).map(g=>[g.keyId,g.id.at(-1)]));this.background(t);this.hit=[];
+    drawGates(this,t);drawBlockage(this,t,selected);
     const offset=t.queueConsumed-t.queueVisual;
     for(let i=Math.min(24,t.state.queue.length)-1;i>=0;i--){
       const n=i+offset,a=QUEUE(Math.floor(n)),b=QUEUE(Math.ceil(n)),f=n%1;
@@ -54,7 +57,12 @@ export class MarketScene extends Scene {
       if(selected?.id===car.id&&selected.until>t.time){
         this.ellipse(pose.x,pose.y+5,vehicleModel(car).length*.55,20,'#ffe29788');
       }
-      this.vehicle(car,pose,{parked:car.phase==='parked',arrow:board});if(board)this.hit.push({car,pose});
+      this.revealFrames??=new Map();let reveal=this.revealFrames.get(car.id);
+      if(car.covered&&!car.revealed){reveal={hidden:true,at:t.time};this.revealFrames.set(car.id,reveal);}
+      else if(reveal?.hidden){reveal.hidden=false;reveal.at=t.time;}
+      this.vehicle(car,pose,{parked:car.phase==='parked',arrow:board});
+      if(reveal&&!reveal.hidden&&!this.reduceMotion){const alpha=Math.max(0,1-(t.time-reveal.at)/.22);if(alpha){this.c.globalAlpha=alpha;this.vehicle({...car,covered:true,revealed:false},pose,{arrow:board});this.c.globalAlpha=1;}}
+      if(board)this.hit.push({car,pose});
     }
     for(const passenger of t.walkers){
       if(!passenger.pose)continue;

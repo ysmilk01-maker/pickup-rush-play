@@ -1,7 +1,9 @@
-import { COLORS, canExit } from './game.js?v=44';
-import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=44';
-import { vehicleModel, makePassenger } from './appearance.js?v=44';
-import {vehicleStyle} from './fleet.js?v=44';
+import {hiddenCar} from './puzzle.js?v=47';
+import {keyBadge} from './puzzle-scene.js?v=47';
+import { COLORS, canExit } from './game.js?v=47';
+import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=47';
+import { vehicleModel, makePassenger } from './appearance.js?v=47';
+import {vehicleStyle} from './fleet.js?v=47';
 
 const shade=(hex,f)=>'#'+hex.slice(1).match(/../g).map(v=>Math.max(0,Math.min(255,parseInt(v,16)+f)).toString(16).padStart(2,'0')).join('');
 export class Scene {
@@ -43,6 +45,7 @@ export class Scene {
     this.rect(-5,-22+bob,10,15,4,col,shade(col,-26));
     if(person.outfit==='skirt')this.polygon([{x:-4,y:-14+bob},{x:4,y:-14+bob},{x:8,y:-5+bob},{x:-8,y:-5+bob}],col,shade(col,-25));
     else {c.strokeStyle=shade(col,40);c.lineWidth=1;c.beginPath();c.moveTo(0,-18+bob);c.lineTo(0,-9+bob);c.stroke();}
+    if(this.colorAssist){this.ellipse(0,-15+bob,5.5,5.5,'#183344');this.text(COLORS[color].short,0,-15+bob,8,'#fff5d5');}
     this.rect(-2,-25+bob,4,5,1,person.skin);
     const g=c.createRadialGradient(-2,-31+bob,1,0,-28+bob,8);g.addColorStop(0,shade(person.skin,25));g.addColorStop(1,person.skin);this.ellipse(0,-28+bob,7,8,g);
     // Short hair, side-part, bob and ponytail remain attached to the same passenger.
@@ -52,9 +55,9 @@ export class Scene {
     c.strokeStyle='#a65f53';c.lineWidth=.8;c.beginPath();c.arc(0,-25+bob,1.5,0,Math.PI);c.stroke();c.restore();
   }
   vehicle(car,pose,{parked=false,arrow=true}={}){
-    const c=this.c,col=car.emergency?'#e9eff0':COLORS[car.color].hex;
+    const c=this.c,covered=hiddenCar(car),col=covered?'#8b9ba9':car.emergency?'#e9eff0':COLORS[car.color].hex;
     const model=vehicleModel(car),{length,width}=model,style=vehicleStyle(car,this.levelIndex||0);
-    const kind=car.emergency?'van':style.kind,shape=car.emergency?'':style.shape;
+    const kind=car.emergency?'van':style.kind,shape=car.emergency||covered?'':style.shape;
     const height=car.emergency?model.body:({sedan:9,taxi:10,suv:13,van:19,bus:22}[kind])*(car.scale||1);
     const roofHeight=car.emergency?model.roof:({sedan:shape==='compact'?20:17,taxi:18,suv:23,van:shape==='camper'?28:23,bus:26}[kind])*(car.scale||1);
     const passengerCar=kind==='sedan'||kind==='taxi'||kind==='suv';
@@ -164,6 +167,9 @@ export class Scene {
       }
     }
     for(const v of [-8,8]){const q=p(length/2+.3,v,7);this.ellipse(q.x,q.y,2.4,2,'#fff5bb');const rear=p(-length/2-.3,v,7);this.ellipse(rear.x,rear.y,2,2,'#fa504c');}
+    if(covered){this.polygon(corners.map(([u,v])=>p(u*.96,v*.92,roofHeight+2)),'#9cabb5','#e0e6df',1.5);const q=p(-length*.29,0,roofHeight+5);this.ellipse(q.x,q.y,8,8,'#324d61');this.text('?',q.x,q.y,13,'#f7e9bf');}
+    if(this.colorAssist&&!covered){const q=p(-length*.28,0,roofHeight+5);this.ellipse(q.x,q.y,8,8,'#182f42');this.text(COLORS[car.color].short,q.x,q.y,11,'#fff4d1');}
+    const key=this.puzzleKeys?.get(car.id);if(key){const q=p(-length*.25,0,roofHeight+18);keyBadge(this,q.x,q.y,key);}
     if(arrow){const s=Math.min(length*.26,20),z=roofHeight+7,offset=kind==='taxi'?6:kind==='bus'?8:0;const ar=(u,v)=>p(u+offset,v,z);this.polygon([ar(-s,-2.5),ar(s*.3,-2.5),ar(s*.3,-6),ar(s,0),ar(s*.3,6),ar(s*.3,2.5),ar(-s,2.5)],'#fff', '#42525b',1.3);}
     if(car.emergency){
       // Orange rescue chevrons and a two-tone light bar, without a medical emblem.

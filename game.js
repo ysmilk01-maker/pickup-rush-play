@@ -1,9 +1,10 @@
-import { scatterVehicles } from './layout.js?v=44';
-import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=44';
-import { seededRandom } from './demand.js?v=44';
-import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=44';
-import campaignLayouts from './campaign-layouts.js?v=44';
-import previousLayouts from './campaign-layouts-v4.js?v=44';
+import {exitBlockers} from './puzzle.js?v=47';
+import { scatterVehicles } from './layout.js?v=47';
+import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=47';
+import { seededRandom } from './demand.js?v=47';
+import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=47';
+import campaignLayouts from './campaign-layouts.js?v=47';
+import previousLayouts from './campaign-layouts-v4.js?v=47';
 
 export const COLORS = {
   red: { label: "빨강", short: "●", hex: "#ff5f6d" },
@@ -170,7 +171,7 @@ export function exitPath(state, car) {
 }
 
 export function canExit(state, car) {
-  return isFreeform(car) ? blockers(car,state.cars).length===0 : exitPath(state, car).every((cell) => !cell.blocked);
+  return isFreeform(car) ? exitBlockers(state,car).length===0 : exitPath(state, car).every((cell) => !cell.blocked);
 }
 
 function saveHistory(state) {
