@@ -1,4 +1,4 @@
-import {TOTAL_LEVELS} from './campaign.js?v=39';
+import {TOTAL_LEVELS} from './campaign.js?v=41';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},

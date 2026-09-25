@@ -1,8 +1,9 @@
-import {districtStyle,districtSky,districtStop} from './district-scene.js?v=39';
-import { Scene } from './scene.js?v=39';
-import { BAY, QUEUE, carPose } from './traffic.js?v=39';
-import { vehicleModel, makePassenger } from './appearance.js?v=39';
-import { COLORS } from './game.js?v=39';
+import {stationEnvironment,stationBays} from './station-scene.js?v=41';
+import {districtStyle,districtSky} from './district-scene.js?v=41';
+import { Scene } from './scene.js?v=41';
+import { BAY, QUEUE, carPose } from './traffic.js?v=41';
+import { vehicleModel, makePassenger } from './appearance.js?v=41';
+import { COLORS } from './game.js?v=41';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
@@ -16,38 +17,20 @@ export class MarketScene extends Scene {
       const glow=c.createRadialGradient(x,y+5,0,x,y+5,22);glow.addColorStop(0,col+'55');glow.addColorStop(1,col+'00');this.ellipse(x,y+5,22,22,glow);
       this.rect(x-5,y,10,13,4,col);this.rect(x-3,y-3,6,3,1,'#795f59');
     }
-    this.text(`NIGHT ${String(t.state.levelIndex+1).padStart(2,'0')}  ·  ${t.state.levelTitle}`,300,87,13,'#f0d4ae');
-    // Night-market visitors wait for their color-coded shuttle.
-    this.rect(21,155,83,57,9,p.building,p.edge);
-    this.text(t.state.queue.length,62,176,24,'#fff1c9');this.text('대기 손님',62,199,11,'#e7bf8a');
-    this.rect(115,196,397,13,6,'#836b6e');
-    c.strokeStyle='#d7aa77';c.lineWidth=2;c.beginPath();c.moveTo(126,212);c.lineTo(522,212);c.lineTo(522,94);c.stroke();
-    this.text('↓ 탑승',137,230,12,'#ffe2aa');
-    // Shuttle platform and the road leading to the night market.
-    this.rect(12,250,576,87,13,p.platform);
-    c.fillStyle=p.edge;c.fillRect(0,337,600,5);
+    if(!t.state.emergency)this.text(`NIGHT ${String(t.state.levelIndex+1).padStart(2,'0')}  ·  ${t.state.levelTitle}`,300,87,13,'#f0d4ae');
+    // The static architecture and pavement are cached at the current pixel ratio.
     c.fillStyle=p.road;c.fillRect(0,343,600,49);
     c.setLineDash([13,18]);c.strokeStyle='#b3997150';c.lineWidth=2;c.beginPath();c.moveTo(0,368);c.lineTo(600,368);c.stroke();c.setLineDash([]);
-    this.rect(13,401,574,515,26,p.lotBottom,p.edge);
-    const floor=c.createLinearGradient(0,400,0,916);floor.addColorStop(0,p.lotTop);floor.addColorStop(1,p.lotBottom);
-    this.rect(18,406,564,505,23,floor);
-    // Soft pools of light and scattered paper flecks break up the pavement.
-    for(let i=0;i<5;i++){
-      const x=70+i*116,y=435+(i%2)*420,glow=c.createRadialGradient(x,y,0,x,y,80);
-      glow.addColorStop(0,'#ffdaa916');glow.addColorStop(1,'#ffdaa900');this.ellipse(x,y,80,80,glow);
-    }
-    for(let i=0;i<26;i++){const x=34+(i*163)%530,y=432+(i*83)%459;this.rect(x,y,3,2,1,'#d4b0a51f');}
-    if(!t.state.garage)this.text('같은 색 셔틀을 타고 야시장으로!',300,417,14,'#ffe5b7');
-    if(t.state.garage)for(let g=0;g<(t.state.levelIndex>=30?2:1);g++){const x=g?566:34,open=t.arriving.some(a=>a.gate===g);this.rect(x-26,386,52,34,7,open?'#efbc78':'#473a50','#c59e80');this.text(g?'B':'A',x,405,18,open?'#553c44':'#f7d8a9');}
-    districtStop(this,p,t.state.levelIndex);
-    this.rect(424,348,160,30,7,p.building,p.edge);this.text('야시장 입구 →',504,363,15,'#ffe5b7');
-    for(let i=0;i<7;i++){
-      const b=BAY(i),open=i<t.state.bays.length;
-      this.ellipse(b.x,b.y+23,30,10,open?'#f3cb9340':'#24223344');
-      this.rect(b.x-29,b.y+30,58,16,5,open?'#443849':'#4b424e');
-      this.text(open?`승강장 ${i+1}`:'AD +1',b.x,b.y+38,10,open?'#ffe2a5':'#c1acbc');
-      if(!open){this.text('+',b.x,b.y-7,28,'#c9aab2');this.text('확장',b.x,b.y+12,10,'#dec5ca');}
-    }
+    stationEnvironment(this,p,t.state.levelIndex);
+    // Passenger count is a backlit stop display, separate from the queue.
+    this.rect(28,207,5,29,1,'#71888c');this.rect(87,207,5,29,1,'#71888c');
+    this.rect(17,149,89,63,7,'#1a303e','#8ca5a5');this.rect(23,155,77,39,4,'#122738');
+    this.text(t.state.queue.length,62,175,25,'#f0e7b9');this.text('대기 손님',62,201,10,'#c3d6cd');
+    for(let i=0;i<6;i++){const x=124+i*76;this.ellipse(x,212,5,2,'#273a4577');this.rect(x-1,198,2,14,1,'#aebeb6');}
+    c.strokeStyle='#ad9f8a';c.lineWidth=1.5;c.beginPath();c.moveTo(124,201);c.lineTo(505,201);c.stroke();
+    this.rect(430,349,149,25,4,'#213340',p.edge);this.text('야시장 입구 →',504,361,12,'#e5d8b5');
+    if(t.state.garage)for(let gate=0;gate<(t.state.levelIndex>=30?2:1);gate++){const x=gate?566:34,open=t.arriving.some(a=>a.gate===gate);this.rect(x-26,386,52,30,5,open?'#efbc78':'#2f414e','#9ca5a0');this.text(gate?'B':'A',x,402,17,open?'#553c44':'#f7d8a9');}
+    stationBays(this,t);
     this.text(`${t.state.cars.length}대 대기  ·  ${t.delivered}/${t.total}명 탑승`,300,932,14,'#f4d6b2');
     // Visitors enjoying the night market.
     for(let i=0;i<4;i++){
