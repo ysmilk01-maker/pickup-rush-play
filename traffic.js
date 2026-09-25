@@ -1,11 +1,12 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=49';
-import { assignModels, makePassenger } from './appearance.js?v=49';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=49';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=49';
-import { passengerQueue } from './demand.js?v=49';
-import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=49';
+import {tickQueueCut} from './queue-cut.js?v=50';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=50';
+import { assignModels, makePassenger } from './appearance.js?v=50';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=50';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=50';
+import { passengerQueue } from './demand.js?v=50';
+import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=50';
 
-import {createPuzzle,revealCars,unlockFromVehicle,hiddenCar} from './puzzle.js?v=49';
+import {createPuzzle,revealCars,unlockFromVehicle,hiddenCar} from './puzzle.js?v=50';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -62,7 +63,7 @@ export function routeFor(car,state,bayIndex) {
   return smoothPath(path);
 }
 export class Traffic {
-  constructor(level=0,legacy=false,garages=!legacy,campaignVersion=garages?7:3) {
+  constructor(level=0,legacy=false,garages=!legacy,campaignVersion=garages?8:3) {
     this.state=createGame(level,legacy,campaignVersion<5);this.time=0;this.running=[];this.walkers=[];this.puffs=[];this.delivered=0;this.total=0;this.lastBoard=-1;this.undoStack=[];
     if(this.state.cars.some(car=>!car.model))assignModels(this.state.cars);
     const byId=new Map(this.state.cars.map(car=>[car.id,car]));
@@ -79,6 +80,8 @@ export class Traffic {
   get solution(){return this._solution || (this._solution=this.state.cars.length?this.findSolution():[]);}
   findSolution(){const s={...this.state,cars:[...this.state.cars]},ids=[];while(s.cars.length){const c=s.cars.find(c=>canExit(s,c));if(!c)throw Error('Locked level');ids.push(c.id);s.cars=s.cars.filter(a=>a.id!==c.id);}return ids;}
   dispatch(id) {
+    const cut=this.state.queueCut;
+    if(cut?.status==='entering'||(cut?.status==='active'&&cut.remaining===0))return {ok:false,reason:'cutin-wait'};
     if(this.state.emergency?.status==='active'&&this.state.emergency.remaining===0)return {ok:false,reason:'emergency-wait'};
     if(this.state.status==='won')return {ok:false,reason:'won'};
     if(this.arriving.length)return {ok:false,reason:'incoming'};
@@ -88,6 +91,7 @@ export class Traffic {
     const slot=this.state.bays.findIndex(b=>!b);if(slot<0)return {ok:false,reason:'full'};
     if(!this.running.length&&!this.walkers.length)this.undoStack.push(this.snapshot());
     if(this.state.emergency?.status==='active')this.state.emergency.remaining--;
+    if(cut?.status==='active')cut.remaining--;
     this.state.combo??={chain:0,best:0};this.state.combo.chain=0;
     this.state.status='playing';this.state.cars=this.state.cars.filter(c=>c.id!==id);this.state.moves++;
     const vehicle={...car,slot,capacity:CAPACITY[car.type],loaded:0,pending:0,passengers:[],phase:'driving',elapsed:0,path:routeFor(car,this.state,slot)};
@@ -120,7 +124,7 @@ export class Traffic {
     vehicle.pose=pathPose(path,0);this.state.bays[slot]=vehicle;this.running.push(vehicle);this.onEvent?.({type:'incoming',carId:car.id,emergency:!!car.emergency});
     return {ok:true,slot};
   }
-  undo(){if(this.arriving.length||this.running.length||this.walkers.length||!this.undoStack.length)return false;const bays=this.state.bays.length;Object.assign(this,JSON.parse(this.undoStack.pop()));while(this.state.bays.length<bays)this.state.bays.push(null);this.queueVisual=this.queueConsumed;this.garageCheckKey=null;return true;}
+  undo(){if(this.state.queueCut?.status==='entering'||this.arriving.length||this.running.length||this.walkers.length||!this.undoStack.length)return false;const bays=this.state.bays.length;Object.assign(this,JSON.parse(this.undoStack.pop()));while(this.state.bays.length<bays)this.state.bays.push(null);this.queueVisual=this.queueConsumed;this.garageCheckKey=null;return true;}
   addBay(){if(this.state.bays.length>=7||this.state.status==='won')return false;this.state.bays.push(null);this.state.status='playing';return true;}
   sortQueue(color){
     const people=this.state.queue.map((color,i)=>({color,person:this.state.people[i]}));
@@ -180,18 +184,18 @@ export class Traffic {
       if(Math.random()<dt*25)this.puffs.push({x:car.pose.x-Math.cos(car.pose.angle)*30,y:car.pose.y-Math.sin(car.pose.angle)*30,age:0});
       if(t===1){this.running=this.running.filter(c=>c!==car);if(car.phase==='leaving'){this.state.bays[car.slot]=null;}else{car.phase='parked';car.pose={...BAY(car.slot),angle:-2.1};this.onEvent?.({type:'arrival',carId:car.id});}}
     }
-    if(this.time-this.lastBoard>.13&&this.state.queue.length){
+    if(this.state.queueCut?.status!=='entering'&&this.time-this.lastBoard>.13&&this.state.queue.length){
       const car=this.state.bays.find(c=>c?.phase==='parked'&&c.color===this.state.queue[0]&&c.loaded+c.pending<c.capacity);
       if(car){this.lastBoard=this.time;const color=this.state.queue.shift(),person=this.state.people.shift();this.queueConsumed++;car.pending++;this.onEvent?.({type:'walk',carId:car.id});
         this.walkers.push({color,person,car,elapsed:0,duration:.6,path:[QUEUE(0),{x:136,y:221},{x:car.pose.x-20,y:221},{x:car.pose.x-11,y:car.pose.y-10}]});}
     }
-    for(const p of [...this.walkers]){p.elapsed+=dt;p.pose=pathPose(p.path,p.elapsed/p.duration);if(p.elapsed>=p.duration){p.car.pending--;p.car.loaded++;p.car.passengers.push(p.person);this.delivered++;this.onEvent?.({type:'board',carId:p.car.id});this.walkers=this.walkers.filter(w=>w!==p);}}
+    for(const p of [...this.walkers]){p.elapsed+=dt;p.pose=pathPose(p.path,p.elapsed/p.duration);if(p.elapsed>=p.duration){p.car.pending--;p.car.loaded++;p.car.passengers.push(p.person);this.delivered++;const cut=this.state.queueCut;if(cut?.status==='active'&&cut.ids.includes(p.person.id))cut.boarded.push(p.person.id);this.onEvent?.({type:'board',carId:p.car.id});this.walkers=this.walkers.filter(w=>w!==p);}}
     for(const car of this.state.bays.filter(Boolean)){
       if(car.phase==='parked'&&car.loaded===car.capacity){if(this.state.emergency?.id===car.id&&this.state.emergency.status==='active')this.state.emergency.status='success';this.state.combo??={chain:0,best:0};this.state.combo.chain++;this.state.combo.best=Math.max(this.state.combo.best,this.state.combo.chain);this.onEvent?.({type:'depart',carId:car.id});car.phase='leaving';car.elapsed=0;car.duration=1.05;car.path=smoothPath([car.pose,{x:car.pose.x+41,y:363},{x:655,y:363}]);this.running.push(car);}
     }
     this.puffs.forEach(p=>p.age+=dt);this.puffs=this.puffs.filter(p=>p.age<.5);
     this.updateGarage(dt);revealCars(this);
-    settleEmergency(this);
+    settleEmergency(this);tickQueueCut(this,dt);
     if(!pendingCars(this.state).length&&!this.arriving.length&&!this.state.cars.length&&!this.state.queue.length&&!this.running.length&&!this.walkers.length&&this.state.bays.every(b=>!b))this.state.status='won';
     else if(this.state.bays.every(Boolean)&&!this.running.length&&!this.walkers.length&&!this.state.bays.some(c=>c.color===this.state.queue[0]))this.state.status='lost';
   }

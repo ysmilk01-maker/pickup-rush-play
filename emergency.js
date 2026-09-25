@@ -2,6 +2,7 @@
 // appearance and optional turn-limited bonus mission change.
 export const emergencyLimit = level => level < 30 ? 6 : level < 60 ? 5 : 4;
 export function beginEmergency(traffic, car) {
+  if (['entering','active'].includes(traffic.state.queueCut?.status)) return;
   if (traffic.state.puzzle?.tutorial || traffic.demandVersion < 6 || traffic.state.emergency) return;
   car.emergency = true;
   traffic.state.emergency = {id:car.id,color:car.color,capacity:({taxi:4,van:6,bus:10})[car.type],

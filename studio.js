@@ -1,11 +1,11 @@
-import {Market} from './market.js?v=49';
-import {MarketScene} from './market-scene.js?v=49';
-import {COLORS,canExit} from './game.js?v=49';
-import {CAPACITY} from './traffic.js?v=49';
-import {pendingCars} from './garage.js?v=49';
-import {stageProfile} from './campaign.js?v=49';
-import {overlaps,bounds,LOT} from './geometry.js?v=49';
-import {exitBlockers,hiddenCar} from './puzzle.js?v=49';
+import {Market} from './market.js?v=50';
+import {MarketScene} from './market-scene.js?v=50';
+import {COLORS,canExit} from './game.js?v=50';
+import {CAPACITY} from './traffic.js?v=50';
+import {pendingCars} from './garage.js?v=50';
+import {stageProfile} from './campaign.js?v=50';
+import {overlaps,bounds,LOT} from './geometry.js?v=50';
+import {exitBlockers,hiddenCar} from './puzzle.js?v=50';
 const $=s=>document.querySelector(s),scene=new MarketScene($('#scene')),reduce=matchMedia('(prefers-reduced-motion: reduce)');
 let m,auto=false,cursor=0,selection=null,events=[],last=0,custom=false,started=false;
 $('#level').innerHTML=Array.from({length:100},(_,i)=>`<option value="${i}">${i+1}단계 · ${stageProfile(i).rhythm}</option>`).join('');
@@ -16,7 +16,7 @@ function load(index){
  const p=stageProfile(index);$('#profile').textContent=`${p.count}대 · ${p.colors}색 · ${p.rhythm} · 기본 승강장 4칸`;
  $('#car').innerHTML=m.state.cars.map(c=>`<option value="${c.id}">${c.id} · ${COLORS[c.color].label} ${CAPACITY[c.type]}인승</option>`).join('');
  $('#queue-edit').value=m.state.queue.join(',');$('#triggers').value=m.state.garage?.waves.map(w=>w.trigger).join(',')||'';
- m.onEvent=e=>{if(['board','walk'].includes(e.type))return;events.unshift(`${m.state.moves}배차 · ${{reveal:'색 공개',gate:'차단기 개방',incoming:'자동 입차',parked:'주차 완료',arrival:'승강장 도착',depart:'만차 출발'}[e.type]||e.type} ${e.gateId||e.carId||''}`);events=events.slice(0,5);};
+ m.onEvent=e=>{if(['board','walk'].includes(e.type))return;events.unshift(`${m.state.moves}배차 · ${{cutin:'새치기 등장',cutSuccess:'새치기 탑승 성공',cutReturn:'새치기 줄 복귀',reveal:'색 공개',gate:'차단기 개방',incoming:'자동 입차',parked:'주차 완료',arrival:'승강장 도착',depart:'만차 출발'}[e.type]||e.type} ${e.gateId||e.carId||''}`);events=events.slice(0,5);};
  editFields();status('단계를 골라 해법을 재생하거나 배치를 실험해 보세요.');render();
 }
 function editFields(){const car=m.state.cars.find(c=>c.id===$('#car').value);if(!car)return;$('#x').value=car.x.toFixed(1);$('#y').value=car.y.toFixed(1);$('#angle').value=(car.angle*180/Math.PI).toFixed(1);selection={id:car.id,until:m.time+1000};}
@@ -46,7 +46,7 @@ $('#apply-queue').onclick=()=>{if(!editable())return;const queue=$('#queue-edit'
 $('#apply-garage').onclick=()=>{if(!editable())return;const waves=m.state.garage?.waves||[],values=$('#triggers').value.split(',').map(Number);if(!waves.length||values.length!==waves.length||values.some((n,i)=>!Number.isInteger(n)||n<0||n>m.allCars.length||i&&n<values[i-1])){status('차고 수만큼 오름차순 배차 수를 입력하세요.');return;}waves.forEach((w,i)=>w.trigger=values[i]);m.garageCheckKey=null;custom=true;status('자동 입차 시점을 적용했습니다.');};
 $('#validate').onclick=()=>{if(editable())validate();};
 $('#scene').onclick=e=>{const r=e.currentTarget.getBoundingClientRect(),car=scene.pick((e.clientX-r.left)*600/r.width,(e.clientY-r.top)*1080/r.height);if(car){$('#car').value=car.id;editFields();selection.blocker=exitBlockers(m.state,car)[0];}};
-$('#export').onclick=()=>{const data={version:1,campaignRules:7,stage:m.state.levelIndex+1,custom,settled:!m.busy,state:m.state,solution:m.solution,delivered:m.delivered};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=`night-shuttle-stage-${m.state.levelIndex+1}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status('설계 JSON을 저장했습니다. 원본 게임에는 자동 반영되지 않습니다.');};
+$('#export').onclick=()=>{const data={version:1,campaignRules:m.demandVersion,stage:m.state.levelIndex+1,custom,settled:!m.busy,state:m.state,solution:m.solution,delivered:m.delivered};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=`night-shuttle-stage-${m.state.levelIndex+1}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status('설계 JSON을 저장했습니다. 원본 게임에는 자동 반영되지 않습니다.');};
 window.addEventListener('resize',()=>scene.resize());
 function frame(now){const dt=last?Math.min((now-last)/1000,.05):0;last=now;if(!document.hidden){for(let i=0;i<Number($('#speed').value);i++){m.tick(dt);if(auto&&m.state.status==='playing')nextMove();}if(m.state.status!=='playing'){if(auto)status(m.state.status==='won'?`4칸 완주 확인 · ${m.total}명 전원 탑승`:'승강장이 막혔습니다. 배차 순서와 대기열을 확인하세요.');auto=false;$('#auto').textContent='해법 재생';}render();}requestAnimationFrame(frame);}
 const query=Number(new URLSearchParams(location.search).get('stage')||1);load(Number.isInteger(query)?query-1:0);requestAnimationFrame(frame);

@@ -1,10 +1,10 @@
-import {exitBlockers} from './puzzle.js?v=49';
-import { scatterVehicles } from './layout.js?v=49';
-import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=49';
-import { seededRandom } from './demand.js?v=49';
-import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=49';
-import campaignLayouts from './campaign-layouts.js?v=49';
-import previousLayouts from './campaign-layouts-v4.js?v=49';
+import {exitBlockers} from './puzzle.js?v=50';
+import { scatterVehicles } from './layout.js?v=50';
+import { blockers, isFreeform, GROUND_SCALE } from './geometry.js?v=50';
+import { seededRandom } from './demand.js?v=50';
+import {stageProfile,TOTAL_LEVELS,DISTRICTS} from './campaign.js?v=50';
+import campaignLayouts from './campaign-layouts.js?v=50';
+import previousLayouts from './campaign-layouts-v4.js?v=50';
 
 export const COLORS = {
   red: { label: "빨강", short: "●", hex: "#ff5f6d" },

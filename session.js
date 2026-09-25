@@ -1,8 +1,9 @@
-import {validPuzzle} from './puzzle.js?v=49';
-import {Market} from './market.js?v=49';
-import {pendingCars} from './garage.js?v=49';
-import {CAPACITY} from './traffic.js?v=49';
-import {emergencyLimit} from './emergency.js?v=49';
+import {validQueueCut} from './queue-cut.js?v=50';
+import {validPuzzle} from './puzzle.js?v=50';
+import {Market} from './market.js?v=50';
+import {pendingCars} from './garage.js?v=50';
+import {CAPACITY} from './traffic.js?v=50';
+import {emergencyLimit} from './emergency.js?v=50';
 // Only save settled moments, so reload can never strand a person or a car mid-route.
 export function checkpoint(m,run){
   if(m.busy||m.state.status!=='playing')return null;
@@ -11,8 +12,8 @@ export function checkpoint(m,run){
 export function restoreSession(raw,unlocked){
   try{
     if(!raw||!Number.isInteger(raw.level)||raw.level<0||raw.level>unlocked)return null;
-    if(![3,4,5,6,7].includes(raw.rules)&&raw.level>=36)return null;
-    const m=new Market(raw.level,![3,4,5,6,7].includes(raw.rules),raw.rules>=4,raw.rules),d=raw.data,s=d?.state;
+    if(![3,4,5,6,7,8].includes(raw.rules)&&raw.level>=36)return null;
+    const m=new Market(raw.level,![3,4,5,6,7,8].includes(raw.rules),raw.rules>=4,raw.rules),d=raw.data,s=d?.state;
     if(!s||s.levelIndex!==raw.level||s.status!=='playing'||!Array.isArray(s.cars)||!Array.isArray(s.bays)||s.bays.length<4||s.bays.length>7)return null;
     const originals=new Map(m.allCars.map(c=>[c.id,c])),all=[...s.cars,...s.bays.filter(Boolean),...pendingCars(s)],ids=new Set();
     for(const car of all){
@@ -48,6 +49,8 @@ export function restoreSession(raw,unlocked){
     if(s.combo!==undefined&&(!s.combo||!Number.isInteger(s.combo.chain)||!Number.isInteger(s.combo.best)||s.combo.chain<0||s.combo.best<s.combo.chain||s.combo.best>m.allCars.length))return null;
     s.combo??={chain:0,best:0};
     if(raw.rules>=7){if(!validPuzzle(s.puzzle,m.state.puzzle,s))return null;}else if(s.puzzle)return null;
+    if(!validQueueCut(s.queueCut,m,s))return null;
+    if(raw.rules>=8){const seen=new Set();for(const [color,p] of [...s.queue.map((c,i)=>[c,s.people[i]]),...s.bays.filter(Boolean).flatMap(c=>c.passengers.map(p=>[c.color,p]))]){if(!p||!Number.isInteger(p.id)||m.state.queue[p.id]!==color||seen.has(p.id))return null;seen.add(p.id);}}
     const emergency=s.emergency;
     if(emergency){
       const base=pendingCars(m.state).find(c=>c.id===emergency.id);

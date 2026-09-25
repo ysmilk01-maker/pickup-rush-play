@@ -1,10 +1,11 @@
-import {drawGates,drawBlockage} from './puzzle-scene.js?v=49';
-import {stationEnvironment,stationBays} from './station-scene.js?v=49';
-import {districtStyle,districtSky} from './district-scene.js?v=49';
-import { Scene } from './scene.js?v=49';
-import { BAY, QUEUE, carPose } from './traffic.js?v=49';
-import { vehicleModel, makePassenger } from './appearance.js?v=49';
-import { COLORS } from './game.js?v=49';
+import {cutPose,cutBadge} from './queue-cut-scene.js?v=50';
+import {drawGates,drawBlockage} from './puzzle-scene.js?v=50';
+import {stationEnvironment,stationBays} from './station-scene.js?v=50';
+import {districtStyle,districtSky} from './district-scene.js?v=50';
+import { Scene } from './scene.js?v=50';
+import { BAY, QUEUE, carPose } from './traffic.js?v=50';
+import { vehicleModel, makePassenger } from './appearance.js?v=50';
+import { COLORS } from './game.js?v=50';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
@@ -18,7 +19,7 @@ export class MarketScene extends Scene {
       const glow=c.createRadialGradient(x,y+5,0,x,y+5,22);glow.addColorStop(0,col+'55');glow.addColorStop(1,col+'00');this.ellipse(x,y+5,22,22,glow);
       this.rect(x-5,y,10,13,4,col);this.rect(x-3,y-3,6,3,1,'#795f59');
     }
-    if(!t.state.emergency)this.text(`NIGHT ${String(t.state.levelIndex+1).padStart(2,'0')}  ·  ${t.state.levelTitle}`,300,87,13,'#365e6e');
+    if(!t.state.emergency&&!t.state.queueCut)this.text(`NIGHT ${String(t.state.levelIndex+1).padStart(2,'0')}  ·  ${t.state.levelTitle}`,300,87,13,'#365e6e');
     // The static architecture and pavement are cached at the current pixel ratio.
     c.fillStyle=p.road;c.fillRect(0,343,600,49);
     c.setLineDash([13,18]);c.strokeStyle='#b3997150';c.lineWidth=2;c.beginPath();c.moveTo(0,368);c.lineTo(600,368);c.stroke();c.setLineDash([]);
@@ -45,7 +46,8 @@ export class MarketScene extends Scene {
     const offset=t.queueConsumed-t.queueVisual;
     for(let i=Math.min(24,t.state.queue.length)-1;i>=0;i--){
       const n=i+offset,a=QUEUE(Math.floor(n)),b=QUEUE(Math.ceil(n)),f=n%1;
-      this.person(a.x+(b.x-a.x)*f,a.y+(b.y-a.y)*f,t.state.queue[i],this.reduceMotion?0:t.time+i*.17,1.08,offset>.02&&!this.reduceMotion,t.state.people[i]);
+      const person=t.state.people[i],cut=cutPose(t,person,i,this.reduceMotion),x=cut?.x??a.x+(b.x-a.x)*f,y=cut?.y??a.y+(b.y-a.y)*f;
+      this.person(x,y,t.state.queue[i],this.reduceMotion?0:t.time+i*.17,1.08,(!!cut||offset>.02)&&!this.reduceMotion,person);cutBadge(this,t,person,x,y);
     }
     const cars=t.state.cars.map(car=>({car,pose:carPose(car,t.state),board:true}));
     for(const car of t.state.bays.filter(Boolean))cars.push({car,pose:{...car.pose},board:false});
@@ -67,7 +69,7 @@ export class MarketScene extends Scene {
     for(const passenger of t.walkers){
       if(!passenger.pose)continue;
       const end=Math.min(1,passenger.elapsed/passenger.duration),hop=this.reduceMotion?0:Math.sin(Math.max(0,end-.75)*Math.PI*4)*7;
-      this.person(passenger.pose.x,passenger.pose.y-hop,passenger.color,this.reduceMotion?0:t.time,1.0*(end>.9?1-(end-.9)*3:1),!this.reduceMotion,passenger.person);
+      this.person(passenger.pose.x,passenger.pose.y-hop,passenger.color,this.reduceMotion?0:t.time,1.0*(end>.9?1-(end-.9)*3:1),!this.reduceMotion,passenger.person);cutBadge(this,t,passenger.person,passenger.pose.x,passenger.pose.y-hop);
     }
   }
 }
