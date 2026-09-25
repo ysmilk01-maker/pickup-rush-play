@@ -1,5 +1,5 @@
-import {canExit} from './game.js?v=52';
-import {hiddenCar} from './puzzle.js?v=52';
+import {canExit} from './game.js?v=53';
+import {hiddenCar} from './puzzle.js?v=53';
 
 export const CUT_LIMIT=3;
 export const cutCount=level=>level<30?2:3;

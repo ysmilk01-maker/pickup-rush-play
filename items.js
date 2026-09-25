@@ -1,11 +1,11 @@
-import {checkpoint} from './session.js?v=52';
-import {canExit} from './game.js?v=52';
-import {hiddenCar} from './puzzle.js?v=52';
+import {checkpoint} from './session.js?v=53';
+import {canExit} from './game.js?v=53';
+import {hiddenCar} from './puzzle.js?v=53';
 
 export const ITEMS=[
- {id:'bay',name:'승강장 확장권',icon:'＋',price:60,color:'#ffdaa1',description:'광고 없이 승강장 한 칸을 즉시 열어요.',detail:'이번 운행에서만 적용 · 최대 7칸 · 확장 시 별 1개'},
- {id:'navigator',name:'자동 길잡이',icon:'➤',price:45,color:'#bce9dd',description:'다음에 보낼 수 있는 셔틀을 계속 표시해요.',detail:'이번 운행 내내 적용 · 자동 배차 아님 · 사용 시 최고 별 2개'},
- {id:'manifest',name:'대기열 미리보기',icon:'▤',price:25,color:'#ddcdf6',description:'화면 밖 손님까지 전체 색상 순서를 확인해요.',detail:'이번 운행에서 여러 번 열람 · 사용 시 최고 별 2개'}
+ {id:'bay',name:'승강장 확장권',icon:'＋',price:100,color:'#ffdaa1',description:'광고 없이 승강장 한 칸을 즉시 열어요.',detail:'이번 운행에서만 적용 · 최대 7칸 · 확장 시 별 1개'},
+ {id:'navigator',name:'자동 길잡이',icon:'➤',price:100,color:'#bce9dd',description:'다음에 보낼 수 있는 셔틀을 계속 표시해요.',detail:'이번 운행 내내 적용 · 자동 배차 아님 · 사용 시 최고 별 2개'},
+ {id:'manifest',name:'대기열 미리보기',icon:'▤',price:100,color:'#ddcdf6',description:'화면 밖 손님까지 전체 색상 순서를 확인해요.',detail:'이번 운행에서 여러 번 열람 · 사용 시 최고 별 2개'}
 ];
 export const BUNDLE={id:'starter',name:'든든한 운행 세트',price:110,contents:{bay:1,navigator:1,manifest:1}};
 export const ITEM_LIMIT=99;
