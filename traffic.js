@@ -1,9 +1,9 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=42';
-import { assignModels, makePassenger } from './appearance.js?v=42';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=42';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=42';
-import { passengerQueue } from './demand.js?v=42';
-import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=42';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=43';
+import { assignModels, makePassenger } from './appearance.js?v=43';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=43';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=43';
+import { passengerQueue } from './demand.js?v=43';
+import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=43';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -113,7 +113,7 @@ export class Traffic {
     const path=smoothPath([{x:gate?660:-60,y:363},{x:bay.x+41,y:363},bay]);
     const vehicle={...car,slot,capacity:CAPACITY[car.type],loaded:0,pending:0,passengers:[],phase:'driving',elapsed:0,path,fromGarage:true};
     vehicle.duration=path.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-path[i].x,p.y-path[i].y),0)/390;
-    vehicle.pose=pathPose(path,0);this.state.bays[slot]=vehicle;this.running.push(vehicle);
+    vehicle.pose=pathPose(path,0);this.state.bays[slot]=vehicle;this.running.push(vehicle);this.onEvent?.({type:'incoming',carId:car.id,emergency:!!car.emergency});
     return {ok:true,slot};
   }
   undo(){if(this.arriving.length||this.running.length||this.walkers.length||!this.undoStack.length)return false;const bays=this.state.bays.length;Object.assign(this,JSON.parse(this.undoStack.pop()));while(this.state.bays.length<bays)this.state.bays.push(null);this.queueVisual=this.queueConsumed;this.garageCheckKey=null;return true;}
@@ -139,7 +139,7 @@ export class Traffic {
       incoming.pose=pathPose(incoming.path,t);
       // Back into the parking space along the proven clear exit corridor.
       incoming.pose.angle+=Math.PI;
-      if(t===1){this.state.cars.push(incoming.car);this.state.cars.sort((a,b)=>this.solution.indexOf(a.id)-this.solution.indexOf(b.id));this.state.garage.arrived++;this.arriving=[];}
+      if(t===1){this.onEvent?.({type:'parked',carId:incoming.car.id});this.state.cars.push(incoming.car);this.state.cars.sort((a,b)=>this.solution.indexOf(a.id)-this.solution.indexOf(b.id));this.state.garage.arrived++;this.arriving=[];}
     }
     if(this.arriving.length||this.running.length||this.walkers.length||this.state.status!=='playing')return;
     if(this.garageTransfer()?.ready){this.admitGarageToBay();return;}
@@ -164,6 +164,7 @@ export class Traffic {
     }
     if(!car)return;
     beginEmergency(this,car);
+    this.onEvent?.({type:'incoming',carId:car.id,emergency:!!car.emergency});
     wave.cars=wave.cars.filter(c=>c.id!==car.id);this.arriving.push({car,gate:wave.gate,path,pose:{...path[0],angle:car.angle},elapsed:0,
       duration:path.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-path[i].x,p.y-path[i].y),0)/390});
   }
@@ -177,7 +178,7 @@ export class Traffic {
     }
     if(this.time-this.lastBoard>.13&&this.state.queue.length){
       const car=this.state.bays.find(c=>c?.phase==='parked'&&c.color===this.state.queue[0]&&c.loaded+c.pending<c.capacity);
-      if(car){this.lastBoard=this.time;const color=this.state.queue.shift(),person=this.state.people.shift();this.queueConsumed++;car.pending++;
+      if(car){this.lastBoard=this.time;const color=this.state.queue.shift(),person=this.state.people.shift();this.queueConsumed++;car.pending++;this.onEvent?.({type:'walk',carId:car.id});
         this.walkers.push({color,person,car,elapsed:0,duration:.6,path:[QUEUE(0),{x:136,y:221},{x:car.pose.x-20,y:221},{x:car.pose.x-11,y:car.pose.y-10}]});}
     }
     for(const p of [...this.walkers]){p.elapsed+=dt;p.pose=pathPose(p.path,p.elapsed/p.duration);if(p.elapsed>=p.duration){p.car.pending--;p.car.loaded++;p.car.passengers.push(p.person);this.delivered++;this.onEvent?.({type:'board',carId:p.car.id});this.walkers=this.walkers.filter(w=>w!==p);}}

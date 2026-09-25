@@ -1,5 +1,5 @@
-import { assignModels } from './appearance.js?v=42';
-import { bounds, blockers, overlaps, LOT } from './geometry.js?v=42';
+import { assignModels } from './appearance.js?v=43';
+import { bounds, blockers, overlaps, LOT } from './geometry.js?v=43';
 
 const ANGLES={R:Math.PI/4,L:-3*Math.PI/4,U:-Math.PI/4,D:3*Math.PI/4,NE:0,SW:Math.PI,NW:-Math.PI/2,SE:Math.PI/2};
 const directions=Object.keys(ANGLES);
