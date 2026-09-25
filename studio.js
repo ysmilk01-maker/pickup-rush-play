@@ -1,11 +1,12 @@
-import {Market} from './market.js?v=56';
-import {MarketScene} from './market-scene.js?v=56';
-import {COLORS,canExit} from './game.js?v=56';
-import {CAPACITY} from './traffic.js?v=56';
-import {pendingCars} from './garage.js?v=56';
-import {stageProfile} from './campaign.js?v=56';
-import {overlaps,bounds,LOT} from './geometry.js?v=56';
-import {exitBlockers,hiddenCar} from './puzzle.js?v=56';
+import {chooseQueueCut} from './queue-cut.js?v=57';
+import {Market} from './market.js?v=57';
+import {MarketScene} from './market-scene.js?v=57';
+import {COLORS,canExit} from './game.js?v=57';
+import {CAPACITY} from './traffic.js?v=57';
+import {pendingCars} from './garage.js?v=57';
+import {stageProfile} from './campaign.js?v=57';
+import {overlaps,bounds,LOT} from './geometry.js?v=57';
+import {exitBlockers,hiddenCar} from './puzzle.js?v=57';
 const $=s=>document.querySelector(s),scene=new MarketScene($('#scene')),reduce=matchMedia('(prefers-reduced-motion: reduce)');
 let m,auto=false,cursor=0,selection=null,events=[],last=0,custom=false,started=false;
 $('#level').innerHTML=Array.from({length:200},(_,i)=>`<option value="${i}">${i+1}단계 · ${stageProfile(i).rhythm}</option>`).join('');
@@ -48,5 +49,5 @@ $('#validate').onclick=()=>{if(editable())validate();};
 $('#scene').onclick=e=>{const r=e.currentTarget.getBoundingClientRect(),car=scene.pick((e.clientX-r.left)*600/r.width,(e.clientY-r.top)*1080/r.height);if(car){$('#car').value=car.id;editFields();selection.blocker=exitBlockers(m.state,car)[0];}};
 $('#export').onclick=()=>{const data={version:1,campaignRules:m.demandVersion,stage:m.state.levelIndex+1,custom,settled:!m.busy,state:m.state,solution:m.solution,delivered:m.delivered};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=`night-shuttle-stage-${m.state.levelIndex+1}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status('설계 JSON을 저장했습니다. 원본 게임에는 자동 반영되지 않습니다.');};
 window.addEventListener('resize',()=>scene.resize());
-function frame(now){const dt=last?Math.min((now-last)/1000,.05):0;last=now;if(!document.hidden){for(let i=0;i<Number($('#speed').value);i++){m.tick(dt);if(auto&&m.state.status==='playing')nextMove();}if(m.state.status!=='playing'){if(auto)status(m.state.status==='won'?`4칸 완주 확인 · ${m.total}명 전원 탑승`:'승강장이 막혔습니다. 배차 순서와 대기열을 확인하세요.');auto=false;$('#auto').textContent='해법 재생';}render();}requestAnimationFrame(frame);}
+function frame(now){const dt=last?Math.min((now-last)/1000,.05):0;last=now;if(!document.hidden){for(let i=0;i<Number($('#speed').value);i++){m.tick(dt);if(m.state.queueCut?.status==='offered')chooseQueueCut(m,true);if(auto&&m.state.status==='playing')nextMove();}if(m.state.status!=='playing'){if(auto)status(m.state.status==='won'?`4칸 완주 확인 · ${m.total}명 전원 탑승`:'승강장이 막혔습니다. 배차 순서와 대기열을 확인하세요.');auto=false;$('#auto').textContent='해법 재생';}render();}requestAnimationFrame(frame);}
 const query=Number(new URLSearchParams(location.search).get('stage')||1);load(Number.isInteger(query)?query-1:0);requestAnimationFrame(frame);

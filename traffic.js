@@ -1,12 +1,12 @@
-import {tickQueueCut} from './queue-cut.js?v=56';
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=56';
-import { assignModels, makePassenger } from './appearance.js?v=56';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=56';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=56';
-import { passengerQueue } from './demand.js?v=56';
-import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=56';
+import {tickQueueCut} from './queue-cut.js?v=57';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=57';
+import { assignModels, makePassenger } from './appearance.js?v=57';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=57';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=57';
+import { passengerQueue } from './demand.js?v=57';
+import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=57';
 
-import {createPuzzle,revealCars,unlockFromVehicle,hiddenCar} from './puzzle.js?v=56';
+import {createPuzzle,revealCars,unlockFromVehicle,hiddenCar} from './puzzle.js?v=57';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;
@@ -82,7 +82,7 @@ export class Traffic {
   findSolution(){const s={...this.state,cars:[...this.state.cars]},ids=[];while(s.cars.length){const c=s.cars.find(c=>canExit(s,c));if(!c)throw Error('Locked level');ids.push(c.id);s.cars=s.cars.filter(a=>a.id!==c.id);}return ids;}
   dispatch(id) {
     const cut=this.state.queueCut;
-    if(cut?.status==='entering'||(cut?.status==='active'&&cut.remaining===0))return {ok:false,reason:'cutin-wait'};
+    if(cut?.status==='offered'||cut?.status==='entering'||(cut?.status==='active'&&cut.remaining===0))return {ok:false,reason:'cutin-wait'};
     if(this.state.emergency?.status==='active'&&this.state.emergency.remaining===0)return {ok:false,reason:'emergency-wait'};
     if(this.state.status==='won')return {ok:false,reason:'won'};
     if(this.arriving.length)return {ok:false,reason:'incoming'};
@@ -125,7 +125,7 @@ export class Traffic {
     vehicle.pose=pathPose(path,0);this.state.bays[slot]=vehicle;this.running.push(vehicle);this.onEvent?.({type:'incoming',carId:car.id,emergency:!!car.emergency});
     return {ok:true,slot};
   }
-  undo(){if(this.state.queueCut?.status==='entering'||this.arriving.length||this.running.length||this.walkers.length||!this.undoStack.length)return false;const bays=this.state.bays.length;Object.assign(this,JSON.parse(this.undoStack.pop()));while(this.state.bays.length<bays)this.state.bays.push(null);this.queueVisual=this.queueConsumed;this.garageCheckKey=null;return true;}
+  undo(){if(this.state.queueCut?.status==='offered'||this.state.queueCut?.status==='entering'||this.arriving.length||this.running.length||this.walkers.length||!this.undoStack.length)return false;const bays=this.state.bays.length;Object.assign(this,JSON.parse(this.undoStack.pop()));while(this.state.bays.length<bays)this.state.bays.push(null);this.queueVisual=this.queueConsumed;this.garageCheckKey=null;return true;}
   addBay(){if(this.state.bays.length>=7||this.state.status==='won')return false;this.state.bays.push(null);this.state.status='playing';return true;}
   sortQueue(color){
     const people=this.state.queue.map((color,i)=>({color,person:this.state.people[i]}));
@@ -178,6 +178,7 @@ export class Traffic {
       duration:path.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-path[i].x,p.y-path[i].y),0)/390});
   }
   tick(dt){
+    if(this.state.queueCut?.status==='offered')return;
     dt=Math.max(0,Math.min(dt,.05))*ANIMATION_SPEED;this.time+=dt;
     this.queueVisual+=(this.queueConsumed-this.queueVisual)*Math.min(1,dt*9);
     for(const car of [...this.running]){

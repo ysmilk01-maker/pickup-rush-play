@@ -1,6 +1,6 @@
-import {timeStars} from './timing.js?v=56';
-import {inventory} from './items.js?v=56';
-import {TOTAL_LEVELS} from './campaign.js?v=56';
+import {timeStars} from './timing.js?v=57';
+import {inventory} from './items.js?v=57';
+import {TOTAL_LEVELS} from './campaign.js?v=57';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},

@@ -1,4 +1,4 @@
-import {QUEUE,pathPose} from './traffic.js?v=56';
+import {QUEUE,pathPose} from './traffic.js?v=57';
 
 export function cutPose(t,person,index,reduced){
  const q=t.state.queueCut;
@@ -14,6 +14,6 @@ export function cutPose(t,person,index,reduced){
 }
 export function cutBadge(s,t,person,x,y){
  const q=t.state.queueCut;
- if(!q||q.status==='missed'||!q.ids.includes(person?.id))return;
+ if(!q||['offered','declined','missed'].includes(q.status)||!q.ids.includes(person?.id))return;
  s.ellipse(x+8,y-39,7,7,'#ffebaf');s.text('!',x+8,y-38,11,'#99552f');
 }

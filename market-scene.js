@@ -1,11 +1,11 @@
-import {cutPose,cutBadge} from './queue-cut-scene.js?v=56';
-import {drawGates,drawBlockage} from './puzzle-scene.js?v=56';
-import {stationEnvironment,stationBays} from './station-scene.js?v=56';
-import {districtStyle,districtSky} from './district-scene.js?v=56';
-import { Scene } from './scene.js?v=56';
-import { BAY, QUEUE, carPose } from './traffic.js?v=56';
-import { vehicleModel, makePassenger } from './appearance.js?v=56';
-import { COLORS } from './game.js?v=56';
+import {cutPose,cutBadge} from './queue-cut-scene.js?v=57';
+import {drawGates,drawBlockage} from './puzzle-scene.js?v=57';
+import {stationEnvironment,stationBays} from './station-scene.js?v=57';
+import {districtStyle,districtSky} from './district-scene.js?v=57';
+import { Scene } from './scene.js?v=57';
+import { BAY, QUEUE, carPose } from './traffic.js?v=57';
+import { vehicleModel, makePassenger } from './appearance.js?v=57';
+import { COLORS } from './game.js?v=57';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}

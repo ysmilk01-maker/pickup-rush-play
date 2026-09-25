@@ -1,14 +1,18 @@
-import {validShuffleSlots} from './shuffle.js?v=56';
-import {validQueueCut} from './queue-cut.js?v=56';
-import {validPuzzle} from './puzzle.js?v=56';
-import {Market} from './market.js?v=56';
-import {pendingCars} from './garage.js?v=56';
-import {CAPACITY} from './traffic.js?v=56';
-import {emergencyLimit} from './emergency.js?v=56';
+import {validShuffleSlots} from './shuffle.js?v=57';
+import {validQueueCut} from './queue-cut.js?v=57';
+import {validPuzzle} from './puzzle.js?v=57';
+import {Market} from './market.js?v=57';
+import {pendingCars} from './garage.js?v=57';
+import {CAPACITY} from './traffic.js?v=57';
+import {emergencyLimit} from './emergency.js?v=57';
 // Only save settled moments, so reload can never strand a person or a car mid-route.
 export function checkpoint(m,run){
-  if(m.busy||m.state.status!=='playing')return null;
-  return {rules:m.demandVersion,level:m.state.levelIndex,data:JSON.parse(m.snapshot()),run:{...run},undo:m.undoStack.at(-1)||null};
+  const entering=m.state.queueCut?.status==='entering'&&!m.running.length&&!m.walkers.length&&!m.arriving.length;
+  if((m.busy&&!entering)||m.state.status!=='playing')return null;
+  const data=JSON.parse(m.snapshot());
+  // The entrance is visual only; an accepted choice reloads with guests already at the front.
+  if(entering){data.state.queueCut.status='active';data.state.queueCut.elapsed=.9;}
+  return {rules:m.demandVersion,level:m.state.levelIndex,data,run:{...run},undo:m.undoStack.at(-1)||null};
 }
 export function restoreSession(raw,unlocked){
   try{

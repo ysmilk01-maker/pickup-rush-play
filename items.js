@@ -1,7 +1,7 @@
-import {shuffleParking} from './shuffle.js?v=56';
-import {checkpoint} from './session.js?v=56';
-import {canExit} from './game.js?v=56';
-import {hiddenCar} from './puzzle.js?v=56';
+import {shuffleParking} from './shuffle.js?v=57';
+import {checkpoint} from './session.js?v=57';
+import {canExit} from './game.js?v=57';
+import {hiddenCar} from './puzzle.js?v=57';
 
 export const ITEMS=[
  {id:'undo',name:'되돌리기',icon:'↶',price:200,color:'#ddcdf6',description:'마지막 배차 전으로 한 번 돌아가요.',detail:'1개당 1회 · 승강장이 가득 차도 사용 가능 · 경과 시간 유지'},
@@ -28,6 +28,7 @@ export function itemAvailability(m,run,id){
  if(!ITEMS.some(x=>x.id===id))return 'unknown';
  if(!m||!run)return 'start';
  if(run.practice)return 'practice';
+ if(m.state.queueCut?.status==='offered')return 'choice';
  if(m.busy)return 'busy';
  if(m.state.status==='won')return 'ended';
  if(id==='shuffle'&&m.state.cars.length<2)return 'shuffle-unavailable';
