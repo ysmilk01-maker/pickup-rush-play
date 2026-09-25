@@ -1,11 +1,11 @@
-import {cutPose,cutBadge} from './queue-cut-scene.js?v=50';
-import {drawGates,drawBlockage} from './puzzle-scene.js?v=50';
-import {stationEnvironment,stationBays} from './station-scene.js?v=50';
-import {districtStyle,districtSky} from './district-scene.js?v=50';
-import { Scene } from './scene.js?v=50';
-import { BAY, QUEUE, carPose } from './traffic.js?v=50';
-import { vehicleModel, makePassenger } from './appearance.js?v=50';
-import { COLORS } from './game.js?v=50';
+import {cutPose,cutBadge} from './queue-cut-scene.js?v=51';
+import {drawGates,drawBlockage} from './puzzle-scene.js?v=51';
+import {stationEnvironment,stationBays} from './station-scene.js?v=51';
+import {districtStyle,districtSky} from './district-scene.js?v=51';
+import { Scene } from './scene.js?v=51';
+import { BAY, QUEUE, carPose } from './traffic.js?v=51';
+import { vehicleModel, makePassenger } from './appearance.js?v=51';
+import { COLORS } from './game.js?v=51';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
@@ -57,7 +57,8 @@ export class MarketScene extends Scene {
     for(const {car,pose,board} of cars){
       if(car.emergency){const pulse=this.reduceMotion?.24:.16+.15*(1+Math.sin(t.time*3));this.c.globalAlpha=pulse;this.ellipse(pose.x,pose.y-12,31,20,'#70cfff');this.c.globalAlpha=1;}
       if(selected?.id===car.id&&selected.until>t.time){
-        this.ellipse(pose.x,pose.y+5,vehicleModel(car).length*.55,20,'#ffe29788');
+        this.ellipse(pose.x,pose.y+5,vehicleModel(car).length*.55,20,selected.navigator?'#72edcdbb':'#ffe29788');
+        if(selected.navigator){this.rect(pose.x-24,pose.y-51,48,20,8,'#246f63','#d4fff0');this.text('추천',pose.x,pose.y-41,12,'#fffef2');}
       }
       this.revealFrames??=new Map();let reveal=this.revealFrames.get(car.id);
       if(car.covered&&!car.revealed){reveal={hidden:true,at:t.time};this.revealFrames.set(car.id,reveal);}

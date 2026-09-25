@@ -1,4 +1,4 @@
-import {QUEUE,pathPose} from './traffic.js?v=50';
+import {QUEUE,pathPose} from './traffic.js?v=51';
 
 export function cutPose(t,person,index,reduced){
  const q=t.state.queueCut;

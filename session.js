@@ -1,9 +1,9 @@
-import {validQueueCut} from './queue-cut.js?v=50';
-import {validPuzzle} from './puzzle.js?v=50';
-import {Market} from './market.js?v=50';
-import {pendingCars} from './garage.js?v=50';
-import {CAPACITY} from './traffic.js?v=50';
-import {emergencyLimit} from './emergency.js?v=50';
+import {validQueueCut} from './queue-cut.js?v=51';
+import {validPuzzle} from './puzzle.js?v=51';
+import {Market} from './market.js?v=51';
+import {pendingCars} from './garage.js?v=51';
+import {CAPACITY} from './traffic.js?v=51';
+import {emergencyLimit} from './emergency.js?v=51';
 // Only save settled moments, so reload can never strand a person or a car mid-route.
 export function checkpoint(m,run){
   if(m.busy||m.state.status!=='playing')return null;
@@ -47,6 +47,7 @@ export function restoreSession(raw,unlocked){
     if(!Number.isInteger(d.delivered)||d.delivered<0||d.delivered+s.queue.length!==m.total||d.queueConsumed!==d.delivered||!Number.isInteger(s.moves)||s.moves<0)return null;
     if(!raw.run||!['hints','undos','seconds'].every(k=>Number.isFinite(raw.run[k])&&raw.run[k]>=0))return null;
     if(s.combo!==undefined&&(!s.combo||!Number.isInteger(s.combo.chain)||!Number.isInteger(s.combo.best)||s.combo.chain<0||s.combo.best<s.combo.chain||s.combo.best>m.allCars.length))return null;
+    if(raw.run.tools!==undefined&&(!raw.run.tools||typeof raw.run.tools!=='object'||Object.keys(raw.run.tools).some(k=>!['navigator','manifest'].includes(k)||typeof raw.run.tools[k]!=='boolean')||Object.values(raw.run.tools).some(Boolean)&&raw.run.hints<1))return null;
     s.combo??={chain:0,best:0};
     if(raw.rules>=7){if(!validPuzzle(s.puzzle,m.state.puzzle,s))return null;}else if(s.puzzle)return null;
     if(!validQueueCut(s.queueCut,m,s))return null;
