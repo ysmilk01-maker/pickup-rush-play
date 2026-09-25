@@ -1,9 +1,9 @@
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=41';
-import { assignModels, makePassenger } from './appearance.js?v=41';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=41';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=41';
-import { passengerQueue } from './demand.js?v=41';
-import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=41';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=42';
+import { assignModels, makePassenger } from './appearance.js?v=42';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=42';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=42';
+import { passengerQueue } from './demand.js?v=42';
+import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=42';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;

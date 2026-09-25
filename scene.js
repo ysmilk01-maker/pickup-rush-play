@@ -1,6 +1,6 @@
-import { COLORS, canExit } from './game.js?v=41';
-import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=41';
-import { vehicleModel, makePassenger } from './appearance.js?v=41';
+import { COLORS, canExit } from './game.js?v=42';
+import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=42';
+import { vehicleModel, makePassenger } from './appearance.js?v=42';
 
 const shade=(hex,f)=>'#'+hex.slice(1).match(/../g).map(v=>Math.max(0,Math.min(255,parseInt(v,16)+f)).toString(16).padStart(2,'0')).join('');
 export class Scene {
@@ -60,7 +60,10 @@ export class Scene {
     const l=length/2,w=width/2,k=kind==='bus'?3:5;
     const corners=[[-l+k,-w],[l-k,-w],[l,-w+k],[l,w-k],[l-k,w],[-l+k,w],[-l,w-k],[-l,-w+k]];
     const bottom=corners.map(([u,v])=>p(u,v,4)),top=corners.map(([u,v])=>p(u,v,height));
-    this.polygon(corners.map(([u,v])=>{const q=p(u,v);return{x:q.x+5,y:q.y+5};}),'#435c7860');
+    // Soft oval contact shadow instead of a hard rectangular plate under each car.
+    c.save();c.translate(pose.x+3,pose.y+4);c.scale(1,.83);c.rotate(a);c.scale(length*.6,width*.75);
+    const shadow=c.createRadialGradient(0,0,0,0,0,1);shadow.addColorStop(0,'#17233155');shadow.addColorStop(.6,'#17233130');shadow.addColorStop(1,'#17233100');
+    this.ellipse(0,0,1,1,shadow);c.restore();
     for(const u of [-length*.32,length*.32])for(const v of [-width/2,width/2]){const q=p(u,v,3);this.ellipse(q.x,q.y,4,5,'#293841');this.ellipse(q.x,q.y,1.7,2.5,'#8295a2');}
     const faces=corners.map((_,i)=>({i,y:(bottom[i].y+bottom[(i+1)%8].y)/2})).sort((a,b)=>a.y-b.y);
     for(const {i} of faces)this.polygon([bottom[i],bottom[(i+1)%8],top[(i+1)%8],top[i]],shade(col,i<3?-12:-40),shade(col,-55));
