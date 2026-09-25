@@ -24,10 +24,10 @@ export const platform = {
     if (navigator.vibrate) navigator.vibrate(kind === "success" ? [25, 35, 25] : 18);
     this.emit("haptic", { kind });
   },
-  async requestRewardedAd(onProgress = () => {}) {
+  async requestRewardedAd(onProgress = () => {}, placement = "extra-bay") {
     if (window.PickupRushAds?.showRewarded) {
-      const result = await window.PickupRushAds.showRewarded({ placement: "extra-bay" });
-      return { rewarded: Boolean(result?.rewarded), source: "app-adapter" };
+      const result = await window.PickupRushAds.showRewarded({ placement });
+      return { rewarded: result?.rewarded === true, source: "app-adapter" };
     }
 
     const demoDuration = new URLSearchParams(location.search).has("adtest") ? 450 : 3000;

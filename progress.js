@@ -1,6 +1,7 @@
-import {timeStars} from './timing.js?v=57';
-import {inventory} from './items.js?v=57';
-import {TOTAL_LEVELS} from './campaign.js?v=57';
+import {attemptedStages} from './retry.js?v=58';
+import {timeStars} from './timing.js?v=58';
+import {inventory} from './items.js?v=58';
+import {TOTAL_LEVELS} from './campaign.js?v=58';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},
@@ -19,7 +20,7 @@ export function normalize(raw={}){
   const selected=Number(r.version||0)<3&&r.level===35&&cleared.includes(35)?36:integer(r.level,0,unlocked);
   const emergencyWins=(Array.isArray(r.emergencyWins)?r.emergencyWins:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=10&&n<=unlocked&&a.indexOf(n)===i);
   const cutWins=(Array.isArray(r.cutWins)?r.cutWins:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=4&&n<=unlocked&&a.indexOf(n)===i);
-  return {version:3,inventory:inventory(r.inventory),activeSession:r.activeSession??null,comboBest,emergencyWins,cutWins,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(r.level===99&&cleared.includes(99)&&!cleared.includes(100)?100:selected,unlocked),cleared,stars,best,owned,
+  return {version:3,attempted:attemptedStages(r,unlocked),inventory:inventory(r.inventory),activeSession:r.activeSession??null,comboBest,emergencyWins,cutWins,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(r.level===99&&cleared.includes(99)&&!cleared.includes(100)?100:selected,unlocked),cleared,stars,best,owned,
     decoration:owned.includes(r.decoration)?r.decoration:'lantern',tutorial:!!r.tutorial,
     colorAssist:r.colorAssist===true,sound:r.sound!==false,soundVolume:Number.isFinite(r.soundVolume)?Math.max(0,Math.min(1,r.soundVolume)):.65,vibration:r.vibration!==false,music:r.music!==false,
     musicTrack:['auto','lantern'].includes(r.musicTrack)?r.musicTrack:'auto',musicVolume:Number.isFinite(r.musicVolume)?Math.max(0,Math.min(1,r.musicVolume)):.3,

@@ -1,4 +1,4 @@
-import {checkpoint} from './session.js?v=57';
+import {checkpoint} from './session.js?v=58';
 
 export const EVENT_REWARDS={
  emergency:{amount:20,ledger:'emergencyWins',minimum:10},
