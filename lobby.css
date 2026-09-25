@@ -20,3 +20,5 @@
 #garage-preview.auto-entry{border:2px solid var(--car-color);background:#183e35;color:#fff5db;box-shadow:0 0 0 2px #ffffff18}#garage-preview>span{font-size:2.5cqw}#garage-preview.auto-entry>span{font-weight:850;background:#fff0cc;color:#173c32;border-radius:5px;padding:5px 7px}
 
 .sfx-previews{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0 16px}.sfx-previews button{min-height:36px;padding:7px 3px;border:1px solid #b69884;border-radius:8px;background:#f3dfbc;color:#654753;font-size:11px;font-weight:700}
+
+.fleet-heading{padding:19px 0 17px}.fleet-heading small{font-size:2.5cqw;color:#f2cb97}.fleet-heading h2{font-size:4.5cqw;margin:6px 0}.fleet-heading p{font-size:2.6cqw;color:#bac9d5;line-height:1.5}.fleet-debut{display:block;font-size:2.4cqw;color:#e1c9a9;margin-top:9px}.fleet-grid .vehicle-card canvas{max-height:140px}

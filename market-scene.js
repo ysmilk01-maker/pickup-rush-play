@@ -1,9 +1,9 @@
-import {stationEnvironment,stationBays} from './station-scene.js?v=43';
-import {districtStyle,districtSky} from './district-scene.js?v=43';
-import { Scene } from './scene.js?v=43';
-import { BAY, QUEUE, carPose } from './traffic.js?v=43';
-import { vehicleModel, makePassenger } from './appearance.js?v=43';
-import { COLORS } from './game.js?v=43';
+import {stationEnvironment,stationBays} from './station-scene.js?v=44';
+import {districtStyle,districtSky} from './district-scene.js?v=44';
+import { Scene } from './scene.js?v=44';
+import { BAY, QUEUE, carPose } from './traffic.js?v=44';
+import { vehicleModel, makePassenger } from './appearance.js?v=44';
+import { COLORS } from './game.js?v=44';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
@@ -38,7 +38,7 @@ export class MarketScene extends Scene {
     }
   }
   draw(t,selected=null){
-    this.background(t);this.hit=[];
+    this.levelIndex=t.state.levelIndex;this.background(t);this.hit=[];
     const offset=t.queueConsumed-t.queueVisual;
     for(let i=Math.min(24,t.state.queue.length)-1;i>=0;i--){
       const n=i+offset,a=QUEUE(Math.floor(n)),b=QUEUE(Math.ceil(n)),f=n%1;

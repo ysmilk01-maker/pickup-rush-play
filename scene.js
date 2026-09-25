@@ -1,6 +1,7 @@
-import { COLORS, canExit } from './game.js?v=43';
-import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=43';
-import { vehicleModel, makePassenger } from './appearance.js?v=43';
+import { COLORS, canExit } from './game.js?v=44';
+import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=44';
+import { vehicleModel, makePassenger } from './appearance.js?v=44';
+import {vehicleStyle} from './fleet.js?v=44';
 
 const shade=(hex,f)=>'#'+hex.slice(1).match(/../g).map(v=>Math.max(0,Math.min(255,parseInt(v,16)+f)).toString(16).padStart(2,'0')).join('');
 export class Scene {
@@ -52,8 +53,11 @@ export class Scene {
   }
   vehicle(car,pose,{parked=false,arrow=true}={}){
     const c=this.c,col=car.emergency?'#e9eff0':COLORS[car.color].hex;
-    const model=vehicleModel(car),{length,width,body:height,roof:roofHeight}=model;
-    const kind=car.emergency?'van':car.model||car.type,passengerCar=kind==='sedan'||kind==='taxi'||kind==='suv';
+    const model=vehicleModel(car),{length,width}=model,style=vehicleStyle(car,this.levelIndex||0);
+    const kind=car.emergency?'van':style.kind,shape=car.emergency?'':style.shape;
+    const height=car.emergency?model.body:({sedan:9,taxi:10,suv:13,van:19,bus:22}[kind])*(car.scale||1);
+    const roofHeight=car.emergency?model.roof:({sedan:shape==='compact'?20:17,taxi:18,suv:23,van:shape==='camper'?28:23,bus:26}[kind])*(car.scale||1);
+    const passengerCar=kind==='sedan'||kind==='taxi'||kind==='suv';
     const a=pose.angle,ca=Math.cos(a),sa=Math.sin(a);
     // A true extruded body: every face, wheel and window uses the same projection.
     const p=(u,v,z=0)=>({x:pose.x+u*ca-v*sa,y:pose.y+(u*sa+v*ca)*.83-z});
@@ -70,7 +74,7 @@ export class Scene {
     this.polygon(top,shade(col,16),shade(col,-30),1.5);
     if(passengerCar){
       // Low hood and trunk with a separate raised cabin; SUVs have a longer tall cabin.
-      const rear=kind==='suv'?-.38:-.28,front=kind==='suv'?.19:.15;
+      const rear=kind==='suv'||shape==='wagon'||shape==='compact'?-.38:-.28,front=shape==='compact'?.23:kind==='suv'?.19:.15;
       const base=[[-length*.39,-w+2],[length*.33,-w+2],[length*.33,w-2],[-length*.39,w-2]].map(([u,v])=>p(u,v,height+.5));
       const roof=[[length*rear,-w+4],[length*front,-w+4],[length*front,w-4],[length*rear,w-4]].map(([u,v])=>p(u,v,roofHeight));
       for(let i=0;i<4;i++)this.polygon([base[i],base[(i+1)%4],roof[(i+1)%4],roof[i]],i%2?'#17394e':'#285575',shade(col,-15));
@@ -85,7 +89,7 @@ export class Scene {
     }else{
       const roof=corners.map(([u,v])=>p(u*.9,v*.8,roofHeight));this.polygon(roof,shade(col,35));
       this.polygon([p(length*.3,-w+3,roofHeight),p(length*.46,-w+3,height),p(length*.46,w-3,height),p(length*.3,w-3,roofHeight)],'#153b54');
-      const n=kind==='bus'?6:3;
+      const n=kind==='bus'?6:shape==='mini'?4:3;
       for(let j=0;j<n;j++){const u=-length*.4+j*(length*.74/n);for(const v of [-w-.2,w+.2])this.polygon([p(u,v,height-8),p(u+length*.52/n,v,height-8),p(u+length*.52/n,v,height-2),p(u,v,height-2)],'#1c4058');}
       if(kind==='van')for(const v of [-w-.3,w+.3]){
         this.polygon([p(-length*.15,v,5),p(length*.21,v,5),p(length*.21,v,height-1),p(-length*.15,v,height-1)],null,shade(col,-42),1);
@@ -97,6 +101,66 @@ export class Scene {
         for(let i=0;i<4;i++){const q=p(-33+i*3,-5,roofHeight+3),r=p(-33+i*3,5,roofHeight+3);c.strokeStyle='#9bafba';c.lineWidth=1;c.beginPath();c.moveTo(q.x,q.y);c.lineTo(r.x,r.y);c.stroke();}
         for(const v of [-w-.3,w+.3])this.polygon([p(length*.3,v,4),p(length*.44,v,4),p(length*.44,v,height-2),p(length*.3,v,height-2)],'#193b51',shade(col,-15));
         this.polygon([p(l+.4,-8,height-1),p(l+.4,8,height-1),p(l+.4,8,height-5),p(l+.4,-8,height-5)],'#1c3147');
+      }
+    }
+    // Regional bodies share the original footprint. Details sit above the body,
+    // leave most paint visible, and stay below the high-contrast direction arrow.
+    const panel=(u1,v1,u2,v2,z,fill,stroke)=>this.polygon([p(u1,v1,z),p(u2,v1,z),p(u2,v2,z),p(u1,v2,z)],fill,stroke);
+    const line=(a,b,color,width=1.5)=>{const q=p(...a),r=p(...b);c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(q.x,q.y);c.lineTo(r.x,r.y);c.stroke();};
+    if(!car.emergency){
+      if(shape==='open'){
+        panel(-length*.3,-w+3,length*.2,w-3,height+2,'#263c4d',shade(col,-30));
+        for(const u of [-length*.19,length*.06])for(const v of [-w*.4,w*.4])panel(u-3,v-3,u+2,v+3,height+3,'#e7bd88','#705d50');
+        line([length*.22,-w+3,height+2],[length*.18,-w+3,roofHeight],'#d5e7e8');
+        panel(length*.16,-w+3,length*.24,w-3,roofHeight,'#8dd5dd');
+      }
+      if(shape==='wagon'||shape==='electric'){
+        panel(-length*.32,-w+5,length*.1,w-5,roofHeight+1,'#244c60','#afdee1');
+        if(shape==='wagon')line([-length*.18,-w+5,roofHeight+2],[-length*.18,w-5,roofHeight+2],shade(col,50));
+        if(shape==='electric'){
+          line([l+.5,-w+4,9],[l+.5,w-4,9],'#e5ffff',2.6);
+          if(kind==='bus')for(const u of [-length*.31,-length*.08])panel(u,-w+5,u+length*.15,w-5,roofHeight+2,'#a8c7cf','#536e81');
+        }
+      }
+      if(shape==='classic'){
+        panel(-length*.26,-w+4,length*.12,w-4,roofHeight+1,'#efdeb9');
+        for(let v=-6;v<=6;v+=3)line([l+.5,v,5],[l+.5,v,10],'#dfe8e5',1);
+      }
+      if(shape==='retro'){
+        panel(-length*.41,-w*.76,length*.28,w*.76,roofHeight+1,'#f2e3c6');
+        line([length*.3,0,roofHeight+1],[length*.46,0,height],'#e8dbc3',2.2);
+      }
+      if(shape==='adventure'){
+        panel(-length*.3,-w+5,length*.08,w-5,roofHeight+2,'#4b555c','#c9d4d5');
+        for(let i=0;i<4;i++)line([-length*.27+i*6,-w+5,roofHeight+3],[-length*.27+i*6,w-5,roofHeight+3],'#b5c6c9',1.2);
+        const q=p(-l,0,10);this.ellipse(q.x,q.y,5,6,'#2c3942');this.ellipse(q.x,q.y,2.4,3,'#9cadb3');
+      }
+      if(shape==='camper'){
+        panel(-length*.29,-w+4,length*.17,w-4,roofHeight+1,'#f3ddae','#ad9a7d');
+        for(const v of [-w,w])line([-length*.35,v,roofHeight], [length*.28,v,roofHeight], '#e7d2a8',3);
+        panel(-length*.33,-w+3,-length*.18,w-3,roofHeight+2,'#3f6170');
+      }
+      if(shape==='airport'){
+        panel(-length*.37,-w+5,-length*.05,w-5,roofHeight+3,'#d0dce0','#657f91');
+        line([-length*.3,0,roofHeight+4],[-length*.13,0,roofHeight+4],'#788f9c',2);
+      }
+      if(shape==='mini'||shape==='coach'||shape==='panorama'||shape==='festival')for(const v of [-w-.3,w+.3]){
+        if(shape==='coach'||shape==='panorama')this.polygon([p(-length*.4,v,height-8),p(length*.25,v,height-8),p(length*.25,v,height-1),p(-length*.4,v,height-1)],'#163b51','#80b5c0',.7);
+        line([-length*.4,v,7],[length*.25,v,7],shape==='festival'?'#ffe1a0':'#d0e0db',1.8);
+        if(shape==='coach')for(let u=-length*.36;u<length*.2;u+=length*.18)line([u,v,5],[u,v,11],shade(col,-30),1);
+        if(shape==='mini')this.polygon([p(length*.27,v,4),p(length*.42,v,4),p(length*.42,v,height-2),p(length*.27,v,height-2)],'#193b51');
+      }
+      if(shape==='panorama'){
+        panel(-length*.4,-w+3,length*.24,w-3,roofHeight+2,'#356575','#b4d7d8');
+        for(let u=-length*.3;u<length*.25;u+=length*.16)line([u,-w+3,roofHeight+3],[u,w-3,roofHeight+3],shade(col,45),1.7);
+      }
+      if(shape==='festival'){
+        for(const u of [-length*.34,-length*.18]){const q=p(u,0,roofHeight+3);this.text('✦',q.x,q.y,11,'#fff0ae');}
+        for(const v of [-w+2,w-2])line([-length*.4,v,roofHeight+1],[length*.28,v,roofHeight+1],'#ffe2a2',2);
+      }
+      if(kind==='taxi'&&shape==='electric'){
+        panel(-length*.13-7,-4,-length*.13+3,4,roofHeight+5,'#fff5a9','#a88128');
+        const q=p(-length*.18,0,roofHeight+6);this.text('T',q.x,q.y,6,'#433b21');
       }
     }
     for(const v of [-8,8]){const q=p(length/2+.3,v,7);this.ellipse(q.x,q.y,2.4,2,'#fff5bb');const rear=p(-length/2-.3,v,7);this.ellipse(rear.x,rear.y,2,2,'#fa504c');}
@@ -115,7 +179,7 @@ export class Scene {
     }
   }
   draw(t,selected=null){
-    const c=this.c;this.background(t);this.hit=[];
+    this.levelIndex=t.state.levelIndex;const c=this.c;this.background(t);this.hit=[];
     const queueOffset=t.queueConsumed-t.queueVisual;
     const queuePeople=t.state.queue.slice(0,24).map((color,i)=>({color,i})).reverse();
     for(const {color,i} of queuePeople){const n=i+queueOffset,a=QUEUE(Math.floor(n)),b=QUEUE(Math.ceil(n)),f=n%1;this.person(a.x+(b.x-a.x)*f,a.y+(b.y-a.y)*f,color,t.time+i*.17,.92,queueOffset>.02,t.state.people[i]);}
