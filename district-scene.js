@@ -1,19 +1,19 @@
-import {districtFor,DISTRICTS} from './campaign.js?v=47';
+import {districtFor,DISTRICTS} from './campaign.js?v=49';
 
-const STATION_SIGN_BACKGROUND='#253047';
+const STATION_SIGN_BACKGROUND='#eefaf3';
 
 // Environmental colors never replace the passenger/vehicle matching palette.
 export const DISTRICT_STYLES=[
- {motif:'lantern',sky:'#171b35',horizon:'#453445',deep:'#252237',platform:'#65535d',edge:'#b99678',road:'#272b39',lotTop:'#716776',lotBottom:'#565260',accent:'#ffd49a',building:'#32314c'},
- {motif:'river',sky:'#102c40',horizon:'#255666',deep:'#193643',platform:'#4c6570',edge:'#8cbbb8',road:'#213844',lotTop:'#667781',lotBottom:'#4e626e',accent:'#b4ecdf',building:'#234454'},
- {motif:'harbor',sky:'#172d4d',horizon:'#3b5779',deep:'#202f46',platform:'#586c81',edge:'#a0b8cb',road:'#233345',lotTop:'#707787',lotBottom:'#575e70',accent:'#d6e7ff',building:'#2a4263'},
- {motif:'sakura',sky:'#30203f',horizon:'#694457',deep:'#372637',platform:'#765c6c',edge:'#c99fad',road:'#382a3d',lotTop:'#83727d',lotBottom:'#645763',accent:'#ffd6e3',building:'#49374f'},
- {motif:'hills',sky:'#402941',horizon:'#965f58',deep:'#412e39',platform:'#806b67',edge:'#d1ad8c',road:'#3b3038',lotTop:'#83776f',lotBottom:'#685d5c',accent:'#ffe0b2',building:'#684c55'},
- {motif:'galaxy',sky:'#181735',horizon:'#3e3460',deep:'#24213e',platform:'#625b78',edge:'#aea1cc',road:'#28263c',lotTop:'#756f85',lotBottom:'#5b576d',accent:'#ded1ff',building:'#302b4f'},
- {motif:'forest',sky:'#142c30',horizon:'#30584c',deep:'#1e3731',platform:'#526e61',edge:'#a4b8a0',road:'#273b35',lotTop:'#718077',lotBottom:'#54655c',accent:'#e1f2be',building:'#24443b'},
- {motif:'bridge',sky:'#242441',horizon:'#545173',deep:'#2a2c43',platform:'#66677e',edge:'#b7b5cd',road:'#2c3144',lotTop:'#777d8d',lotBottom:'#5c6176',accent:'#f2dfff',building:'#393c59'},
- {motif:'terminal',sky:'#131e32',horizon:'#344354',deep:'#212b39',platform:'#536877',edge:'#9eb7c5',road:'#202f3a',lotTop:'#657382',lotBottom:'#4a596b',accent:'#c5eafa',building:'#283749'},
- {motif:'festival',sky:'#353150',horizon:'#947385',deep:'#493b53',platform:'#7f6c81',edge:'#dbc2ad',road:'#3b354b',lotTop:'#827b8a',lotBottom:'#665f72',accent:'#fff0cc',building:'#60506b'}
+ {motif:'lantern',sky:'#bce5f4',horizon:'#e9f4e2',deep:'#d5e6eb',platform:'#c9dedb',edge:'#73a9a7',road:'#97b4c4',lotTop:'#d7e5ee',lotBottom:'#becfdf',accent:'#ffc780',building:'#85b9bf'},
+ {motif:'river',sky:'#b4e5f7',horizon:'#d8f4ee',deep:'#d9eaf0',platform:'#c7e4dc',edge:'#6facb6',road:'#94b9ca',lotTop:'#dceaf0',lotBottom:'#bfd7e1',accent:'#ffe3a1',building:'#85c7ce'},
+ {motif:'harbor',sky:'#bee5fa',horizon:'#e9f6fb',deep:'#dce7f1',platform:'#c9dfe9',edge:'#7aaac4',road:'#98b5cb',lotTop:'#dce6f0',lotBottom:'#c0d2e2',accent:'#ffe2aa',building:'#8fbed8'},
+ {motif:'sakura',sky:'#eddaef',horizon:'#fff0ed',deep:'#e7e3ec',platform:'#efdce4',edge:'#bb93b2',road:'#b2acbf',lotTop:'#eee6eb',lotBottom:'#d8cadb',accent:'#ffb5c7',building:'#d0b4d0'},
+ {motif:'hills',sky:'#ffe0be',horizon:'#fff1d5',deep:'#eae5d9',platform:'#e7dbc3',edge:'#c0aa7d',road:'#beb7a2',lotTop:'#ebe8df',lotBottom:'#d3d4cb',accent:'#ffc083',building:'#d9bf99'},
+ {motif:'galaxy',sky:'#dcd7fb',horizon:'#edeafb',deep:'#e1e4ef',platform:'#dbd7ed',edge:'#a89ccc',road:'#aeaeca',lotTop:'#e7e7f3',lotBottom:'#cbcde2',accent:'#ffc9bd',building:'#b9b0df'},
+ {motif:'forest',sky:'#cceadf',horizon:'#e8f5d5',deep:'#dce8de',platform:'#d1e4cd',edge:'#89b094',road:'#a2baa9',lotTop:'#e4ece3',lotBottom:'#c5d8ca',accent:'#ffe19a',building:'#99c4ab'},
+ {motif:'bridge',sky:'#d8e7ff',horizon:'#ffeadf',deep:'#e5e8f1',platform:'#dfdfed',edge:'#aaa6c8',road:'#acb9ce',lotTop:'#e6e9f1',lotBottom:'#cad3e2',accent:'#ffd3a7',building:'#b7badb'},
+ {motif:'terminal',sky:'#c8e6ef',horizon:'#e6f4f5',deep:'#dce6ec',platform:'#d5e4e4',edge:'#8aafbb',road:'#9eB8c6',lotTop:'#e0e9ed',lotBottom:'#c6d5dd',accent:'#ffe4aa',building:'#a0c7d0'},
+ {motif:'festival',sky:'#ffe1e7',horizon:'#fff1d7',deep:'#e9e3ee',platform:'#ecdce6',edge:'#c3a0b6',road:'#b4adc4',lotTop:'#ece7ef',lotBottom:'#d7cce1',accent:'#ffc59d',building:'#d6b3c7'}
 ];
 export function districtStyle(index){return DISTRICT_STYLES[districtFor(Math.max(0,Math.min(99,index)))];}
 export function districtLabel(index){return DISTRICTS[districtFor(index)].name;}
@@ -32,13 +32,13 @@ export function districtSky(s,p){
    for(let i=0;i<5;i++){const x=166+i*62;line([[x,99],[x,123]]);s.rect(x-13,121,26,31,9,p.accent);s.rect(x-3,151,6,8,1,p.edge);line([[x,127],[x,145]],p.edge,1);}
    break;
   case 'river':
-   s.rect(112,119,390,54,0,'#326c7a');
+   s.rect(112,119,390,54,0,'#89cad8');
    for(let i=0;i<7;i++)line([[130+i*48,143+i%3*7],[154+i*48,143+i%3*7]],'#8fc8cf66');
    c.strokeStyle=p.accent;c.lineWidth=5;c.beginPath();c.moveTo(166,143);c.quadraticCurveTo(295,48,434,143);c.stroke();line([[159,137],[438,137]],p.edge,5);
    for(let i=0;i<7;i++)line([[177+i*38,118-Math.sin(i/6*Math.PI)*19],[177+i*38,136]],p.edge,2);
    break;
   case 'harbor':
-   s.rect(114,142,389,30,0,'#385e7c');
+   s.rect(114,142,389,30,0,'#9acddd');
    s.rect(210,96,22,59,3,'#dfdecd');s.rect(210,113,22,10,0,'#a36773');s.rect(206,92,30,8,2,p.accent);s.rect(215,83,12,10,2,p.accent);
    line([[362,155],[362,105],[423,105]],p.edge,5);line([[416,105],[416,135]],p.accent);
    line([[281,159],[298,170],[335,170],[345,159]],p.accent,4);line([[312,159],[312,118],[341,153],[312,153]],p.accent,2);
@@ -49,7 +49,7 @@ export function districtSky(s,p){
    break;
   case 'hills':
    s.ellipse(372,119,30,30,'#e7b691');
-   c.fillStyle='#6d5663';c.beginPath();c.moveTo(111,172);c.lineTo(190,103);c.lineTo(273,172);c.lineTo(341,124);c.lineTo(456,172);c.fill();
+   c.fillStyle='#adc69f';c.beginPath();c.moveTo(111,172);c.lineTo(190,103);c.lineTo(273,172);c.lineTo(341,124);c.lineTo(456,172);c.fill();
    line([[123,154],[468,105]],p.edge,2);for(const x of [250,399]){const y=154-(x-123)*49/345;line([[x,y],[x,y+10]],p.accent);s.rect(x-13,y+10,26,21,5,p.accent);s.rect(x-8,y+13,16,8,2,p.sky);}
    break;
   case 'galaxy':
@@ -58,7 +58,7 @@ export function districtSky(s,p){
    line([[153,124],[182,112],[205,140],[244,122]],p.accent+'90',1);
    break;
   case 'forest':
-   for(const x of [128,184,245,357,416,473])tree(x,140,x%2?'#4b7662':'#3e6656');
+   for(const x of [128,184,245,357,416,473])tree(x,140,x%2?'#98c593':'#7eaf91');
    for(let i=0;i<24;i++){const x=123+(i*83)%370,y=113+(i*29)%55;s.ellipse(x,y,2.3,2.3,p.accent);}
    break;
   case 'bridge':

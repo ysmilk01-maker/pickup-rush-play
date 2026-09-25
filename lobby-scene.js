@@ -1,21 +1,21 @@
-import {Scene} from './scene.js?v=47';
-import {makePassenger} from './appearance.js?v=47';
+import {Scene} from './scene.js?v=49';
+import {makePassenger} from './appearance.js?v=49';
 
 // Original vector illustration. It uses no screenshots or artwork from another game.
 export class LobbyScene extends Scene{
   draw(time=0,theme='lantern',reduced=false){
     const c=this.c,accent=theme==='mint'?'#8cf0d7':theme==='sakura'?'#ffbad7':'#ffc67d';
-    const sky=c.createLinearGradient(0,0,0,1080);sky.addColorStop(0,'#18254c');sky.addColorStop(.48,'#746787');sky.addColorStop(1,'#f1b694');c.fillStyle=sky;c.fillRect(0,0,600,1080);
+    const sky=c.createLinearGradient(0,0,0,1080);sky.addColorStop(0,'#b8e6f8');sky.addColorStop(.48,'#d4ece8');sky.addColorStop(1,'#fff0d4');c.fillStyle=sky;c.fillRect(0,0,600,1080);
     for(let i=0;i<30;i++){const x=(i*173+31)%600,y=80+(i*71)%340;this.ellipse(x,y,i%3?1:2,i%3?1:2,'#fff1c599');}
-    const moon=c.createRadialGradient(410,190,25,410,190,120);moon.addColorStop(0,'#fff0c928');moon.addColorStop(1,'#fff0c900');this.ellipse(410,190,120,120,moon);this.ellipse(410,190,47,47,'#ffedc7');this.ellipse(428,177,39,39,'#5d5d80');
+    const moon=c.createRadialGradient(410,190,25,410,190,120);moon.addColorStop(0,'#fff0c928');moon.addColorStop(1,'#fff0c900');this.ellipse(410,190,120,120,moon);this.ellipse(410,190,47,47,'#ffedc7');this.ellipse(428,177,39,39,'#ffe1a3');
     // Hill silhouettes, town houses and the illuminated river bridge.
-    this.polygon([{x:0,y:340},{x:90,y:257},{x:179,y:329},{x:274,y:249},{x:424,y:361},{x:600,y:292},{x:600,y:570},{x:0,y:570}],'#394666');
+    this.polygon([{x:0,y:340},{x:90,y:257},{x:179,y:329},{x:274,y:249},{x:424,y:361},{x:600,y:292},{x:600,y:570},{x:0,y:570}],'#9abda7');
     for(let i=0;i<10;i++){
       const x=i*66-10,h=70+(i*37)%100,y=428-h;
-      this.rect(x,y,54,h+35,3,i%2?'#535b78':'#465372');
+      this.rect(x,y,54,h+35,3,i%2?'#bad4cf':'#a8c8c9');
       for(let j=0;j<3;j++)for(let k=0;k<4;k++)this.rect(x+8+j*14,y+12+k*22,7,11,2,(j+k+i)%3?'#ffdc926b':'#a1cfda33');
     }
-    this.rect(0,451,600,124,0,'#51748a');
+    this.rect(0,451,600,124,0,'#a4d6e0');
     for(let i=0;i<12;i++)this.rect(40+(i*117)%520,462+i*8,25+(i%3)*20,2,1,'#f4ce9366');
     c.strokeStyle='#bc9694';c.lineWidth=12;c.beginPath();c.moveTo(-20,460);c.quadraticCurveTo(300,355,620,460);c.stroke();
     for(let i=0;i<12;i++){const x=i*55,y=460-55*Math.sin(i/11*Math.PI);this.rect(x,y,6,71,2,'#84677c');this.ellipse(x+3,y-4,4,4,accent);}
@@ -26,7 +26,7 @@ export class LobbyScene extends Scene{
       for(let j=0;j<6;j++)this.rect(x+j*24,479,25,29,4,j%2?col:'#ffe6b4');
       this.rect(x+6,612,132,12,3,'#ae7773');this.rect(x+16,655,115,8,4,'#403b53');
     }
-    const ground=c.createLinearGradient(0,588,0,1000);ground.addColorStop(0,'#bd9291');ground.addColorStop(1,'#3d3b59');this.polygon([{x:120,y:580},{x:480,y:580},{x:660,y:980},{x:-60,y:980}],ground);
+    const ground=c.createLinearGradient(0,588,0,1000);ground.addColorStop(0,'#e7dec9');ground.addColorStop(1,'#e5d9c3');this.polygon([{x:120,y:580},{x:480,y:580},{x:660,y:980},{x:-60,y:980}],ground);
     for(let i=0;i<4;i++)this.rect(70+i*137,665+i*23,58,5,2,'#fbe2bf35');
     c.strokeStyle='#2f334f';c.lineWidth=3;c.beginPath();c.moveTo(0,283);c.quadraticCurveTo(300,420,600,280);c.stroke();
     for(let i=0;i<11;i++){

@@ -31,7 +31,7 @@ if (typeof document !== 'undefined') {
   const introTimer=setTimeout(dismissIntro,1600);
   document.querySelector('#studio-skip').onclick=()=>{clearTimeout(introTimer);dismissIntro();};
   prepareStartup({
-    loadGame: () => import('./app.js?v=47'),
+    loadGame: () => import('./app.js?v=49'),
     loadArt: () => {
       const art = document.querySelector('#lobby-art');
       return art.decode(); // A missing illustration falls back to the existing Canvas lobby.

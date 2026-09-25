@@ -1,0 +1,80 @@
+/* Sunny festival UI. Matching colors belong to vehicles, never to text alone. */
+:root{--cream:#fff9ec;--ink:#294959;--muted:#536c76;--mint:#86e1bf;--line:#c5dcd8;--lift:0 4px 0 #adc8c3,0 7px 16px #315c6318}
+html,body{background:#e6f3f1;color:var(--ink)}
+#app{box-shadow:0 0 60px #376d771c}
+#lobby{background:#ccecf3;--lobby-accent:#b75337;--lobby-glow:transparent}
+#lobby[data-decoration=mint]{--lobby-accent:#167b6b;--lobby-glow:#96eed31c}
+#lobby[data-decoration=sakura]{--lobby-accent:#b54e7b;--lobby-glow:#ffd9e71c}
+.lobby-art{object-position:50% 50%}
+.home-shade{background:linear-gradient(180deg,#e5f7ff33 0%,transparent 30%,transparent 64%,#fff5dfd9 76%,#fff5e6 94%)}
+.lobby-header{top:2%;color:var(--ink)}
+.greeting small,.greeting b{color:var(--ink);text-shadow:0 1px 0 #ffffff88}
+.avatar{background:linear-gradient(#fff4c9,#ffdc92);border:2px solid #fff6dc;box-shadow:0 3px 0 #d4ae70,0 5px 12px #42677622}
+.icon-button,.wallet{color:var(--ink);background:#fffdf2f5;border:2px solid #fff;box-shadow:0 3px 0 #bdd2ce,0 5px 12px #42677618}
+.wallet span{background:#ffd473;color:#7b5419;box-shadow:inset 0 0 0 2px #ffeab1}
+.hero-title{top:10.6%;text-shadow:0 2px 0 #ffffffd9}
+.hero-title>span{color:#356174;font-size:2.05cqw;font-weight:800;letter-spacing:2px}
+.hero-title>span:before,.hero-title>span:after{background:#639bac}
+.hero-title h1{color:#275d70;font-size:10.4cqw;line-height:1.09;text-shadow:0 3px 0 #fff6df,0 5px 0 #578fa529}
+.hero-title em{color:var(--lobby-accent)}
+.hero-title p{color:#365d6b;font-size:2.7cqw;font-weight:750}
+.side-actions{top:33.5%;left:8%;right:8%;gap:3%}
+.side-actions button{background:#fffdf2f5;color:var(--ink);border:2px solid #fff;border-radius:14px;box-shadow:0 3px 0 #bdcfc3,0 5px 10px #47645116;font-size:2.5cqw;min-height:9.5cqw;backdrop-filter:none}
+.side-actions span{color:#c26549;width:5cqw}
+.side-actions button:nth-child(2) span{color:#288b7a}.side-actions button:nth-child(3) span{color:#7363aa}
+.side-actions i{background:#f17c69;border:2px solid #fff}
+#market-growth{top:63.5%;height:8%;padding:4px 9px 0;background:#fffdf2ed;color:var(--ink);border:2px solid #fff;border-radius:15px;box-shadow:0 3px 0 #d2d7bb,0 5px 12px #55675112}
+#market-growth small,#market-growth i{color:#526b70}#market-growth>span{font-size:2.65cqw}#market-growth svg{height:63%}
+.home-stats{top:72.8%;left:9%;right:9%;color:#42616b;text-shadow:none;font-size:2.5cqw;font-weight:700}.home-stats svg{color:#ad731f}
+.boarding-card{top:76.1%;height:10%;background:#fffdf4;border:2px solid #fff;border-radius:18px;box-shadow:0 3px 0 #c8d9cb,0 7px 16px #54736c14;color:var(--ink);padding:1.5% 4%}
+.ticket-top small,.ticket-top button,.district-ticket span{color:#536c76}.ticket-top button span{color:#a96326}
+.district-ticket{color:var(--ink)}.district-ticket b{font-size:3.7cqw}.route-track{margin-top:1.6%;height:4px}.route-track i{background:#dae9e3}.route-track i.done{background:#55af93}.route-track i.current{background:#e99951}
+.play-button,.resume-button,.home-content:not(.has-resume) .play-button{top:87.5%;height:8.1%;border:2px solid #ecfff2;border-radius:20px;background:linear-gradient(#a0edcc,#76d9b3);color:#174d43;box-shadow:0 5px 0 #459880,0 8px 16px #42685b26}
+.play-button span,.resume-button small{color:#295f51;font-size:2.15cqw;margin-bottom:2px}.play-button strong,.resume-button strong{font-size:5.3cqw}
+.home-content.has-resume .resume-button{top:86.8%;height:7.4%}.home-content.has-resume .play-button{top:94.4%;height:3.5%;color:#42616b}.home-content.has-resume .play-button strong{font-size:2.4cqw}
+.bottom-nav{height:6%;background:#fffaf0;border-top:2px solid #fff;box-shadow:0 -4px 16px #5e827619;backdrop-filter:none}
+.bottom-nav button{color:#596f78;font-weight:700}.bottom-nav svg{width:5.4cqw;height:5.4cqw}.bottom-nav button[aria-current=page]{color:#216e60;background:linear-gradient(#d4f5e7,#fffaf0)}.bottom-nav button[aria-current=page]:before{background:#53b59b;height:3px}
+.home-content{bottom:6%}
+.lobby-panel{background:linear-gradient(#f3fbf8fc,#fff8eafc);color:var(--ink)}
+.panel-heading small,.panel-heading h1,.panel-heading p,.route-note,.difficulty-note,.panel-foot,.fleet-heading,.fleet-debut{color:var(--ink)}
+.panel-heading p,.route-note,.difficulty-note,.panel-foot{color:var(--muted)}
+.district-picker button{background:#fffdf6;color:var(--ink);border-color:#c0d7d2}.district-picker select{background:#fffdf6;color:var(--ink);border-color:#bcd4ce}
+.level-node{background:linear-gradient(#fffefa,#e3f3eb);border:2px solid #fff;color:var(--ink);box-shadow:0 3px 0 #bed9ce}
+.level-node small,.level-node span{color:#586e73}.level-node.current{background:linear-gradient(#ffedbb,#ffdc98);border-color:#fff9e6;color:#754b1e;box-shadow:0 3px 0 #d6b577}
+.level-node.challenge{background:linear-gradient(#f7e8fc,#e5d6f8);border-color:#fff;color:#63477c;box-shadow:0 3px 0 #c6b4da}
+.level-node:disabled{background:#e5edeb;color:#677c7f;border-color:#eef5f2;opacity:.85;box-shadow:0 3px 0 #cad8d4}
+.balance-card{background:linear-gradient(130deg,#cceede,#e4f5ef);color:var(--ink);border:2px solid #fff;box-shadow:var(--lift)}.balance-card small{color:var(--muted)}
+.theme-card,.vehicle-card,.district-record{background:#fffdf5;border:1px solid #c8ded6;color:var(--ink);box-shadow:0 3px 0 #d8e5de}
+.theme-card>b,.vehicle-card b,.vehicle-card h3,.district-record b{color:var(--ink)}.theme-card p,.vehicle-card p,.district-record span{color:var(--muted)}
+.vehicle-card>span{background:#e6f2eb;color:#426b61}.vehicle-card button,.theme-card button{background:#ddf4e8;color:#215f50;border-color:#b9dacb}
+.record-grid article{background:#fffdf5;border:1px solid #cee1d8;color:var(--muted)}.record-grid b{color:#2e7666}.district-record progress{accent-color:#62b999;background:#deebe3}
+#game header button,#game header .coins{background:#fffdf3;color:var(--ink);border:2px solid #fff;box-shadow:0 3px 0 #acc9ca,0 5px 10px #4f73771c}
+#game .logo{color:#285a69;text-shadow:0 1px 0 #fff8df}#game .logo small{color:#436775}
+#queue-summary{background:#fffdf3f5;color:var(--ink);border:2px solid #fff;border-left:7px solid var(--cargo-color);box-shadow:0 3px 0 #b6cdcb}
+#garage-preview,#garage-preview.auto-entry,#garage-preview.route-available{background:#fffdf0f5;border:2px solid #fff;color:#345d68;box-shadow:0 3px 0 #bdd1c8}
+#game footer button{background:linear-gradient(#fffdf5,#f4ead5);border:2px solid #fff;border-radius:23px;color:#355866;box-shadow:0 4px 0 #b9c6b8,0 7px 12px #435f701a}
+#game footer button>span{color:#355866}#game footer button>b{color:#277d70}#game footer button:active{transform:scale(.96);box-shadow:0 2px 0 #b9c6b8}
+#game footer button:nth-child(2)>b{color:#8b599a}#game footer button:nth-child(3)>b{color:#bd6440}
+#game footer button small{background:#ffdd9d;color:#785223;border:1px solid #fff4d3}.hint{color:#426470;text-shadow:0 1px 0 #fff7}
+.modal{background:#40677970;backdrop-filter:blur(7px)}.modal section{background:#fffaf0;color:var(--ink);border:3px solid #fff;border-radius:26px;box-shadow:0 7px 0 #b2c9c5,0 20px 60px #294a5d33}
+.modal h1{color:#285d6b}.modal p{color:#536b73}.modal button.primary{background:linear-gradient(#a1ebca,#78d8b5);color:#1e5446;border:2px solid #e3fff0;box-shadow:0 3px 0 #62aa91;border-radius:15px}
+.modal button.secondary,.modal button.close{background:#eee7da;color:#4c6168;border-color:#e2d6c2}.modal button:active{transform:scale(.97)}
+.mission-list>div,.result-stats,.growth-grid article{background:#eef4e9;border-color:#d1dfcc;color:var(--ink)}.growth-grid article.open{background:#ffebbb;border-color:#ecd197}.growth-grid small{color:#5b6c60}
+.tutorial>div>b{background:#5fae96;color:#fff}.setting-row input{accent-color:#338771}.sfx-previews button{background:#fff4db;color:#52635e;border-color:#decfad}
+.puzzle-intro{background:#def1e7;color:#306a60;border:2px solid #fff}.puzzle-trials button{background:#e6f2ea;border-color:#bcd7cd;color:#2d685b}
+.arrival-list span{background:#eef5ed;color:#365e64}.route-choices button{background:#fffdf5}.emergency-card{background:#e5f4fa;color:var(--ink);border:2px solid #b8dce7}.emergency-card strong{color:#285d6b}
+#emergency-hud{background:#fffaf1;color:#285667;border:2px solid #fff;box-shadow:0 3px 0 #b3cdd0}#emergency-hud strong{color:#285667}
+#combo-banner{background:#fff2c9;color:#805621;text-shadow:none;border:2px solid #fff;box-shadow:0 3px 0 #d7b87d}#combo-banner small,#combo-banner span{color:#805621}
+#toast{background:#2e5968;color:#fffbed;border:2px solid #fff8;border-radius:16px}
+#loading{background:radial-gradient(ellipse at 50% 42%,#fff9e8,#d8f4ed 55%,#c9eaf6);color:var(--ink)}
+.boot-brand,.boot-route,.boot-progress-label{color:#456a74}.boot-brand:before,.boot-brand:after{color:#cb7955}
+#loading .boot-title h1{color:#285d70;text-shadow:0 3px 0 #fffcf2,0 5px 0 #a5cbd0}.boot-title h1 em{color:#b75337}
+#loading .boot-title p,#loading #boot-status,#loading .boot-tip,.boot-tip b{color:#436772}.boot-route i{background:#7bb4b0}.boot-step{background:#aacfc7}.boot-step:after{background:#328c79}.boot-tip{border-top-color:#a8d1ce!important}
+button:focus-visible,#lobby button:focus-visible{outline:3px solid #216e83;outline-offset:3px}
+.bottom-nav button[aria-current=page] span{color:#216e60}
+.theme-card small,.record-grid span,.record-grid small,.fleet-heading small,.fleet-heading p,.balance-card span{color:#536c76}
+.balance-card strong{color:#296e5b}.vehicle-card span{background:#e6f2eb;color:#426b61}.level-node:disabled span{color:#657c7b}
+.district-record strong{color:#42646c}.district-record progress::-webkit-progress-bar{background:#dceae1}.district-record progress::-webkit-progress-value{background:#56ab90}
+#emergency-hud.urgent{background:#ffe4d9;border-color:#e6977e}.emergency-card b{color:#335c6c;border-bottom:4px solid var(--target-color);padding-bottom:9px}
+.modal #close{color:#476c76}.mission-list button{background:#d5eee2;color:#2c6453}
+@media(prefers-reduced-motion:reduce){#game footer button:active,.modal button:active{transform:none}}

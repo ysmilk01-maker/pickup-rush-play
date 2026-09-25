@@ -1,10 +1,10 @@
-import {drawGates,drawBlockage} from './puzzle-scene.js?v=47';
-import {stationEnvironment,stationBays} from './station-scene.js?v=47';
-import {districtStyle,districtSky} from './district-scene.js?v=47';
-import { Scene } from './scene.js?v=47';
-import { BAY, QUEUE, carPose } from './traffic.js?v=47';
-import { vehicleModel, makePassenger } from './appearance.js?v=47';
-import { COLORS } from './game.js?v=47';
+import {drawGates,drawBlockage} from './puzzle-scene.js?v=49';
+import {stationEnvironment,stationBays} from './station-scene.js?v=49';
+import {districtStyle,districtSky} from './district-scene.js?v=49';
+import { Scene } from './scene.js?v=49';
+import { BAY, QUEUE, carPose } from './traffic.js?v=49';
+import { vehicleModel, makePassenger } from './appearance.js?v=49';
+import { COLORS } from './game.js?v=49';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
@@ -18,21 +18,21 @@ export class MarketScene extends Scene {
       const glow=c.createRadialGradient(x,y+5,0,x,y+5,22);glow.addColorStop(0,col+'55');glow.addColorStop(1,col+'00');this.ellipse(x,y+5,22,22,glow);
       this.rect(x-5,y,10,13,4,col);this.rect(x-3,y-3,6,3,1,'#795f59');
     }
-    if(!t.state.emergency)this.text(`NIGHT ${String(t.state.levelIndex+1).padStart(2,'0')}  ·  ${t.state.levelTitle}`,300,87,13,'#f0d4ae');
+    if(!t.state.emergency)this.text(`NIGHT ${String(t.state.levelIndex+1).padStart(2,'0')}  ·  ${t.state.levelTitle}`,300,87,13,'#365e6e');
     // The static architecture and pavement are cached at the current pixel ratio.
     c.fillStyle=p.road;c.fillRect(0,343,600,49);
     c.setLineDash([13,18]);c.strokeStyle='#b3997150';c.lineWidth=2;c.beginPath();c.moveTo(0,368);c.lineTo(600,368);c.stroke();c.setLineDash([]);
     stationEnvironment(this,p,t.state.levelIndex);
     // Passenger count is a backlit stop display, separate from the queue.
     this.rect(28,207,5,29,1,'#71888c');this.rect(87,207,5,29,1,'#71888c');
-    this.rect(17,149,89,63,7,'#1a303e','#8ca5a5');this.rect(23,155,77,39,4,'#122738');
-    this.text(t.state.queue.length,62,175,25,'#f0e7b9');this.text('대기 손님',62,201,10,'#c3d6cd');
+    this.rect(17,149,89,63,7,'#fff9e8','#ffffff');this.rect(23,155,77,39,4,'#d9f3ef');
+    this.text(t.state.queue.length,62,175,25,'#2f616d');this.text('대기 손님',62,201,10,'#43646b');
     for(let i=0;i<6;i++){const x=124+i*76;this.ellipse(x,212,5,2,'#273a4577');this.rect(x-1,198,2,14,1,'#aebeb6');}
     c.strokeStyle='#ad9f8a';c.lineWidth=1.5;c.beginPath();c.moveTo(124,201);c.lineTo(505,201);c.stroke();
-    this.rect(430,349,149,25,4,'#213340',p.edge);this.text('야시장 입구 →',504,361,12,'#e5d8b5');
-    if(t.state.garage)for(let gate=0;gate<(t.state.levelIndex>=30?2:1);gate++){const x=gate?566:34,open=t.arriving.some(a=>a.gate===gate);this.rect(x-26,386,52,30,5,open?'#efbc78':'#2f414e','#9ca5a0');this.text(gate?'B':'A',x,402,17,open?'#553c44':'#f7d8a9');}
+    this.rect(430,349,149,25,4,'#f8fce9',p.edge);this.text('야시장 입구 →',504,361,12,'#3c6976');
+    if(t.state.garage)for(let gate=0;gate<(t.state.levelIndex>=30?2:1);gate++){const x=gate?566:34,open=t.arriving.some(a=>a.gate===gate);this.rect(x-26,386,52,30,5,open?'#efbc78':'#edf7e9','#9ca5a0');this.text(gate?'B':'A',x,402,17,open?'#553c44':'#49696b');}
     stationBays(this,t);
-    this.text(`${t.state.cars.length}대 대기  ·  ${t.delivered}/${t.total}명 탑승`,300,932,14,'#f4d6b2');
+    this.text(`${t.state.cars.length}대 대기  ·  ${t.delivered}/${t.total}명 탑승`,300,932,14,'#456777');
     // Visitors enjoying the night market.
     for(let i=0;i<4;i++){
       this.person(i<2?29+i*22:549+(i-2)*22,991,['red','yellow','cyan','purple'][i],this.reduceMotion?0:t.time,.64,false,makePassenger(i));
