@@ -1,0 +1,68 @@
+{
+ "version": "v58",
+ "passed": 12,
+ "total": 12,
+ "results": [
+  {
+   "name": "로딩 화면 종료 후 대기실 표시",
+   "ok": true,
+   "detail": "2030ms"
+  },
+  {
+   "name": "대기실 코인 표시",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "출발 버튼 → 게임 화면 진입",
+   "ok": true,
+   "detail": "1단계 · 등불 골목"
+  },
+  {
+   "name": "1단계 클릭 플레이로 클리어",
+   "ok": true,
+   "detail": "클릭 44회 · 야시장에 도착했어요!"
+  },
+  {
+   "name": "진행 데이터 localStorage 저장",
+   "ok": true,
+   "detail": "[[\"night-bite-market-v1\",468]]"
+  },
+  {
+   "name": "새로고침 후 완료 기록 유지",
+   "ok": true,
+   "detail": "home-cleared=\"1\""
+  },
+  {
+   "name": "서비스워커 활성화 및 캐시 생성",
+   "ok": true,
+   "detail": "ready · {\"keys\":[\"pickup-rush-v58-retry-ad\"],\"n\":54}"
+  },
+  {
+   "name": "오프라인 상태에서 재실행",
+   "ok": true,
+   "detail": "오프라인 중 새 오류 0건"
+  },
+  {
+   "name": "privacy.html 로드",
+   "ok": true,
+   "detail": "status 200 · 오류 0건 "
+  },
+  {
+   "name": "studio.html 로드",
+   "ok": true,
+   "detail": "status 200 · 오류 0건 "
+  },
+  {
+   "name": "콘솔/페이지 오류 없음",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "요청 실패 없음(오프라인 구간 제외)",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "loadMs": 2030
+}

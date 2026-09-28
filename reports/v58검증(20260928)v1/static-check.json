@@ -1,0 +1,9 @@
+{
+ "expected": "58",
+ "ok": true,
+ "issues": [],
+ "info": [
+  "sw.js 캐시 이름: pickup-rush-v58-retry-ad, 캐시 대상 54개",
+  "로컬 참조 117건 스캔, ?v= 분포 {\"58\":113}"
+ ]
+}
