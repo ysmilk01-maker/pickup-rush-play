@@ -1,4 +1,4 @@
-// v61 UI integration. State fixtures exercise result modals; full gameplay is tested separately.
+// v62 UI integration. State fixtures exercise result modals; full gameplay is tested separately.
 const {chromium}=require('playwright');
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'../..'),out=path.resolve(process.argv[2]||'verify-output/mascot');fs.mkdirSync(out,{recursive:true});

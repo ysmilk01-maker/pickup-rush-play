@@ -1,0 +1,5 @@
+real decoded lobby RMS 0.00012794045051676465
+V2 decoded, volume zero/restored, toggle and real end-to-start loop passed
+mobile viewport: lobby/play automatic switch, native background pause/resume, modal duck; JS errors 0
+track preference survives reload; offline SW cache/reload/both audio playback passed
+PASS browser BGM checks

@@ -1,7 +1,7 @@
-import {shuffleParking} from './shuffle.js?v=61';
-import {checkpoint} from './session.js?v=61';
-import {canExit} from './game.js?v=61';
-import {hiddenCar} from './puzzle.js?v=61';
+import {shuffleParking} from './shuffle.js?v=62';
+import {checkpoint} from './session.js?v=62';
+import {canExit} from './game.js?v=62';
+import {hiddenCar} from './puzzle.js?v=62';
 
 export const ITEMS=[
  {id:'undo',name:'되돌리기',icon:'↶',price:200,color:'#ddcdf6',description:'마지막 배차 전으로 한 번 돌아가요.',detail:'1개당 1회 · 승강장이 가득 차도 사용 가능 · 경과 시간 유지'},

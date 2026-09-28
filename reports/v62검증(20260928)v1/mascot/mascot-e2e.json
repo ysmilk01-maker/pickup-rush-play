@@ -1,0 +1,76 @@
+{
+  "results": [
+    {
+      "name": "legacy stickers restored without coin change",
+      "ok": true
+    },
+    {
+      "name": "seven stamps shown",
+      "ok": true
+    },
+    {
+      "name": "six prior claims shown",
+      "ok": true
+    },
+    {
+      "name": "day seven pays exactly 80",
+      "ok": true
+    },
+    {
+      "name": "limited sticker saved",
+      "ok": true
+    },
+    {
+      "name": "all seven stamps claimed",
+      "ok": true
+    },
+    {
+      "name": "claim button prevents duplicates",
+      "ok": true
+    },
+    {
+      "name": "mission fits narrow screen",
+      "ok": true
+    },
+    {
+      "name": "reload cannot grant twice",
+      "ok": true
+    },
+    {
+      "name": "collection includes 25 entries",
+      "ok": true
+    },
+    {
+      "name": "locked and owned cards distinguishable",
+      "ok": true
+    },
+    {
+      "name": "records fit narrow screen",
+      "ok": true
+    },
+    {
+      "name": "three stars use happy mascot",
+      "ok": true
+    },
+    {
+      "name": "one star uses encouraging mascot",
+      "ok": true
+    },
+    {
+      "name": "failure offers comfort and recovery",
+      "ok": true
+    },
+    {
+      "name": "tutorial mascot visible",
+      "ok": true
+    },
+    {
+      "name": "reduced motion disables stamp animations",
+      "ok": true
+    },
+    {
+      "name": "no JavaScript errors",
+      "ok": true
+    }
+  ]
+}

@@ -1,9 +1,9 @@
-import {awardStickers,normalizeStickers} from './stickers.js?v=61';
-import {attemptedStages} from './retry.js?v=61';
-import {timeStars} from './timing.js?v=61';
-import {inventory} from './items.js?v=61';
-import {TOTAL_LEVELS} from './campaign.js?v=61';
-import {normalizeDaily} from './daily.js?v=61';
+import {awardStickers,normalizeStickers} from './stickers.js?v=62';
+import {attemptedStages} from './retry.js?v=62';
+import {timeStars} from './timing.js?v=62';
+import {inventory} from './items.js?v=62';
+import {TOTAL_LEVELS} from './campaign.js?v=62';
+import {normalizeDaily} from './daily.js?v=62';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},
@@ -28,7 +28,7 @@ export function normalize(raw={}){
   const result={version:3,stickers:normalizeStickers(r.stickers),attempted:attemptedStages(r,unlocked),inventory:inventory(r.inventory),activeSession:r.activeSession??null,comboBest,emergencyWins,cutWins,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(r.level===99&&cleared.includes(99)&&!cleared.includes(100)?100:selected,unlocked),cleared,stars,best,owned,
     decoration:owned.includes(r.decoration)?r.decoration:'lantern',tutorial:!!r.tutorial,
     colorAssist:r.colorAssist===true,sound:r.sound!==false,soundVolume:Number.isFinite(r.soundVolume)?Math.max(0,Math.min(1,r.soundVolume)):.65,vibration:r.vibration!==false,music:r.music!==false,
-    musicTrack:['auto','lantern'].includes(r.musicTrack)?r.musicTrack:'auto',musicVolume:Number.isFinite(r.musicVolume)?Math.max(0,Math.min(1,r.musicVolume)):.3,
+    musicTrack:['auto','yue2-lobby','yue2-drive'].includes(r.musicTrack)?r.musicTrack:'auto',musicVolume:Number.isFinite(r.musicVolume)?Math.max(0,Math.min(1,r.musicVolume)):.3,
     boarded:integer(r.boarded,0,9999999),wins:integer(r.wins,0,9999999),threeStarRuns:integer(r.threeStarRuns,0,9999999),...normalizeDaily(r),
     claimed:(Array.isArray(r.claimed)?r.claimed:[]).filter(x=>['first','crowd','explorer'].includes(x))};
   awardStickers(result);return result;

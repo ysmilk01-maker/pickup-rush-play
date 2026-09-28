@@ -1,4 +1,4 @@
-// v61 검증 1단계: 브라우저 없이 실제 게임 엔진(Market/Traffic)으로 200단계를 자동 플레이한다.
+// v62 검증 1단계: 브라우저 없이 실제 게임 엔진(Market/Traffic)으로 200단계를 자동 플레이한다.
 // 봇 방식(기본 --order=solution): 사람처럼 "모든 움직임이 끝난 뒤" 한 대씩 배차하고, 패배하면 게임의 되돌리기(undo)로
 // 한 수 물러나 다른 차량을 시도하는 깊이 우선 탐색(DFS). 후보 우선순위는 검증된 탈출 순서.
 // (--order=color: ①맨 앞 손님 색과 같은 차 ②곧 필요한 색 ③탈출 순서 — 비교용)
@@ -75,6 +75,6 @@ const rows=[];const t0=Date.now();
 for(let i=from-1;i<to;i++){const r=play(i);rows.push(r);
   if(r.status!=='won')console.error(`[미해결] ${r.stage}단계 ${r.status} ${r.error} 탐색=${r.nodes} 남은차량=${r.leftCars} 남은승객=${r.leftQueue}`);}
 const sum=k=>rows.filter(r=>r.status===k).length;
-const out={version:'v61',acceptCut,budget,range:[from,to],elapsedMs:Date.now()-t0,
+const out={version:'v62',acceptCut,budget,range:[from,to],elapsedMs:Date.now()-t0,
   counts:{total:rows.length,won:sum('won'),unsolved:sum('unsolved'),error:sum('error')},rows};
 console.log(JSON.stringify(out));

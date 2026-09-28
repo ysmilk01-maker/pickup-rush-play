@@ -1,4 +1,4 @@
-import {DISTRICTS,LEVELS_PER_DISTRICT} from './campaign.js?v=61';
+import {DISTRICTS,LEVELS_PER_DISTRICT} from './campaign.js?v=62';
 export const STICKERS=[
  ...DISTRICTS.map((d,i)=>({id:`district-${i+1}`,name:d.name,icon:d.icon,color:d.color,condition:`${i*10+1}–${i*10+10}단계 모두 완료`,earned:s=>Array.from({length:LEVELS_PER_DISTRICT},(_,n)=>i*10+n).every(n=>s.cleared?.includes(n))})),
  {id:'attendance-7',name:'초롱이의 약속',icon:'🐾',color:'#ffcbaa',condition:'7일 연속 출석하고 보상 받기',earned:s=>(s.streak?.count>=7&&s.streak?.claimed)||s.streak?.count>7},
