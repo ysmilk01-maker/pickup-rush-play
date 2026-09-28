@@ -2,6 +2,9 @@
 #lobby{background:#061829;--lobby-accent:#ffe0a0;--lobby-glow:#ffc67d00}
 #lobby[data-decoration=mint]{--lobby-accent:#a6f5d5;--lobby-glow:#4fffcf25}
 #lobby[data-decoration=sakura]{--lobby-accent:#ffd0e1;--lobby-glow:#ff84ba28}
+#lobby[data-decoration=lavender]{--lobby-accent:#e2d2ff;--lobby-glow:#b18cff28}
+#lobby[data-decoration=aurora]{--lobby-accent:#cfe0ff;--lobby-glow:#7fb2ff28}
+#lobby[data-decoration=gold]{--lobby-accent:#ffe7a6;--lobby-glow:#ffcf5a28}
 .home-shade:after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 64%,transparent 25%,var(--lobby-glow) 95%)}
 .lobby-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 46%;pointer-events:none}
 .home-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#04142640 0%,transparent 30%,transparent 58%,#06192ac4 70%,#06192a 94%)}

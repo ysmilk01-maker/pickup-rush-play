@@ -1,12 +1,16 @@
-import {attemptedStages} from './retry.js?v=58';
-import {timeStars} from './timing.js?v=58';
-import {inventory} from './items.js?v=58';
-import {TOTAL_LEVELS} from './campaign.js?v=58';
+import {attemptedStages} from './retry.js?v=59';
+import {timeStars} from './timing.js?v=59';
+import {inventory} from './items.js?v=59';
+import {TOTAL_LEVELS} from './campaign.js?v=59';
+import {normalizeDaily} from './daily.js?v=59';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},
   {id:'mint',name:'민트빛 강바람',price:60,color:'#83ead3',description:'강변을 닮은 청량한 불빛'},
-  {id:'sakura',name:'벚꽃빛 밤산책',price:120,color:'#ffb4d1',description:'분홍빛으로 물든 축제의 밤'}
+  {id:'sakura',name:'벚꽃빛 밤산책',price:120,color:'#ffb4d1',description:'분홍빛으로 물든 축제의 밤'},
+  {id:'lavender',name:'라벤더빛 골목',price:300,color:'#c7b1f0',description:'보랏빛으로 물드는 조용한 골목'},
+  {id:'aurora',name:'오로라 하늘빛',price:600,color:'#9fc3ff',description:'밤하늘을 닮은 푸른 불빛'},
+  {id:'gold',name:'황금빛 카니발',price:1000,color:'#ffd36b',description:'200번째 밤을 밝히는 황금 등불'}
 ];
 const integer=(v,min,max,fallback=0)=>Number.isInteger(v)?Math.max(min,Math.min(max,v)):fallback;
 export function normalize(raw={}){
@@ -24,7 +28,7 @@ export function normalize(raw={}){
     decoration:owned.includes(r.decoration)?r.decoration:'lantern',tutorial:!!r.tutorial,
     colorAssist:r.colorAssist===true,sound:r.sound!==false,soundVolume:Number.isFinite(r.soundVolume)?Math.max(0,Math.min(1,r.soundVolume)):.65,vibration:r.vibration!==false,music:r.music!==false,
     musicTrack:['auto','lantern'].includes(r.musicTrack)?r.musicTrack:'auto',musicVolume:Number.isFinite(r.musicVolume)?Math.max(0,Math.min(1,r.musicVolume)):.3,
-    boarded:integer(r.boarded,0,9999999),wins:integer(r.wins,0,9999999),
+    boarded:integer(r.boarded,0,9999999),wins:integer(r.wins,0,9999999),threeStarRuns:integer(r.threeStarRuns,0,9999999),...normalizeDaily(r),
     claimed:(Array.isArray(r.claimed)?r.claimed:[]).filter(x=>['first','crowd','explorer'].includes(x))};
 }
 export function starsFor({seconds=0}={},index=0){return timeStars(seconds,index);}
@@ -43,7 +47,7 @@ export function complete(save,index,run){
   if(cutReward)save.cutWins.push(index);
   const reward=(fresh?40:5)+Math.max(0,stars-previous)*10+comboReward+emergencyReward+cutReward;
   if(fresh)save.cleared.push(index);
-  save.stars[index]=Math.max(stars,previous);save.coins+=reward;save.wins++;
+  save.stars[index]=Math.max(stars,previous);save.coins+=reward;save.wins++;if(stars===3)save.threeStarRuns=(save.threeStarRuns||0)+1;
   save.boarded+=Math.max(0,Math.floor(run.passengers||0));
   save.best[index]=Math.min(save.best[index]||Infinity,Math.max(1,Math.round(run.seconds||1)));
   save.unlocked=Math.min(TOTAL_LEVELS-1,Math.max(save.unlocked,index+1));save.level=Math.min(index+1,TOTAL_LEVELS-1);

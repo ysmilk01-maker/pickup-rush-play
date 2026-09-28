@@ -1,10 +1,10 @@
-import {Scene} from './scene.js?v=58';
-import {makePassenger} from './appearance.js?v=58';
+import {Scene} from './scene.js?v=59';
+import {makePassenger,THEME_LAMPS} from './appearance.js?v=59';
 
 // Original vector illustration. It uses no screenshots or artwork from another game.
 export class LobbyScene extends Scene{
   draw(time=0,theme='lantern',reduced=false){
-    const c=this.c,accent=theme==='mint'?'#8cf0d7':theme==='sakura'?'#ffbad7':'#ffc67d';
+    const c=this.c,accent=theme==='mint'?'#8cf0d7':THEME_LAMPS[theme]||'#ffc67d';
     const sky=c.createLinearGradient(0,0,0,1080);sky.addColorStop(0,'#b8e6f8');sky.addColorStop(.48,'#d4ece8');sky.addColorStop(1,'#fff0d4');c.fillStyle=sky;c.fillRect(0,0,600,1080);
     for(let i=0;i<30;i++){const x=(i*173+31)%600,y=80+(i*71)%340;this.ellipse(x,y,i%3?1:2,i%3?1:2,'#fff1c599');}
     const moon=c.createRadialGradient(410,190,25,410,190,120);moon.addColorStop(0,'#fff0c928');moon.addColorStop(1,'#fff0c900');this.ellipse(410,190,120,120,moon);this.ellipse(410,190,47,47,'#ffedc7');this.ellipse(428,177,39,39,'#ffe1a3');

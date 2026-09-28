@@ -31,3 +31,5 @@ export const vehicleModel = car => {
   const model=VEHICLE_MODELS[car.model || car.type],scale=car.scale||1;
   return scale===1?model:{...model,length:model.length*scale,width:model.width*scale,body:model.body*scale,roof:model.roof*scale};
 };
+// Lantern colors for purchasable decorations; the default lantern follows each district.
+export const THEME_LAMPS={mint:'#a5f1d0',sakura:'#ffbad7',lavender:'#d6c2fa',aurora:'#b3d0ff',gold:'#ffd978'};

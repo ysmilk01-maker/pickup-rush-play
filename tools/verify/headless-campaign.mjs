@@ -1,15 +1,15 @@
-// v58 검증 1단계: 브라우저 없이 실제 게임 엔진(Market/Traffic)으로 200단계를 자동 플레이한다.
+// v59 검증 1단계: 브라우저 없이 실제 게임 엔진(Market/Traffic)으로 200단계를 자동 플레이한다.
 // 봇 방식(기본 --order=solution): 사람처럼 "모든 움직임이 끝난 뒤" 한 대씩 배차하고, 패배하면 게임의 되돌리기(undo)로
 // 한 수 물러나 다른 차량을 시도하는 깊이 우선 탐색(DFS). 후보 우선순위는 검증된 탈출 순서.
 // (--order=color: ①맨 앞 손님 색과 같은 차 ②곧 필요한 색 ③탈출 순서 — 비교용)
 // 결과 판정: won = 클리어 경로 발견 / unsolved = 탐색 한도 내 경로 없음 / error = 엔진 예외.
 // 사용법: node tools/verify/headless-campaign.mjs [시작단계=1] [끝단계=200] [--accept-cut] [--budget=N]
-import {Market} from '../../market.js?v=58';
-import {canExit} from '../../game.js?v=58';
-import {hiddenCar} from '../../puzzle.js?v=58';
-import {chooseQueueCut} from '../../queue-cut.js?v=58';
-import {timeTargets} from '../../timing.js?v=58';
-import {TOTAL_LEVELS} from '../../campaign.js?v=58';
+import {Market} from '../../market.js?v=59';
+import {canExit} from '../../game.js?v=59';
+import {hiddenCar} from '../../puzzle.js?v=59';
+import {chooseQueueCut} from '../../queue-cut.js?v=59';
+import {timeTargets} from '../../timing.js?v=59';
+import {TOTAL_LEVELS} from '../../campaign.js?v=59';
 
 const args=process.argv.slice(2),acceptCut=args.includes('--accept-cut');
 const order=(args.find(a=>a.startsWith('--order='))?.split('=')[1])||'solution';
@@ -75,6 +75,6 @@ const rows=[];const t0=Date.now();
 for(let i=from-1;i<to;i++){const r=play(i);rows.push(r);
   if(r.status!=='won')console.error(`[미해결] ${r.stage}단계 ${r.status} ${r.error} 탐색=${r.nodes} 남은차량=${r.leftCars} 남은승객=${r.leftQueue}`);}
 const sum=k=>rows.filter(r=>r.status===k).length;
-const out={version:'v58',acceptCut,budget,range:[from,to],elapsedMs:Date.now()-t0,
+const out={version:'v59',acceptCut,budget,range:[from,to],elapsedMs:Date.now()-t0,
   counts:{total:rows.length,won:sum('won'),unsolved:sum('unsolved'),error:sum('error')},rows};
 console.log(JSON.stringify(out));

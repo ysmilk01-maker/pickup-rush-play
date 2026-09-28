@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v58 통합 검증: 정적 점검 → 200단계 엔진 자동 플레이(새치기 거절/수락) → 브라우저 E2E
+# v59 통합 검증: 정적 점검 → 200단계 엔진 자동 플레이(새치기 거절/수락) → 브라우저 E2E
 # 사용법: bash tools/verify/run-all.sh [출력폴더=verify-output]
 set -u
 cd "$(dirname "$0")/../.."

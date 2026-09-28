@@ -5,6 +5,9 @@ html,body{background:#e6f3f1;color:var(--ink)}
 #lobby{background:#ccecf3;--lobby-accent:#b75337;--lobby-glow:transparent}
 #lobby[data-decoration=mint]{--lobby-accent:#167b6b;--lobby-glow:#96eed31c}
 #lobby[data-decoration=sakura]{--lobby-accent:#b54e7b;--lobby-glow:#ffd9e71c}
+#lobby[data-decoration=lavender]{--lobby-accent:#6f52a8;--lobby-glow:#e4d8ff1c}
+#lobby[data-decoration=aurora]{--lobby-accent:#3464a8;--lobby-glow:#d4e4ff1c}
+#lobby[data-decoration=gold]{--lobby-accent:#9a6a12;--lobby-glow:#ffe9a81c}
 .lobby-art{object-position:50% 50%}
 .home-shade{background:linear-gradient(180deg,#e5f7ff33 0%,transparent 30%,transparent 64%,#fff5dfd9 76%,#fff5e6 94%)}
 .lobby-header{top:2%;color:var(--ink)}
@@ -78,3 +81,6 @@ button:focus-visible,#lobby button:focus-visible{outline:3px solid #216e83;outli
 #emergency-hud.urgent{background:#ffe4d9;border-color:#e6977e}.emergency-card b{color:#335c6c;border-bottom:4px solid var(--target-color);padding-bottom:9px}
 .modal #close{color:#476c76}.mission-list button{background:#d5eee2;color:#2c6453}
 @media(prefers-reduced-motion:reduce){#game footer button:active,.modal button:active{transform:none}}
+.streak-card{display:flex;gap:12px;align-items:center;text-align:left;padding:14px 16px;margin:4px 0 6px;border-radius:18px;background:#fff1cf;border:1px solid #efd49a}.streak-card>div{flex:1}.streak-card strong{display:block;font-size:17px;color:#6b4a12}.streak-card small{display:block;font-size:11px;margin-top:5px;color:#7b6440}.streak-card button{min-width:74px;min-height:44px;border:0;border-radius:14px;background:#ffcf6e;color:#5a3d06;font-weight:800}.streak-card button:disabled{background:#efe6d2;color:#9a8f7c}
+.mission-heading{margin:16px 0 0;font-size:14px;text-align:left;color:var(--ink)}.mission-heading small{font-size:11px;font-weight:500;color:var(--muted);margin-left:6px}
+.mission-list progress::-webkit-progress-bar{background:#dfe9e2}.mission-list progress::-webkit-progress-value{background:#56ab90}.mission-list progress{accent-color:#56ab90;background:#dfe9e2}

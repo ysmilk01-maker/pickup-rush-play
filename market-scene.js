@@ -1,11 +1,11 @@
-import {cutPose,cutBadge} from './queue-cut-scene.js?v=58';
-import {drawGates,drawBlockage} from './puzzle-scene.js?v=58';
-import {stationEnvironment,stationBays} from './station-scene.js?v=58';
-import {districtStyle,districtSky} from './district-scene.js?v=58';
-import { Scene } from './scene.js?v=58';
-import { BAY, QUEUE, carPose } from './traffic.js?v=58';
-import { vehicleModel, makePassenger } from './appearance.js?v=58';
-import { COLORS } from './game.js?v=58';
+import {cutPose,cutBadge} from './queue-cut-scene.js?v=59';
+import {drawGates,drawBlockage} from './puzzle-scene.js?v=59';
+import {stationEnvironment,stationBays} from './station-scene.js?v=59';
+import {districtStyle,districtSky} from './district-scene.js?v=59';
+import { Scene } from './scene.js?v=59';
+import { BAY, QUEUE, carPose } from './traffic.js?v=59';
+import { vehicleModel, makePassenger, THEME_LAMPS } from './appearance.js?v=59';
+import { COLORS } from './game.js?v=59';
 
 export class MarketScene extends Scene {
   constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
@@ -15,11 +15,10 @@ export class MarketScene extends Scene {
     districtSky(this,p);
     c.strokeStyle=p.edge;c.lineWidth=1.5;c.beginPath();c.moveTo(0,67);c.quadraticCurveTo(300,120,600,67);c.stroke();
     for(let i=0;i<13;i++){
-      const x=i*50,y=67+25*Math.sin(i/12*Math.PI),col=this.decoration==='mint'?'#a5f1d0':this.decoration==='sakura'?'#ffbad7':p.accent;
+      const x=i*50,y=67+25*Math.sin(i/12*Math.PI),col=THEME_LAMPS[this.decoration]||p.accent;
       const glow=c.createRadialGradient(x,y+5,0,x,y+5,22);glow.addColorStop(0,col+'55');glow.addColorStop(1,col+'00');this.ellipse(x,y+5,22,22,glow);
       this.rect(x-5,y,10,13,4,col);this.rect(x-3,y-3,6,3,1,'#795f59');
     }
-    if(!t.state.emergency&&!t.state.queueCut)this.text(`NIGHT ${String(t.state.levelIndex+1).padStart(2,'0')}  ·  ${t.state.levelTitle}`,300,87,13,'#365e6e');
     // The static architecture and pavement are cached at the current pixel ratio.
     c.fillStyle=p.road;c.fillRect(0,343,600,49);
     c.setLineDash([13,18]);c.strokeStyle='#b3997150';c.lineWidth=2;c.beginPath();c.moveTo(0,368);c.lineTo(600,368);c.stroke();c.setLineDash([]);
@@ -33,7 +32,6 @@ export class MarketScene extends Scene {
     this.rect(430,349,149,25,4,'#f8fce9',p.edge);this.text('야시장 입구 →',504,361,12,'#3c6976');
     if(t.state.garage)for(let gate=0;gate<(t.state.levelIndex>=30?2:1);gate++){const x=gate?566:34,open=t.arriving.some(a=>a.gate===gate);this.rect(x-26,386,52,30,5,open?'#efbc78':'#edf7e9','#9ca5a0');this.text(gate?'B':'A',x,402,17,open?'#553c44':'#49696b');}
     stationBays(this,t);
-    this.text(`${t.state.cars.length}대 대기  ·  ${t.delivered}/${t.total}명 탑승`,300,932,14,'#456777');
     // Visitors enjoying the night market.
     for(let i=0;i<4;i++){
       this.person(i<2?29+i*22:549+(i-2)*22,991,['red','yellow','cyan','purple'][i],this.reduceMotion?0:t.time,.64,false,makePassenger(i));
@@ -44,10 +42,12 @@ export class MarketScene extends Scene {
     this.levelIndex=t.state.levelIndex;this.puzzleKeys=new Map((t.state.puzzle?.gates||[]).filter(g=>!g.open).map(g=>[g.keyId,g.id.at(-1)]));this.background(t);this.hit=[];
     drawGates(this,t);drawBlockage(this,t,selected);
     const offset=t.queueConsumed-t.queueVisual;
-    for(let i=Math.min(24,t.state.queue.length)-1;i>=0;i--){
+    // Passengers are drawn large enough to read on a phone; the front one gets a color ring.
+    for(let i=Math.min(20,t.state.queue.length)-1;i>=0;i--){
       const n=i+offset,a=QUEUE(Math.floor(n)),b=QUEUE(Math.ceil(n)),f=n%1;
       const person=t.state.people[i],cut=cutPose(t,person,i,this.reduceMotion),x=cut?.x??a.x+(b.x-a.x)*f,y=cut?.y??a.y+(b.y-a.y)*f;
-      this.person(x,y,t.state.queue[i],this.reduceMotion?0:t.time+i*.17,1.08,(!!cut||offset>.02)&&!this.reduceMotion,person);cutBadge(this,t,person,x,y);
+      if(i===0&&!cut){this.ellipse(x+2,y+3,17,6,COLORS[t.state.queue[0]].hex+'88');this.ellipse(x+2,y+3,12,4,'#ffffffaa');}
+      this.person(x,y,t.state.queue[i],this.reduceMotion?0:t.time+i*.17,i===0?1.6:1.38,(!!cut||offset>.02)&&!this.reduceMotion,person);cutBadge(this,t,person,x,y);
     }
     const cars=t.state.cars.map(car=>({car,pose:carPose(car,t.state),board:true}));
     for(const car of t.state.bays.filter(Boolean))cars.push({car,pose:{...car.pose},board:false});
@@ -70,7 +70,7 @@ export class MarketScene extends Scene {
     for(const passenger of t.walkers){
       if(!passenger.pose)continue;
       const end=Math.min(1,passenger.elapsed/passenger.duration),hop=this.reduceMotion?0:Math.sin(Math.max(0,end-.75)*Math.PI*4)*7;
-      this.person(passenger.pose.x,passenger.pose.y-hop,passenger.color,this.reduceMotion?0:t.time,1.0*(end>.9?1-(end-.9)*3:1),!this.reduceMotion,passenger.person);cutBadge(this,t,passenger.person,passenger.pose.x,passenger.pose.y-hop);
+      this.person(passenger.pose.x,passenger.pose.y-hop,passenger.color,this.reduceMotion?0:t.time,1.3*(end>.9?1-(end-.9)*3:1),!this.reduceMotion,passenger.person);cutBadge(this,t,passenger.person,passenger.pose.x,passenger.pose.y-hop);
     }
   }
 }
