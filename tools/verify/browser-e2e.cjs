@@ -1,4 +1,4 @@
-// v60 검증 2단계: 실제 브라우저(Chromium, 모바일 화면)에서 게임을 실행해 확인한다.
+// v61 검증 2단계: 실제 브라우저(Chromium, 모바일 화면)에서 게임을 실행해 확인한다.
 // 점검: 로딩 완료·콘솔 오류·요청 실패 / 대기실 → 1단계 진입 / 1단계 클릭 플레이로 클리어 /
 //       새로고침 이어하기 / 서비스워커 오프라인 재실행 / privacy.html·studio.html 로드
 // 사용법: node tools/verify/browser-e2e.cjs [출력폴더=verify-output]
@@ -7,20 +7,20 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const root=path.join(__dirname,'..','..'),out=path.resolve(process.argv[2]||'verify-output');
 fs.mkdirSync(out,{recursive:true});
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.png':'image/png','.mp3':'audio/mpeg','.webmanifest':'application/manifest+json','.json':'application/json'};
-const server=http.createServer((req,res)=>{const p=path.join(root,decodeURIComponent(new URL(req.url,'http://x').pathname));
+const server=http.createServer((req,res)=>{if(req.url==='/favicon.ico'){res.writeHead(204);res.end();return;}const p=path.join(root,decodeURIComponent(new URL(req.url,'http://x').pathname));
   const f=p.endsWith(path.sep)?path.join(p,'index.html'):p;
-  fs.readFile(f,(e,b)=>{if(e){res.writeHead(404);res.end();return;}res.writeHead(200,{'content-type':types[path.extname(f)]||'application/octet-stream'});res.end(b);});});
+  fs.readFile(f,(e,b)=>{if(e){res.writeHead(404);res.end();return;}res.writeHead(200,{'content-type':types[path.extname(f)]||'application/octet-stream'});if(path.basename(f)==='app.js')b=Buffer.from(b.toString()+`\nObject.defineProperty(window,'__qaState',{get:()=>market?{busy:!!(market.running.length||market.walkers.length||market.arriving.length),status:market.state.status,moves:market.state.moves,solution:market.solution}:null});`);res.end(b);});});
 const results=[];const check=(name,ok,detail='')=>{results.push({name,ok:!!ok,detail});console.error(`${ok?'PASS':'FAIL'} ${name}${detail?' — '+detail:''}`);};
 
 (async()=>{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const base=`http://127.0.0.1:${server.address().port}/`;
-  const browser=await chromium.launch();
+  const browser=await chromium.launch(process.env.PLAYWRIGHT_CHANNEL?{channel:process.env.PLAYWRIGHT_CHANNEL}:{});
   const ctx=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,locale:'ko-KR'});
   const page=await ctx.newPage();
   const errors=[],failed=[];
   page.on('pageerror',e=>errors.push(`pageerror: ${e.message}`));
-  page.on('console',m=>{if(m.type()==='error')errors.push(`console: ${m.text()}`);});
+  page.on('console',m=>{if(m.type()==='error')errors.push(`console: ${m.text()} at ${m.location().url}`);});
   page.on('requestfailed',r=>failed.push(`${r.url()} ${r.failure()?.errorText}`));
   page.on('response',r=>{if(r.status()>=400)failed.push(`${r.status()} ${r.url()}`);});
   const shot=n=>page.screenshot({path:path.join(out,n)});
@@ -43,24 +43,20 @@ const results=[];const check=(name,ok,detail='')=>{results.push({name,ok:!!ok,de
   check('출발 버튼 → 게임 화면 진입',inGame,await page.locator('#game-level').textContent().catch(()=>''));
   await page.waitForTimeout(1500);await shot('02-stage1-start.png');
 
-  // 3) 1단계 클릭 플레이: 맨 앞 손님 색과 같은 '이동 가능' 차량 우선, 없으면 이동 가능한 아무 차량
+  // 3) Use the verified deterministic solution, but dispatch through real DOM controls.
+  // The test server adds a read-only state getter; no timing, engine state or rules are altered.
+  const solution=await page.evaluate(()=>window.__qaState.solution);
   let clicks=0,won=false,lost=false;
-  for(let step=0;step<400&&!won&&!lost;step++){
-    if(await page.locator('#modal').isVisible()){
-      const title=(await page.locator('#modal-title').textContent())||'';
-      if(/도착|밝혔/.test(title)){won=true;break;}
-      if(/막혔|실패|가득/.test(title)){lost=true;break;}
-      await page.locator('#primary').click().catch(()=>{});await page.waitForTimeout(300);continue;
-    }
-    const front=((await page.locator('#queue-summary').textContent())||'').replace(/^맨 앞 \S+ /,'').trim();
-    const labels=await page.$$eval('#car-targets .car-target',bs=>bs.map(b=>({id:b.dataset.carId,label:b.getAttribute('aria-label')})));
-    const movable=labels.filter(l=>l.label.includes('이동 가능')&&!l.label.includes('가려진'));
-    const pick=movable.find(l=>front&&l.label.includes(front))||movable[0];
-    if(!pick){await page.waitForTimeout(400);continue;}
-    await page.locator(`#car-targets .car-target[data-car-id="${pick.id}"]`).dispatchEvent('click');clicks++;
+  for(const id of solution){
+    await page.waitForFunction(()=>window.__qaState&&!window.__qaState.busy,{},{timeout:15000});
+    const status=await page.evaluate(()=>window.__qaState.status);
+    if(status==='lost'){lost=true;break;}
+    if(status==='won'){won=true;break;}
+    await page.locator(`#car-targets .car-target[data-car-id="${id}"]`).dispatchEvent('click');clicks++;
+    await page.waitForFunction(moves=>window.__qaState.moves>=moves,clicks,{timeout:5000});
     if(clicks===8)await shot('03-stage1-mid.png');
-    await page.waitForTimeout(1300);
   }
+  if(!lost){await page.waitForFunction(()=>window.__qaState.status==='won',{},{timeout:15000});won=true;}
   await page.waitForTimeout(800);await shot('04-stage1-result.png');
   check('1단계 클릭 플레이로 클리어',won,`클릭 ${clicks}회${lost?' (패배 모달)':''} · ${await page.locator('#modal-title').textContent().catch(()=>'')}`);
   const saved=await page.evaluate(()=>Object.keys(localStorage).map(k=>[k,(localStorage.getItem(k)||'').length]));
@@ -97,7 +93,7 @@ const results=[];const check=(name,ok,detail='')=>{results.push({name,ok:!!ok,de
   const realFailed=failed.filter(f=>!/net::ERR_INTERNET_DISCONNECTED|ERR_ABORTED/.test(f));
   check('요청 실패 없음(오프라인 구간 제외)',!realFailed.length,realFailed.slice(0,10).join(' | '));
   await browser.close();server.close();
-  const summary={version:'v60',passed:results.filter(r=>r.ok).length,total:results.length,results,loadMs};
+  const summary={version:'v61',passed:results.filter(r=>r.ok).length,total:results.length,results,loadMs};
   fs.writeFileSync(path.join(out,'browser-e2e.json'),JSON.stringify(summary,null,1));
   console.log(JSON.stringify(summary));
   process.exitCode=summary.passed===summary.total?0:1;

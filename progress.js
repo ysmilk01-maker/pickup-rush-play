@@ -1,8 +1,9 @@
-import {attemptedStages} from './retry.js?v=60';
-import {timeStars} from './timing.js?v=60';
-import {inventory} from './items.js?v=60';
-import {TOTAL_LEVELS} from './campaign.js?v=60';
-import {normalizeDaily} from './daily.js?v=60';
+import {awardStickers,normalizeStickers} from './stickers.js?v=61';
+import {attemptedStages} from './retry.js?v=61';
+import {timeStars} from './timing.js?v=61';
+import {inventory} from './items.js?v=61';
+import {TOTAL_LEVELS} from './campaign.js?v=61';
+import {normalizeDaily} from './daily.js?v=61';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},
@@ -24,12 +25,13 @@ export function normalize(raw={}){
   const selected=Number(r.version||0)<3&&r.level===35&&cleared.includes(35)?36:integer(r.level,0,unlocked);
   const emergencyWins=(Array.isArray(r.emergencyWins)?r.emergencyWins:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=10&&n<=unlocked&&a.indexOf(n)===i);
   const cutWins=(Array.isArray(r.cutWins)?r.cutWins:[]).filter((n,i,a)=>Number.isInteger(n)&&n>=4&&n<=unlocked&&a.indexOf(n)===i);
-  return {version:3,attempted:attemptedStages(r,unlocked),inventory:inventory(r.inventory),activeSession:r.activeSession??null,comboBest,emergencyWins,cutWins,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(r.level===99&&cleared.includes(99)&&!cleared.includes(100)?100:selected,unlocked),cleared,stars,best,owned,
+  const result={version:3,stickers:normalizeStickers(r.stickers),attempted:attemptedStages(r,unlocked),inventory:inventory(r.inventory),activeSession:r.activeSession??null,comboBest,emergencyWins,cutWins,coins:integer(r.coins,0,999999,60),unlocked,level:Math.min(r.level===99&&cleared.includes(99)&&!cleared.includes(100)?100:selected,unlocked),cleared,stars,best,owned,
     decoration:owned.includes(r.decoration)?r.decoration:'lantern',tutorial:!!r.tutorial,
     colorAssist:r.colorAssist===true,sound:r.sound!==false,soundVolume:Number.isFinite(r.soundVolume)?Math.max(0,Math.min(1,r.soundVolume)):.65,vibration:r.vibration!==false,music:r.music!==false,
     musicTrack:['auto','lantern'].includes(r.musicTrack)?r.musicTrack:'auto',musicVolume:Number.isFinite(r.musicVolume)?Math.max(0,Math.min(1,r.musicVolume)):.3,
     boarded:integer(r.boarded,0,9999999),wins:integer(r.wins,0,9999999),threeStarRuns:integer(r.threeStarRuns,0,9999999),...normalizeDaily(r),
     claimed:(Array.isArray(r.claimed)?r.claimed:[]).filter(x=>['first','crowd','explorer'].includes(x))};
+  awardStickers(result);return result;
 }
 export function starsFor({seconds=0}={},index=0){return timeStars(seconds,index);}
 export function complete(save,index,run){
@@ -51,7 +53,8 @@ export function complete(save,index,run){
   save.boarded+=Math.max(0,Math.floor(run.passengers||0));
   save.best[index]=Math.min(save.best[index]||Infinity,Math.max(1,Math.round(run.seconds||1)));
   save.unlocked=Math.min(TOTAL_LEVELS-1,Math.max(save.unlocked,index+1));save.level=Math.min(index+1,TOTAL_LEVELS-1);
-  return {reward,comboReward,emergencyReward,cutReward,combo,stars,fresh,all:save.cleared.length===TOTAL_LEVELS};
+  const newStickers=awardStickers(save);
+  return {newStickers,reward,comboReward,emergencyReward,cutReward,combo,stars,fresh,all:save.cleared.length===TOTAL_LEVELS};
 }
 export function buyTheme(save,id){
   const theme=THEMES.find(t=>t.id===id);if(!theme)return false;

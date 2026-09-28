@@ -1,0 +1,9 @@
+{
+ "expected": "61",
+ "ok": true,
+ "issues": [],
+ "info": [
+  "sw.js 캐시 이름: pickup-rush-v61-mascot, 캐시 대상 61개",
+  "로컬 참조 127건 스캔, ?v= 분포 {\"61\":121}"
+ ]
+}

@@ -1,27 +1,30 @@
-import {requiresRetryAd,retryAfterAd} from './retry.js?v=60';
-import {timeTargets,formatTime,timerState} from './timing.js?v=60';
-import {claimEventReward,EVENT_REWARDS} from './mission-rewards.js?v=60';
-import {ITEMS,BUNDLE,purchase,useItem,itemAvailability,navigationSuggestion,queueGroups} from './items.js?v=60';
-import {cutActive,chooseQueueCut} from './queue-cut.js?v=60';
-import {exitBlockers,hiddenCar} from './puzzle.js?v=60';
-import {SoundEffects,EFFECT_NAMES,bindInteractionSounds} from './sfx.js?v=60';
-import {pendingCars,garageStatus,routeOptions,chooseRoute} from './garage.js?v=60';
-import {MusicPlayer,TRACKS} from './music.js?v=60';
-import {LEVELS_PER_DISTRICT,districtFor,stageProfile} from './campaign.js?v=60';
-import {Market,MARKET_LEVELS,DISTRICTS,STALL_ICONS} from './market.js?v=60';
-import {MarketScene} from './market-scene.js?v=60';
-import {LobbyScene} from './lobby-scene.js?v=60';
-import {carPose,BAY,CAPACITY} from './traffic.js?v=60';
-import {canExit,COLORS,LEVELS} from './game.js?v=60';
-import {FLEET_STYLES,REGION_FLEETS,fleetFor,fleetStyles,vehicleLabel,styleDebut} from './fleet.js?v=60';
-import {platform} from './platform.js?v=60';
-import {normalize,complete,buyTheme,claimMission,MISSIONS,THEMES,TOTAL_LEVELS,marketGrowth} from './progress.js?v=60';
-import {checkpoint,restoreSession} from './session.js?v=60';
-import {refreshDaily,dailyProgress,claimDaily,claimStreak,streakReward,dailyReady} from './daily.js?v=60';
+import {mascotMessage} from './mascot.js?v=61';
+import {awardStickers,STICKERS,stickerCollection} from './stickers.js?v=61';
+import {requiresRetryAd,retryAfterAd} from './retry.js?v=61';
+import {timeTargets,formatTime,timerState} from './timing.js?v=61';
+import {claimEventReward,EVENT_REWARDS} from './mission-rewards.js?v=61';
+import {ITEMS,BUNDLE,purchase,useItem,itemAvailability,navigationSuggestion,queueGroups} from './items.js?v=61';
+import {cutActive,chooseQueueCut} from './queue-cut.js?v=61';
+import {exitBlockers,hiddenCar} from './puzzle.js?v=61';
+import {SoundEffects,EFFECT_NAMES,bindInteractionSounds} from './sfx.js?v=61';
+import {pendingCars,garageStatus,routeOptions,chooseRoute} from './garage.js?v=61';
+import {MusicPlayer,TRACKS} from './music.js?v=61';
+import {LEVELS_PER_DISTRICT,districtFor,stageProfile} from './campaign.js?v=61';
+import {Market,MARKET_LEVELS,DISTRICTS,STALL_ICONS} from './market.js?v=61';
+import {MarketScene} from './market-scene.js?v=61';
+import {LobbyScene} from './lobby-scene.js?v=61';
+import {carPose,BAY,CAPACITY} from './traffic.js?v=61';
+import {canExit,COLORS,LEVELS} from './game.js?v=61';
+import {FLEET_STYLES,REGION_FLEETS,fleetFor,fleetStyles,vehicleLabel,styleDebut} from './fleet.js?v=61';
+import {platform} from './platform.js?v=61';
+import {normalize,complete,buyTheme,claimMission,MISSIONS,THEMES,TOTAL_LEVELS,marketGrowth} from './progress.js?v=61';
+import {checkpoint,restoreSession} from './session.js?v=61';
+import {refreshDaily,dailyProgress,claimDaily,claimStreak,streakReward,dailyReady,stampCard} from './daily.js?v=61';
 const $=s=>document.querySelector(s),SAVE='night-bite-market-v1',SESSION='night-bite-session-v1';
 function read(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
 const rawSave=read(SAVE);
 let save=normalize(rawSave),market=null,run=null,view='home',tab='home',district=districtFor(save.level),selected=null,last=0,finished=false,adBusy=false,toastUntil=0,returnFocus=null,primaryAction=null,checkpointSignature='',queueSignature='',practiceReturn=null,boardSignature='',garageSignature='',comboShown=0,comboUntil=0;
+let nativePaused=false;
 let fleetDistrict=districtFor(save.level);
 const sfx=new SoundEffects();
 const music=new MusicPlayer();music.audio.id='bgm-audio';music.audio.hidden=true;document.body.append(music.audio);
@@ -31,7 +34,7 @@ function toast(text,duration=2400){$('#toast').textContent=text;$('#toast').clas
 function persist(){try{localStorage.setItem(SAVE,JSON.stringify(save));}catch{toast('저장 공간이 부족해 진행을 저장하지 못했어요.');}}
 function checkpointRun(){if(!market||!run||run.practice)return;const data=checkpoint(market,run);if(data){save.activeSession=data;persist();}}
 function clearSession(){save.activeSession=null;persist();try{localStorage.removeItem(SESSION);}catch{}}
-bindInteractionSounds(document,sfx,()=>!adBusy&&!document.hidden);
+bindInteractionSounds(document,sfx,()=>!adBusy&&!nativePaused&&!document.hidden);
 function beep(success=false){sfx.play(success?'reward':'ui');}
 function haptic(){if(save.vibration)platform.haptic();}
 function showModal(title,body,label,action){
@@ -89,21 +92,20 @@ function renderPanel(){
   for(const canvas of body.querySelectorAll('canvas')){const id=canvas.dataset.fleet,style=FLEET_STYLES[id],type=style.type,model=style.kind==='sedan'?'sedan':style.kind==='taxi'?'taxi':style.kind==='suv'?'suv':type==='bus'?'bus':'van';const preview=new MarketScene(canvas);canvas.width=440;canvas.height=240;preview.c.setTransform(3.6,0,0,3.6,-176,-92);preview.vehicle({model,type,previewStyle:id,color:{taxi:'yellow',van:'green',bus:'blue'}[type]}, {x:110,y:77,angle:-.28});}
  }else{
   const stars=Object.values(save.stars).reduce((a,b)=>a+b,0);
-  body.innerHTML=`<div class="record-grid"><article><span>여행한 단계</span><b>${save.cleared.length}<small> / ${TOTAL_LEVELS}</small></b></article><article><span>모은 별</span><b>${stars}<small> / ${TOTAL_LEVELS*3}</small></b></article><article><span>손님 수송</span><b>${save.boarded.toLocaleString()}<small>명</small></b></article><article><span>완료한 운행</span><b>${save.wins}<small>회</small></b></article></div><h2 class="small-heading">골목별 발자취</h2>${DISTRICTS.map((d,i)=>{const n=save.cleared.filter(l=>districtFor(l)===i).length;return `<div class="district-record"><span>${d.icon}</span><div><b>${d.name}</b><progress value="${n}" max="${LEVELS_PER_DISTRICT}" aria-label="${d.name} ${n}/${LEVELS_PER_DISTRICT} 완료"></progress></div><strong>${n}/${LEVELS_PER_DISTRICT}</strong></div>`;}).join('')}<button class="secondary" id="records-missions">운행 미션 보상 확인</button><p class="panel-foot">기록은 이 기기에 저장됩니다.<br>브라우저 데이터를 삭제하면 기록도 삭제됩니다.</p>`;$('#records-missions').onclick=missions;
+  body.innerHTML=`<div class="record-grid"><article><span>여행한 단계</span><b>${save.cleared.length}<small> / ${TOTAL_LEVELS}</small></b></article><article><span>모은 별</span><b>${stars}<small> / ${TOTAL_LEVELS*3}</small></b></article><article><span>손님 수송</span><b>${save.boarded.toLocaleString()}<small>명</small></b></article><article><span>완료한 운행</span><b>${save.wins}<small>회</small></b></article></div>${stickerCollection(save)}<h2 class="small-heading">골목별 발자취</h2>${DISTRICTS.map((d,i)=>{const n=save.cleared.filter(l=>districtFor(l)===i).length;return `<div class="district-record"><span>${d.icon}</span><div><b>${d.name}</b><progress value="${n}" max="${LEVELS_PER_DISTRICT}" aria-label="${d.name} ${n}/${LEVELS_PER_DISTRICT} 완료"></progress></div><strong>${n}/${LEVELS_PER_DISTRICT}</strong></div>`;}).join('')}<button class="secondary" id="records-missions">운행 미션 보상 확인</button><p class="panel-foot">기록은 이 기기에 저장됩니다.<br>브라우저 데이터를 삭제하면 기록도 삭제됩니다.</p>`;$('#records-missions').onclick=missions;
  }
 }
 for(const b of document.querySelectorAll('[data-tab]'))b.onclick=()=>showLobby(b.dataset.tab);
 $('#wallet').onclick=()=>showLobby('shop');$('#profile').onclick=()=>showLobby('records');
 $('#home-map').onclick=()=>{district=districtFor(save.level);showLobby('map');};
 function dailyMarkup(){
- const streak=save.streak,next=streakReward(streak.count+1);
- return `<article class="streak-card"><div><strong>${streak.count}일 연속 출석</strong><small>${streak.claimed?`내일 오면 ● ${next}코인`:`오늘 출석 보상 · 연속일수록 커져요 (최대 80)`}</small></div><button data-streak ${streak.claimed?'disabled':''}>${streak.claimed?'받음':`● ${streakReward(streak.count)}`}</button></article><h2 class="mission-heading">오늘의 미션 <small>매일 자정에 새로 바뀌어요</small></h2><div class="mission-list">${dailyProgress(save).map(m=>`<article><div><strong>${m.name}</strong><small>${m.description}</small><progress value="${m.value}" max="${m.target}"></progress><small>${m.value}/${m.target}</small></div><button data-daily="${m.id}" ${m.ready?'':'disabled'}>${m.claimed?'받음':`● ${m.reward}`}</button></article>`).join('')}</div><h2 class="mission-heading">성장 미션</h2>`;
+ return `${stampCard(save)}<h2 class="mission-heading">오늘의 미션 <small>매일 자정에 새로 바뀌어요</small></h2><div class="mission-list">${dailyProgress(save).map(m=>`<article><div><strong>${m.name}</strong><small>${m.description}</small><progress value="${m.value}" max="${m.target}"></progress><small>${m.value}/${m.target}</small></div><button data-daily="${m.id}" ${m.ready?'':'disabled'}>${m.claimed?'받음':`● ${m.reward}`}</button></article>`).join('')}</div><h2 class="mission-heading">성장 미션</h2>`;
 }
-function missions(){refreshDaily(save);showModal('오늘도 한 걸음',`${dailyMarkup()}<div class="mission-list">${MISSIONS.map(m=>`<article><div><strong>${m.name}</strong><small>${m.description}</small><progress value="${Math.min(m.target,m.value(save))}" max="${m.target}"></progress><small>${Math.min(m.target,m.value(save))}/${m.target}</small></div><button data-claim="${m.id}" ${save.claimed.includes(m.id)||m.value(save)<m.target?'disabled':''}>${save.claimed.includes(m.id)?'받음':`● ${m.reward}`}</button></article>`).join('')}</div>`,'확인',hideModal);document.querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>{if(claimMission(save,b.dataset.claim)){persist();home();missions();beep(true);}});document.querySelector('[data-streak]').onclick=()=>{const paid=claimStreak(save);if(paid){persist();home();missions();beep(true);toast(`출석 보상 +${paid}코인`);}};document.querySelectorAll('[data-daily]').forEach(b=>b.onclick=()=>{const paid=claimDaily(save,b.dataset.daily);if(paid){persist();home();missions();beep(true);toast(`오늘의 미션 +${paid}코인`);}});}
+function missions(){if(refreshDaily(save))persist();showModal('오늘도 한 걸음',`${mascotMessage(dailyReady(save)?'happy':'default',dailyReady(save)?'받을 수 있는 보상이 있어요! 도장도 꾹 찍어 볼까요?':'오늘도 함께해 줘서 고마워요. 다음 운행도 응원할게요!')}${dailyMarkup()}<div class="mission-list">${MISSIONS.map(m=>`<article><div><strong>${m.name}</strong><small>${m.description}</small><progress value="${Math.min(m.target,m.value(save))}" max="${m.target}"></progress><small>${Math.min(m.target,m.value(save))}/${m.target}</small></div><button data-claim="${m.id}" ${save.claimed.includes(m.id)||m.value(save)<m.target?'disabled':''}>${save.claimed.includes(m.id)?'받음':`● ${m.reward}`}</button></article>`).join('')}</div>`,'확인',hideModal);document.querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>{if(claimMission(save,b.dataset.claim)){persist();home();missions();beep(true);}});document.querySelector('[data-streak]').onclick=()=>{const paid=claimStreak(save);if(paid){const added=awardStickers(save);persist();home();missions();document.querySelector('.stamp-cell.today')?.classList.add('stamp-new');beep(true);toast(`출석 보상 +${paid}코인${added.length?' · 새 스티커 획득!':''}`);}};document.querySelectorAll('[data-daily]').forEach(b=>b.onclick=()=>{const paid=claimDaily(save,b.dataset.daily);if(paid){persist();home();missions();beep(true);toast(`오늘의 미션 +${paid}코인`);}});}
 $('#missions').onclick=missions;
-function help(done=hideModal){showModal('야시장행 셔틀 안내',`<div class="tutorial"><div><b>1</b><p><strong>맨 앞 손님의 옷 색을 보세요.</strong><br>같은 색 셔틀에만 탈 수 있어요.</p></div><div><b>2</b><p><strong>화살표 앞이 열린 차를 꺼내요.</strong><br>다른 차가 막으면 먼저 길을 열어 주세요.</p></div><div><b>3</b><p><strong>가득 차면 야시장으로 출발!</strong><br>덜 탄 차는 다음 같은 색 손님을 기다려요.</p></div></div><p class="subtle">승강장 기본 4칸 · 최대 7칸<br>11단계부터 차고의 응급차가 등장해요.<br>지정 색 손님을 태워 6→5→4번 배차 안에 출발하면 즉시 +20코인(단계별 첫 성공)!<br>실패해도 운행은 계속됩니다.<br>다음 배차 전 만차 출발이 이어지면 콤보!<br>15단계부터 5단계마다 차고 노선 선택이 열려요.<br>선택하지 않아도 자동으로 입차해요.<br>21단계부터: 가려진 셔틀은 앞길을 열면 색이 드러나요.<br>41단계부터: 열쇠 차가 주차장을 나가면 같은 번호 차단기가 열려요.<br>10단계마다 도전 운행, 다음 지역 첫 판은 적응 운행이에요.<br>5단계부터 새치기 손님을 받을지 선택해요!<br>받아주고 3번 배차 안에 태우면 즉시 +15코인(단계별 첫 성공).<br>거절하면 원래 줄 순서로 계속 운행해요.<br>놓치면 원래 줄로 돌아가요.<br>별은 완료 시간으로 정해져요. 아이템을 써도 별이 깎이지 않아요.<br>★★★ 목표 시간 이내 · ★★ 목표의 1.5배 이내 · ★ 이후 완료<br>일시정지·안내 팝업·광고·다른 앱 사용 중에는 시간이 멈춰요.</p>`,'알겠어요',done);}
+function help(done=hideModal){showModal('야시장행 셔틀 안내',`${mascotMessage('default','안녕! 나는 초롱이야. 같은 색 손님과 셔틀을 만나게 해 줘!')}<div class="tutorial"><div><b>1</b><p><strong>맨 앞 손님의 옷 색을 보세요.</strong><br>같은 색 셔틀에만 탈 수 있어요.</p></div><div><b>2</b><p><strong>화살표 앞이 열린 차를 꺼내요.</strong><br>다른 차가 막으면 먼저 길을 열어 주세요.</p></div><div><b>3</b><p><strong>가득 차면 야시장으로 출발!</strong><br>덜 탄 차는 다음 같은 색 손님을 기다려요.</p></div></div><p class="subtle">승강장 기본 4칸 · 최대 7칸<br>11단계부터 차고의 응급차가 등장해요.<br>지정 색 손님을 태워 6→5→4번 배차 안에 출발하면 즉시 +20코인(단계별 첫 성공)!<br>실패해도 운행은 계속됩니다.<br>다음 배차 전 만차 출발이 이어지면 콤보!<br>15단계부터 5단계마다 차고 노선 선택이 열려요.<br>선택하지 않아도 자동으로 입차해요.<br>21단계부터: 가려진 셔틀은 앞길을 열면 색이 드러나요.<br>41단계부터: 열쇠 차가 주차장을 나가면 같은 번호 차단기가 열려요.<br>10단계마다 도전 운행, 다음 지역 첫 판은 적응 운행이에요.<br>5단계부터 새치기 손님을 받을지 선택해요!<br>받아주고 3번 배차 안에 태우면 즉시 +15코인(단계별 첫 성공).<br>거절하면 원래 줄 순서로 계속 운행해요.<br>놓치면 원래 줄로 돌아가요.<br>별은 완료 시간으로 정해져요. 아이템을 써도 별이 깎이지 않아요.<br>★★★ 목표 시간 이내 · ★★ 목표의 1.5배 이내 · ★ 이후 완료<br>일시정지·안내 팝업·광고·다른 앱 사용 중에는 시간이 멈춰요.</p>`,'알겠어요',done);}
 $('#howto').onclick=()=>help();
-function settings(){showModal('편안한 운행을 위해',`<div class="setting-row"><label for="music-toggle">배경음악</label><input id="music-toggle" type="checkbox" ${save.music?'checked':''}></div><p class="subtle">Lantern Lane Loop · James K<br>등불 골목을 위한 경쾌한 BGM · Suno로 제작</p><div class="setting-row music-volume"><label for="music-volume">음악 음량</label><input id="music-volume" aria-label="음악 음량" type="range" min="0" max="100" value="${Math.round(save.musicVolume*100)}"><output id="music-volume-value">${Math.round(save.musicVolume*100)}%</output></div><p id="music-status" class="subtle"></p><div class="setting-row"><label for="sound-toggle">효과음</label><input id="sound-toggle" type="checkbox" ${save.sound?'checked':''}></div><div class="setting-row music-volume"><label for="sound-volume">효과음 음량</label><input id="sound-volume" aria-label="효과음 음량" type="range" min="0" max="100" value="${Math.round(save.soundVolume*100)}"><output id="sound-volume-value">${Math.round(save.soundVolume*100)}%</output></div><div class="sfx-previews" aria-label="효과음 미리 듣기">${Object.entries(EFFECT_NAMES).map(([id,label])=>`<button data-sfx="${id}">${label}</button>`).join('')}</div><div class="setting-row"><label for="vibration-toggle">진동</label><input id="vibration-toggle" type="checkbox" ${save.vibration?'checked':''}></div><div class="setting-row"><label for="color-assist">색상 구분 기호</label><input id="color-assist" type="checkbox" ${save.colorAssist?'checked':''}></div><p class="subtle">승객 옷과 차량에 같은 기호를 표시해요.</p><button id="settings-puzzles" class="secondary">새 퍼즐 무료 체험</button><button id="settings-help" class="secondary">게임 방법</button><button id="settings-info" class="secondary">저장 및 서비스 안내</button><p class="subtle">버전 0.17.1 · 야시장 한입특급</p>`,'확인',hideModal);$('#music-toggle').onchange=e=>{save.music=e.target.checked;persist();syncMusic();music.unlock();sfx.play('ui');};$('#music-volume').oninput=e=>{save.musicVolume=Number(e.target.value)/100;$('#music-volume-value').textContent=`${e.target.value}%`;persist();syncMusic();};$('#sound-toggle').onchange=e=>{save.sound=e.target.checked;persist();syncMusic();sfx.unlock().then(()=>beep());};$('#sound-volume').oninput=e=>{save.soundVolume=Number(e.target.value)/100;$('#sound-volume-value').textContent=`${e.target.value}%`;persist();syncMusic();};document.querySelectorAll('[data-sfx]').forEach(b=>b.onclick=()=>{syncMusic();sfx.unlock().then(()=>sfx.play(b.dataset.sfx));});$('#sound-volume').onchange=()=>sfx.unlock().then(()=>sfx.play('ui'));$('#vibration-toggle').onchange=e=>{save.vibration=e.target.checked;persist();haptic();sfx.play('ui');};$('#color-assist').onchange=e=>{save.colorAssist=e.target.checked;persist();garageSignature='';sfx.play('ui');};$('#settings-puzzles').onclick=puzzleTrials;$('#settings-help').onclick=()=>help(settings);$('#settings-info').onclick=()=>showModal('저장 및 서비스 안내','<p>계정 없이 플레이하며 진행·코인·설정은 이 기기의 브라우저에 저장됩니다. 다른 기기와 동기화되지 않습니다.</p><p>운행 중에는 차량과 손님의 이동이 끝난 시점을 저장합니다. 새로고침하면 마지막 저장 지점에서 이어할 수 있습니다.</p><p class="subtle">현재 공개 웹 체험판입니다. 실제 광고 서비스가 연결되지 않은 환경에서는 확장 버튼에 테스트 광고임을 표시합니다. 유료 결제는 제공하지 않습니다.</p>','설정으로 돌아가기',settings);}
+function settings(){showModal('편안한 운행을 위해',`<div class="setting-row"><label for="music-toggle">배경음악</label><input id="music-toggle" type="checkbox" ${save.music?'checked':''}></div><p class="subtle">Lantern Lane Loop · James K<br>등불 골목을 위한 경쾌한 BGM · Suno로 제작</p><div class="setting-row music-volume"><label for="music-volume">음악 음량</label><input id="music-volume" aria-label="음악 음량" type="range" min="0" max="100" value="${Math.round(save.musicVolume*100)}"><output id="music-volume-value">${Math.round(save.musicVolume*100)}%</output></div><p id="music-status" class="subtle"></p><div class="setting-row"><label for="sound-toggle">효과음</label><input id="sound-toggle" type="checkbox" ${save.sound?'checked':''}></div><div class="setting-row music-volume"><label for="sound-volume">효과음 음량</label><input id="sound-volume" aria-label="효과음 음량" type="range" min="0" max="100" value="${Math.round(save.soundVolume*100)}"><output id="sound-volume-value">${Math.round(save.soundVolume*100)}%</output></div><div class="sfx-previews" aria-label="효과음 미리 듣기">${Object.entries(EFFECT_NAMES).map(([id,label])=>`<button data-sfx="${id}">${label}</button>`).join('')}</div><div class="setting-row"><label for="vibration-toggle">진동</label><input id="vibration-toggle" type="checkbox" ${save.vibration?'checked':''}></div><div class="setting-row"><label for="color-assist">색상 구분 기호</label><input id="color-assist" type="checkbox" ${save.colorAssist?'checked':''}></div><p class="subtle">승객 옷과 차량에 같은 기호를 표시해요.</p><button id="settings-puzzles" class="secondary">새 퍼즐 무료 체험</button><button id="settings-help" class="secondary">게임 방법</button><button id="settings-info" class="secondary">저장 및 서비스 안내</button>${window.PickupRushNative?'<button id="settings-ad-privacy" class="secondary">광고 개인정보 설정</button><button id="settings-policy" class="secondary">개인정보 처리방침</button><button id="settings-audience" class="secondary">이용자 연령대 변경</button>':''}<p class="subtle">버전 0.20.0 · 야시장 한입특급</p>`,'확인',hideModal);$('#music-toggle').onchange=e=>{save.music=e.target.checked;persist();syncMusic();music.unlock();sfx.play('ui');};$('#music-volume').oninput=e=>{save.musicVolume=Number(e.target.value)/100;$('#music-volume-value').textContent=`${e.target.value}%`;persist();syncMusic();};$('#sound-toggle').onchange=e=>{save.sound=e.target.checked;persist();syncMusic();sfx.unlock().then(()=>beep());};$('#sound-volume').oninput=e=>{save.soundVolume=Number(e.target.value)/100;$('#sound-volume-value').textContent=`${e.target.value}%`;persist();syncMusic();};document.querySelectorAll('[data-sfx]').forEach(b=>b.onclick=()=>{syncMusic();sfx.unlock().then(()=>sfx.play(b.dataset.sfx));});$('#sound-volume').onchange=()=>sfx.unlock().then(()=>sfx.play('ui'));$('#vibration-toggle').onchange=e=>{save.vibration=e.target.checked;persist();haptic();sfx.play('ui');};$('#color-assist').onchange=e=>{save.colorAssist=e.target.checked;persist();garageSignature='';sfx.play('ui');};if($('#settings-ad-privacy'))$('#settings-ad-privacy').onclick=()=>window.PickupRushNative.privacy().catch(error=>toast(error.message));if($('#settings-policy'))$('#settings-policy').onclick=()=>window.PickupRushNative.policy().catch(error=>toast(error.message));if($('#settings-audience'))$('#settings-audience').onclick=()=>window.PickupRushNative.audience().catch(error=>toast(error.message));$('#settings-puzzles').onclick=puzzleTrials;$('#settings-help').onclick=()=>help(settings);$('#settings-info').onclick=()=>showModal('저장 및 서비스 안내',`<p>계정 없이 플레이하며 진행·코인·설정은 이 기기에 저장됩니다. 다른 기기와 동기화되지 않습니다.</p><p>운행 중에는 차량과 손님의 이동이 끝난 시점을 저장합니다. 새로고침하면 마지막 저장 지점에서 이어할 수 있습니다.</p><p class="subtle">${window.PickupRushNative?'재도전과 광고로 승강장 확장은 보상형 광고를 끝까지 본 경우에만 적용됩니다. 모든 이용자에게 어린이 보호 광고 설정을 적용하며, 맞춤형 광고를 요청하지 않습니다. 앱 데이터 삭제 시 진행 기록도 삭제됩니다.':'현재 공개 웹 체험판입니다. 실제 광고 서비스가 연결되지 않은 환경에서는 테스트 광고임을 표시합니다.'} 유료 결제는 제공하지 않습니다.</p>`,'설정으로 돌아가기',settings);}
 $('#lobby-settings').onclick=settings;
 function requestStart(index){
  if(index<0||index>save.unlocked)return;
@@ -163,16 +165,16 @@ function finish(){
  if(market.state.status==='won'){
   if(run.practice){sfx.play('clear');showModal('퍼즐 체험 완료!','<p>손님을 모두 태워 보냈어요.</p><p class="subtle">체험에서는 코인과 완료 기록이 바뀌지 않아요.<br>기존 운행과 기록은 그대로 유지됩니다.</p>','대기실로',()=>showLobby('home'));return;}
   const n=market.state.levelIndex,result=complete(save,n,{...run,bays:market.state.bays.length,passengers:market.total,combo:market.state.combo?.best||0,emergency:market.state.emergency?.status==='success',queueCut:market.state.queueCut?.status==='success'});persist();clearSession();sfx.play('clear');
-  showModal(result.all?'모든 골목을 밝혔어요!':'야시장에 도착했어요!',`<div class="result-stars" aria-label="별 ${result.stars}개">${'★'.repeat(result.stars)}${'☆'.repeat(3-result.stars)}</div><p>${market.total}명의 손님과 함께한 ${n+1}번째 정류장</p><div class="result-stats"><span>운행 시간<b>${Math.floor(run.seconds/60)}:${String(Math.floor(run.seconds%60)).padStart(2,'0')}</b></span><span>획득 코인<b>+${result.reward}</b></span></div>${Object.values(run.eventRewards||{}).some(Boolean)?`<p class="mission-paid-note">돌발 미션 +${Object.values(run.eventRewards).reduce((a,b)=>a+b,0)}코인은 운행 중 이미 받았어요.</p>`:''}${result.cutReward?`<p class="growth-result">새치기 손님 탑승 성공 · 보너스 +${result.cutReward}코인</p>`:""}${result.emergencyReward?`<p class="growth-result">긴급 운행 성공 · 보너스 +${result.emergencyReward}코인</p>`:""}<p class="combo-result">최고 ${result.combo}연속 만차${result.comboReward?` · 콤보 보너스 +${result.comboReward}코인`:""}</p>${n%10===9&&result.fresh?`<p class="growth-result">✦ ${marketGrowth(save).regions[Math.floor(n/10)].name} 오픈!<br>대기실 야시장이 더 밝아졌어요.</p>`:""}<p class="subtle">${result.stars===3?'목표 시간 안에 도착했어요!':result.stars===2?'조금 더 빠르게 도착하면 별 3개!':'끝까지 운행을 마쳤어요! 다시 도전해 별을 모아 보세요.'}<br>★★★ ${formatTime(timeTargets(n).three)} 이내 · ★★ ${formatTime(timeTargets(n).two)} 이내</p><button id="result-home" class="secondary">대기실로 돌아가기</button>`,n<TOTAL_LEVELS-1?'다음 단계 출발':'여정 둘러보기',()=>{if(n<TOTAL_LEVELS-1)start(n+1);else showLobby('map');});$('#result-home').onclick=()=>showLobby('home');
+  showModal(result.all?'모든 골목을 밝혔어요!':'야시장에 도착했어요!',`${mascotMessage(result.stars===3?'happy':'cheer',result.stars===3?'별 세 개! 오늘 밤의 멋진 기사님이에요!':'끝까지 함께 달려 줘서 고마워요. 다음 운행도 할 수 있어요!')}${result.newStickers.length?`<p class="new-stickers">새 스티커 · ${result.newStickers.map(id=>STICKERS.find(s=>s.id===id).name).join(' · ')}</p>`:''}<div class="result-stars" aria-label="별 ${result.stars}개">${'★'.repeat(result.stars)}${'☆'.repeat(3-result.stars)}</div><p>${market.total}명의 손님과 함께한 ${n+1}번째 정류장</p><div class="result-stats"><span>운행 시간<b>${Math.floor(run.seconds/60)}:${String(Math.floor(run.seconds%60)).padStart(2,'0')}</b></span><span>획득 코인<b>+${result.reward}</b></span></div>${Object.values(run.eventRewards||{}).some(Boolean)?`<p class="mission-paid-note">돌발 미션 +${Object.values(run.eventRewards).reduce((a,b)=>a+b,0)}코인은 운행 중 이미 받았어요.</p>`:''}${result.cutReward?`<p class="growth-result">새치기 손님 탑승 성공 · 보너스 +${result.cutReward}코인</p>`:""}${result.emergencyReward?`<p class="growth-result">긴급 운행 성공 · 보너스 +${result.emergencyReward}코인</p>`:""}<p class="combo-result">최고 ${result.combo}연속 만차${result.comboReward?` · 콤보 보너스 +${result.comboReward}코인`:""}</p>${n%10===9&&result.fresh?`<p class="growth-result">✦ ${marketGrowth(save).regions[Math.floor(n/10)].name} 오픈!<br>대기실 야시장이 더 밝아졌어요.</p>`:""}<p class="subtle">${result.stars===3?'목표 시간 안에 도착했어요!':result.stars===2?'조금 더 빠르게 도착하면 별 3개!':'끝까지 운행을 마쳤어요! 다시 도전해 별을 모아 보세요.'}<br>★★★ ${formatTime(timeTargets(n).three)} 이내 · ★★ ${formatTime(timeTargets(n).two)} 이내</p><button id="result-home" class="secondary">대기실로 돌아가기</button>`,n<TOTAL_LEVELS-1?'다음 단계 출발':'여정 둘러보기',()=>{if(n<TOTAL_LEVELS-1)start(n+1);else showLobby('map');});$('#result-home').onclick=()=>showLobby('home');
  }else{
-  sfx.play('lose');showModal('승강장이 모두 찼어요','<p>줄 맨 앞 손님과 같은 색 셔틀이 없어요.<br>되돌려서 필요한 차가 들어올 자리를 만들어 보세요.</p><button id="lost-undo" class="secondary">되돌리기</button><button id="lost-ad" class="secondary">확장권 / 광고로 승강장 +1</button><button id="lost-home" class="secondary">대기실로 돌아가기</button>','광고 보고 다시 도전',()=>retryStage(market.state.levelIndex,!!run.practice));$('#lost-undo').disabled=!!itemAvailability(market,run,'undo');$('#lost-undo').textContent=save.inventory.undo?`되돌리기 · 보유 ${save.inventory.undo}개`:`되돌리기 · ${ITEMS.find(i=>i.id==='undo').price}코인`;$('#lost-undo').onclick=undoOptions;$('#lost-ad').disabled=market.state.bays.length>=7;$('#lost-ad').onclick=expandOptions;$('#lost-home').onclick=()=>showLobby('home');
+  sfx.play('lose');showModal('승강장이 모두 찼어요',mascotMessage('comfort','괜찮아요! 되돌리거나 승강장을 넓혀 다시 길을 열어 봐요.')+'<p>줄 맨 앞 손님과 같은 색 셔틀이 없어요.<br>되돌려서 필요한 차가 들어올 자리를 만들어 보세요.</p><button id="lost-undo" class="secondary">되돌리기</button><button id="lost-ad" class="secondary">확장권 / 광고로 승강장 +1</button><button id="lost-home" class="secondary">대기실로 돌아가기</button>','광고 보고 다시 도전',()=>retryStage(market.state.levelIndex,!!run.practice));$('#lost-undo').disabled=!!itemAvailability(market,run,'undo');$('#lost-undo').textContent=save.inventory.undo?`되돌리기 · 보유 ${save.inventory.undo}개`:`되돌리기 · ${ITEMS.find(i=>i.id==='undo').price}코인`;$('#lost-undo').onclick=undoOptions;$('#lost-ad').disabled=market.state.bays.length>=7;$('#lost-ad').onclick=expandOptions;$('#lost-home').onclick=()=>showLobby('home');
  }
 }
 let lobbyFrame=0;
 function frame(now){
  const elapsed=last?Math.max(0,(now-last)/1000):0,dt=Math.min(elapsed,.05);last=now;
  if(view==='game'&&market){
-  if($('#modal').hidden&&!document.hidden&&market.state.status==='playing'&&market.state.queueCut?.status!=='offered'){market.tick(dt);run.seconds+=elapsed;}renderTimer();
+  if($('#modal').hidden&&!nativePaused&&!document.hidden&&market.state.status==='playing'&&market.state.queueCut?.status!=='offered'){market.tick(dt);run.seconds+=elapsed;}renderTimer();
   const board=market.state.cars.map(c=>c.id+':'+!!c.revealed).join(',')+':'+(market.state.puzzle?.gates||[]).map(g=>g.open).join(',');if(board!==boardSignature){boardSignature=board;targets();}renderGarage();renderCombo(now);renderEmergency();renderQueueCut();
   scene.colorAssist=save.colorAssist;scene.reduceMotion=reduced.matches;scene.decoration=save.decoration;const nav=navigationSuggestion(market,run);scene.draw(market,selected?.until>market.time?selected:nav?{id:nav.id,until:market.time+1,navigator:true}:null);renderQueue();renderBagBadge();
   $('#coin-count').textContent=save.coins;$('#hint').textContent=`${market.state.cars.length}대 대기 · ${market.delivered}/${market.total}명 탑승 · 승강장 ${market.state.bays.length}/7 · ${market.state.moves}번 배차`;
@@ -184,7 +186,7 @@ function frame(now){
  const status=$('#music-status');if(status)status.textContent=music.status==='error'?'음악을 불러오지 못했어요. 연결을 확인해 주세요.':music.status==='playing'?`재생 중 · ${TRACKS[music.current].title}`:!save.music?'배경음악 꺼짐':'화면을 누르면 음악이 재생됩니다.';
  if(now>toastUntil)$('#toast').classList.remove('show');requestAnimationFrame(frame);
 }
-function syncMusic(){sfx.configure({enabled:save.sound,volume:save.soundVolume,suspended:document.hidden||adBusy});music.configure({enabled:save.music,volume:save.musicVolume,track:save.musicTrack,level:view==='game'?market.state.levelIndex:0,suspended:document.hidden||adBusy,ducked:view==='game'&&!$('#modal').hidden});}
+function syncMusic(){sfx.configure({enabled:save.sound,volume:save.soundVolume,suspended:document.hidden||nativePaused||adBusy});music.configure({enabled:save.music,volume:save.musicVolume,track:save.musicTrack,level:view==='game'?market.state.levelIndex:0,suspended:document.hidden||nativePaused||adBusy,ducked:view==='game'&&!$('#modal').hidden});}
 for(const event of ['pointerdown','keydown'])document.addEventListener(event,()=>{syncMusic();sfx.unlock();music.unlock();},{capture:true});
 setInterval(syncMusic,500);
 function drawGarageMiniatures(root,cars){
@@ -216,11 +218,12 @@ $('#garage-preview').onclick=()=>{
 };
 document.addEventListener('visibilitychange',syncMusic);
 window.addEventListener('resize',()=>{scene.resize();lobbyScene.resize();});document.addEventListener('visibilitychange',()=>{last=0;checkpointRun();});window.addEventListener('pagehide',checkpointRun);
-showLobby();syncMusic();if(restored&&market.demandVersion<5)toast('새 색상은 새 운행부터 적용돼요. 기존 판은 그대로 이어져요.',5000);requestAnimationFrame(frame);
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=60').catch(()=>{});
+persist();showLobby();syncMusic();if(restored&&market.demandVersion<5)toast('새 색상은 새 운행부터 적용돼요. 기존 판은 그대로 이어져요.',5000);requestAnimationFrame(frame);
+if(!window.PickupRushNative&&'serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=61').catch(()=>{});
 
 function renderCombo(now){
  const chain=market.state.combo?.chain||0;
+ if(!run?.practice&&market.state.combo?.best>=7&&!save.stickers.includes('combo-7')){awardStickers(save,market.state.combo.best);persist();toast('일곱 빛 퍼레이드 스티커를 모았어요!');}
  if(chain!==comboShown){
   if(chain>=2){$('#combo-banner').innerHTML=`<small>연속 만차 출발</small><b>${chain} COMBO <span>✦</span></b>`;comboUntil=now+2400;sfx.play('combo');}
   else comboUntil=0;
@@ -374,3 +377,24 @@ function renderTimer(){
  const el=$('#run-clock');if(el.textContent!==label){el.textContent=label;el.dataset.stars=t.stars;}
 }
 $('#run-clock').onclick=()=>{const t=timeTargets(market.state.levelIndex);showModal('이번 단계의 별 목표',`<p>진행 시간 <b>${formatTime(run.seconds)}</b></p><p>★★★ ${formatTime(t.three)} 이내<br>★★ ${formatTime(t.two)} 이내<br>★ 이후 완료</p><p class="subtle">아이템을 써도 별이 깎이지 않아요.<br>안내·일시정지·광고 중에는 시간이 멈춰요.</p>`,'계속 운행',hideModal);};
+
+// Android lifecycle events keep the clock, audio and local checkpoint in sync.
+if(window.PickupRushNative){
+ window.addEventListener('pickup-native-lifecycle',event=>{
+  nativePaused=event.detail?.paused===true;last=0;
+  if(nativePaused){checkpointRun();sfx.stop();}
+  syncMusic();
+ });
+ window.PickupRushApp=Object.freeze({back(){
+  if(adBusy)return true;
+  if(!$('#modal').hidden){$('#close').click();return true;}
+  if(view==='game'){pause();return true;}
+  checkpointRun();return false;
+ }});
+ if(window.PickupRushNative.preview){
+  const notice=document.createElement('p');
+  notice.textContent='설치형 테스트 · Google 테스트 광고';
+  notice.style.cssText='position:fixed;top:2px;left:50%;transform:translateX(-50%);z-index:10000;margin:0;padding:3px 10px;border-radius:12px;background:#163b46dd;color:white;font:11px sans-serif;pointer-events:none;white-space:nowrap';
+  document.body.append(notice);
+ }
+}

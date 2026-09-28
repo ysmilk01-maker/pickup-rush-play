@@ -1,12 +1,12 @@
-// v60 검증 0단계: 파일 참조 무결성 점검 (브라우저·엔진 실행 없이)
+// v61 검증 0단계: 파일 참조 무결성 점검 (브라우저·엔진 실행 없이)
 // ① sw.js 캐시 목록의 파일이 모두 존재하는가 ② 모든 import·script·link의 ?v= 값이 기대 버전과 같은가
 // ③ import·HTML에서 참조한 로컬 파일이 모두 존재하는가 ④ 서비스워커가 캐시하지 않는 JS 모듈이 있는가
-// 사용법: node tools/verify/static-check.mjs [기대버전=60]
+// 사용법: node tools/verify/static-check.mjs [기대버전=61]
 import {readFileSync,existsSync,readdirSync} from 'node:fs';
 import {join,dirname,normalize} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=join(dirname(fileURLToPath(import.meta.url)),'..','..');
-const expected=process.argv[2]||'60';
+const expected=process.argv[2]||'61';
 const issues=[],info=[];
 const read=f=>readFileSync(join(root,f),'utf8');
 const strip=p=>normalize(p.replace(/^\.\//,'').split('?')[0].split('#')[0]);
