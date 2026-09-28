@@ -1,0 +1,30 @@
+/* v60 cute pass: pastel chrome, rounded display font and squishy buttons.
+   Vehicle and passenger colors stay saturated because they carry the matching rule. */
+@font-face{font-family:'Jua';src:url('./fonts/jua-korean.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Jua';src:url('./fonts/jua-latin.woff2') format('woff2');font-display:swap;unicode-range:U+0000-00FF,U+2000-206F,U+2190-2193,U+2212}
+:root{--ink:#5a4043;--muted:#8a6d70;--cute-cream:#fff8f3;--cute-font:'Jua',system-ui,sans-serif}
+html,body{background:#fdeef0}
+.modal h1,.play-button,.resume-button,#game .logo,.result-stars,#combo-banner,.mission-heading,.streak-card strong,.supply-title,.bottom-nav button,.modal button,#game footer button,#queue-summary,#run-clock,.result-stats b{font-family:var(--cute-font);font-weight:400}
+.modal h1{color:#c2566f;letter-spacing:.5px}
+.modal section{background:var(--cute-cream);border:3px solid #fff;border-radius:30px;box-shadow:0 7px 0 #f2c6cf,0 20px 60px #7a3d4d33}
+.modal button.primary{background:linear-gradient(#ffc6d3,#ff9fb5);color:#6b2338;border:2px solid #fff0f4;box-shadow:0 4px 0 #e0778f;border-radius:18px}
+.modal button.secondary,.modal button.close{background:#f6ecff;color:#5d4a73;border-color:#e6d6fb}
+.play-button,.resume-button,.home-content:not(.has-resume) .play-button{background:linear-gradient(#ffc6d3,#ff9fb5);color:#6b2338;border-color:#fff0f4;border-radius:24px;box-shadow:0 5px 0 #e0778f,0 8px 16px #b1506a2e}
+.play-button span,.resume-button small{color:#8a3a51}
+.bottom-nav{background:var(--cute-cream);box-shadow:0 -4px 16px #c4838f22}
+.bottom-nav button{color:#8a6d70}
+.bottom-nav button[aria-current]{color:#c2566f}
+#game header button,#game header .coins{background:#fffafb;border-color:#fff;box-shadow:0 3px 0 #f0c4cd,0 5px 10px #8a3d4d1c;color:var(--ink)}
+#game .logo{color:#c2566f;text-shadow:0 2px 0 #fff}
+#game .logo small{color:#9a6b73}
+#queue-summary{border-radius:14px}
+#game footer button{border-radius:22px;box-shadow:0 4px 0 #efc3cc,0 7px 14px #8a3d4d1f}
+#combo-banner{background:#ffe3ec;color:#b3405f;border-radius:999px;box-shadow:0 3px 0 #f1a9bb}
+#combo-banner small,#combo-banner span{color:#b3405f}
+.result-stars{color:#ffb300;text-shadow:0 3px 0 #ffd6e0;animation:cute-pop .6s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes cute-pop{0%{scale:.3;opacity:0}100%{scale:1;opacity:1}}
+/* `scale` composes with any positioning transform already on a button. */
+button{transition:scale .12s cubic-bezier(.3,1.6,.5,1)}
+button:active:not(:disabled){scale:.94}
+@media(prefers-reduced-motion:reduce){.result-stars{animation:none}button{transition:none}button:active:not(:disabled){scale:1}}
+.bottom-nav button[aria-current]{background:linear-gradient(#fff0f4,#ffe0e8)}.bottom-nav button[aria-current]::before{background:#ff9fb5}

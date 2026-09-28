@@ -1,9 +1,9 @@
-import {hiddenCar} from './puzzle.js?v=59';
-import {keyBadge} from './puzzle-scene.js?v=59';
-import { COLORS, canExit } from './game.js?v=59';
-import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=59';
-import { vehicleModel, makePassenger } from './appearance.js?v=59';
-import {vehicleStyle} from './fleet.js?v=59';
+import {hiddenCar} from './puzzle.js?v=60';
+import {keyBadge} from './puzzle-scene.js?v=60';
+import { COLORS, canExit } from './game.js?v=60';
+import { BAY, QUEUE, carPose, DIRECTIONS } from './traffic.js?v=60';
+import { vehicleModel, makePassenger } from './appearance.js?v=60';
+import {vehicleStyle} from './fleet.js?v=60';
 
 const shade=(hex,f)=>'#'+hex.slice(1).match(/../g).map(v=>Math.max(0,Math.min(255,parseInt(v,16)+f)).toString(16).padStart(2,'0')).join('');
 export class Scene {
@@ -32,27 +32,30 @@ export class Scene {
     // All seven bay outlines stay visible; three begin locked.
     for(let i=0;i<7;i++){const b=BAY(i);c.save();c.translate(b.x,b.y);c.rotate(-.48);c.setLineDash([9,7]);this.rect(-24,-47,48,94,10,i<t.state.bays.length?'#aebfd3':'#9aadc4','#e6edf5');c.setLineDash([]);if(i>=t.state.bays.length){this.text('▣',0,-9,22,'#dce7f2');this.text('광고 +1',0,15,12,'#f6faff');}c.restore();}
   }
+  // Chibi passenger (about two heads tall). The outfit keeps a large solid area in the
+  // matching color; hair, face and blush are decoration only.
   person(x,y,color,phase=0,scale=1,walking=false,person=makePassenger(0)){
     const c=this.c,col=COLORS[color].hex,bob=walking?Math.sin(phase*22)*2:Math.sin(phase*3)*.6;
-    c.save();c.translate(x,y);c.scale(scale,scale);this.ellipse(3,2,8,3,'#647b9448');
-    const leg=walking?Math.sin(phase*22)*4:0;
-    c.lineCap='round';c.lineWidth=4.3;c.strokeStyle=person.outfit==='skirt'?person.skin:shade(col,-45);c.beginPath();c.moveTo(-3,-8);c.lineTo(-3+leg,0);c.moveTo(3,-8);c.lineTo(3-leg,0);c.stroke();
-    this.ellipse(-3+leg,1,3,1.8,'#394554');this.ellipse(3-leg,1,3,1.8,'#394554');
-    if(person.hairstyle==='ponytail'){this.ellipse(7,-25+bob,5,9,person.hair);this.ellipse(7,-30+bob,3,2,col);}
-    if(person.hairstyle==='bob')this.rect(-8,-32+bob,16,16,6,person.hair);
-    c.lineWidth=4;c.strokeStyle=col;c.beginPath();c.moveTo(-4,-18+bob);c.lineTo(-7-leg*.4,-11+bob);c.moveTo(4,-18+bob);c.lineTo(7+leg*.4,-11+bob);c.stroke();
-    this.ellipse(-7-leg*.4,-9+bob,2.2,2.8,person.skin);this.ellipse(7+leg*.4,-9+bob,2.2,2.8,person.skin);
-    this.rect(-5,-22+bob,10,15,4,col,shade(col,-26));
-    if(person.outfit==='skirt')this.polygon([{x:-4,y:-14+bob},{x:4,y:-14+bob},{x:8,y:-5+bob},{x:-8,y:-5+bob}],col,shade(col,-25));
-    else {c.strokeStyle=shade(col,40);c.lineWidth=1;c.beginPath();c.moveTo(0,-18+bob);c.lineTo(0,-9+bob);c.stroke();}
-    if(this.colorAssist){this.ellipse(0,-15+bob,5.5,5.5,'#183344');this.text(COLORS[color].short,0,-15+bob,8,'#fff5d5');}
-    this.rect(-2,-25+bob,4,5,1,person.skin);
-    const g=c.createRadialGradient(-2,-31+bob,1,0,-28+bob,8);g.addColorStop(0,shade(person.skin,25));g.addColorStop(1,person.skin);this.ellipse(0,-28+bob,7,8,g);
+    c.save();c.translate(x,y);c.scale(scale,scale);this.ellipse(2,1.5,9,3,'#8a647048');
+    const leg=walking?Math.sin(phase*22)*3:0;
+    c.lineCap='round';c.lineWidth=4.2;c.strokeStyle=person.outfit==='skirt'?person.skin:shade(col,-40);c.beginPath();c.moveTo(-3,-5);c.lineTo(-3+leg,-.5);c.moveTo(3,-5);c.lineTo(3-leg,-.5);c.stroke();
+    this.ellipse(-3+leg,.5,3.2,2,'#5b4148');this.ellipse(3-leg,.5,3.2,2,'#5b4148');
+    if(person.hairstyle==='ponytail'){this.ellipse(10,-24+bob,5,8,person.hair);this.ellipse(9,-31+bob,3.2,2.3,col);}
+    if(person.hairstyle==='bob')this.rect(-11.5,-33+bob,23,18,8,person.hair);
+    c.lineWidth=3.6;c.strokeStyle=col;c.beginPath();c.moveTo(-5,-13+bob);c.lineTo(-8.5-leg*.4,-8+bob);c.moveTo(5,-13+bob);c.lineTo(8.5+leg*.4,-8+bob);c.stroke();
+    this.ellipse(-8.8-leg*.4,-7+bob,2.3,2.3,person.skin);this.ellipse(8.8+leg*.4,-7+bob,2.3,2.3,person.skin);
+    this.rect(-6.5,-17+bob,13,13,5.5,col,shade(col,-26));
+    if(person.outfit==='skirt')this.polygon([{x:-5.5,y:-10+bob},{x:5.5,y:-10+bob},{x:9,y:-3.5+bob},{x:-9,y:-3.5+bob}],col,shade(col,-25));
+    else {c.strokeStyle=shade(col,45);c.lineWidth=1.2;c.beginPath();c.moveTo(0,-15+bob);c.lineTo(0,-6+bob);c.stroke();}
+    if(this.colorAssist){this.ellipse(0,-10+bob,5.5,5.5,'#183344');this.text(COLORS[color].short,0,-10+bob,8,'#fff5d5');}
+    const g=c.createRadialGradient(-3,-29+bob,1,0,-26+bob,11);g.addColorStop(0,shade(person.skin,22));g.addColorStop(1,person.skin);this.ellipse(0,-26+bob,10.5,10,g);
     // Short hair, side-part, bob and ponytail remain attached to the same passenger.
-    c.beginPath();c.ellipse(0,-30+bob,7.5,7,0,Math.PI,Math.PI*2);c.lineTo(7,-28+bob);c.quadraticCurveTo(2,-29+bob,person.hairstyle==='sidepart'?-5:0,-33+bob);c.lineTo(-7,-27+bob);c.closePath();c.fillStyle=person.hair;c.fill();
-    if(person.hairstyle==='bob'){this.rect(-8,-30+bob,3,10,2,person.hair);this.rect(5,-30+bob,3,10,2,person.hair);}
-    this.ellipse(-2.5,-27+bob,.7,1,'#3c3435');this.ellipse(2.5,-27+bob,.7,1,'#3c3435');
-    c.strokeStyle='#a65f53';c.lineWidth=.8;c.beginPath();c.arc(0,-25+bob,1.5,0,Math.PI);c.stroke();c.restore();
+    c.beginPath();c.ellipse(0,-28.5+bob,11,9,0,Math.PI,Math.PI*2);c.lineTo(10.5,-26+bob);c.quadraticCurveTo(3,-27.5+bob,person.hairstyle==='sidepart'?-6:0,-32+bob);c.quadraticCurveTo(-5,-27+bob,-10.5,-25.5+bob);c.closePath();c.fillStyle=person.hair;c.fill();
+    if(person.hairstyle==='bob'){this.rect(-11.5,-29+bob,4,12,2,person.hair);this.rect(7.5,-29+bob,4,12,2,person.hair);}
+    this.ellipse(-3.8,-24+bob,1.35,1.75,'#3c2b30');this.ellipse(3.8,-24+bob,1.35,1.75,'#3c2b30');
+    this.ellipse(-3.4,-24.7+bob,.5,.55,'#fff');this.ellipse(4.2,-24.7+bob,.5,.55,'#fff');
+    this.ellipse(-6.6,-20.8+bob,2.2,1.3,'#ff8fa770');this.ellipse(6.6,-20.8+bob,2.2,1.3,'#ff8fa770');
+    c.strokeStyle='#a8505e';c.lineWidth=.9;c.beginPath();c.arc(0,-21.6+bob,1.6,.15*Math.PI,.85*Math.PI);c.stroke();c.restore();
   }
   vehicle(car,pose,{parked=false,arrow=true}={}){
     const c=this.c,covered=hiddenCar(car),col=covered?'#8b9ba9':car.emergency?'#e9eff0':COLORS[car.color].hex;
@@ -170,6 +173,14 @@ export class Scene {
     if(covered){this.polygon(corners.map(([u,v])=>p(u*.96,v*.92,roofHeight+2)),'#9cabb5','#e0e6df',1.5);const q=p(-length*.29,0,roofHeight+5);this.ellipse(q.x,q.y,8,8,'#324d61');this.text('?',q.x,q.y,13,'#f7e9bf');}
     if(this.colorAssist&&!covered){const q=p(-length*.28,0,roofHeight+5);this.ellipse(q.x,q.y,8,8,'#182f42');this.text(COLORS[car.color].short,q.x,q.y,11,'#fff4d1');}
     const key=this.puzzleKeys?.get(car.id);if(key){const q=p(-length*.25,0,roofHeight+18);keyBadge(this,q.x,q.y,key);}
+    // Cartoon eyes near the front. They are drawn before the direction arrow so the arrow
+    // always stays on top. Loading shuttles smile (^ ^); covered shuttles doze.
+    {const front=passengerCar?length*.41:length*.38,z=passengerCar?height+1:(roofHeight+height)/2+1;
+     const r=Math.max(2.4,Math.min(4,width*.12)),look={x:ca*.9,y:sa*.75};
+     for(const v of [-w*.45,w*.45]){const q=p(front,v,z);
+      if(covered||parked){c.strokeStyle='#3c2b30';c.lineWidth=1.4;c.lineCap='round';c.beginPath();c.arc(q.x,q.y+(covered?-1:1),r*.8,covered?.1*Math.PI:1.1*Math.PI,covered?.9*Math.PI:1.9*Math.PI);c.stroke();}
+      else{this.ellipse(q.x,q.y,r,r*1.12,'#fff');this.ellipse(q.x+look.x,q.y+look.y,r*.56,r*.64,'#2f2226');this.ellipse(q.x+look.x-.7,q.y+look.y-.9,r*.22,r*.22,'#fff');}
+     }}
     if(arrow){const s=Math.min(length*.26,20),z=roofHeight+7,offset=kind==='taxi'?6:kind==='bus'?8:0;const ar=(u,v)=>p(u+offset,v,z);this.polygon([ar(-s,-2.5),ar(s*.3,-2.5),ar(s*.3,-6),ar(s,0),ar(s*.3,6),ar(s*.3,2.5),ar(-s,2.5)],'#fff', '#42525b',1.3);}
     if(car.emergency){
       // Orange rescue chevrons and a two-tone light bar, without a medical emblem.

@@ -1,12 +1,12 @@
-import {tickQueueCut} from './queue-cut.js?v=59';
-import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=59';
-import { assignModels, makePassenger } from './appearance.js?v=59';
-import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=59';
-import {garagePlan,pendingCars,nextWave} from './garage.js?v=59';
-import { passengerQueue } from './demand.js?v=59';
-import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=59';
+import {tickQueueCut} from './queue-cut.js?v=60';
+import { createGame, canExit, COLORS, VEHICLE_TYPES } from './game.js?v=60';
+import { assignModels, makePassenger } from './appearance.js?v=60';
+import { isFreeform, bounds, LOT, GROUND_SCALE, overlaps } from './geometry.js?v=60';
+import {garagePlan,pendingCars,nextWave} from './garage.js?v=60';
+import { passengerQueue } from './demand.js?v=60';
+import {beginEmergency,settleEmergency,emergencyLimit} from './emergency.js?v=60';
 
-import {createPuzzle,revealCars,unlockFromVehicle,hiddenCar} from './puzzle.js?v=59';
+import {createPuzzle,revealCars,unlockFromVehicle,hiddenCar} from './puzzle.js?v=60';
 
 export const CAPACITY = { taxi: 4, van: 6, bus: 10 };
 export const ANIMATION_SPEED = 1.5;

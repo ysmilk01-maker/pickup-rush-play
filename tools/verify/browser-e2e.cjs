@@ -1,4 +1,4 @@
-// v59 검증 2단계: 실제 브라우저(Chromium, 모바일 화면)에서 게임을 실행해 확인한다.
+// v60 검증 2단계: 실제 브라우저(Chromium, 모바일 화면)에서 게임을 실행해 확인한다.
 // 점검: 로딩 완료·콘솔 오류·요청 실패 / 대기실 → 1단계 진입 / 1단계 클릭 플레이로 클리어 /
 //       새로고침 이어하기 / 서비스워커 오프라인 재실행 / privacy.html·studio.html 로드
 // 사용법: node tools/verify/browser-e2e.cjs [출력폴더=verify-output]
@@ -97,7 +97,7 @@ const results=[];const check=(name,ok,detail='')=>{results.push({name,ok:!!ok,de
   const realFailed=failed.filter(f=>!/net::ERR_INTERNET_DISCONNECTED|ERR_ABORTED/.test(f));
   check('요청 실패 없음(오프라인 구간 제외)',!realFailed.length,realFailed.slice(0,10).join(' | '));
   await browser.close();server.close();
-  const summary={version:'v59',passed:results.filter(r=>r.ok).length,total:results.length,results,loadMs};
+  const summary={version:'v60',passed:results.filter(r=>r.ok).length,total:results.length,results,loadMs};
   fs.writeFileSync(path.join(out,'browser-e2e.json'),JSON.stringify(summary,null,1));
   console.log(JSON.stringify(summary));
   process.exitCode=summary.passed===summary.total?0:1;

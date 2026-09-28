@@ -1,14 +1,31 @@
-import {cutPose,cutBadge} from './queue-cut-scene.js?v=59';
-import {drawGates,drawBlockage} from './puzzle-scene.js?v=59';
-import {stationEnvironment,stationBays} from './station-scene.js?v=59';
-import {districtStyle,districtSky} from './district-scene.js?v=59';
-import { Scene } from './scene.js?v=59';
-import { BAY, QUEUE, carPose } from './traffic.js?v=59';
-import { vehicleModel, makePassenger, THEME_LAMPS } from './appearance.js?v=59';
-import { COLORS } from './game.js?v=59';
+import {cutPose,cutBadge} from './queue-cut-scene.js?v=60';
+import {drawGates,drawBlockage} from './puzzle-scene.js?v=60';
+import {stationEnvironment,stationBays} from './station-scene.js?v=60';
+import {districtStyle,districtSky} from './district-scene.js?v=60';
+import { Scene } from './scene.js?v=60';
+import { BAY, QUEUE, carPose } from './traffic.js?v=60';
+import { vehicleModel, makePassenger, THEME_LAMPS } from './appearance.js?v=60';
+import { COLORS } from './game.js?v=60';
 
 export class MarketScene extends Scene {
-  constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';}
+  constructor(canvas){super(canvas);this.reduceMotion=false;this.decoration='lantern';this.fx=[];}
+  // A heart when a passenger boards and a sparkle ring when a full shuttle departs.
+  burst(kind,car,time){
+    if(this.reduceMotion||!car?.pose)return;
+    const {x,y}=car.pose,col=COLORS[car.color]?.hex||'#ffb6c8';
+    if(kind==='board')this.fx.push({kind:'heart',x,y:y-28,at:time,life:.8,col:'#ff7fa0'});
+    else for(let i=0;i<8;i++)this.fx.push({kind:'spark',x,y:y-18,at:time,life:.75,a:i/8*Math.PI*2,col:i%2?col:'#ffe27a'});
+    if(this.fx.length>60)this.fx.splice(0,this.fx.length-60);
+  }
+  drawFx(time){
+    const c=this.c;this.fx=this.fx.filter(f=>time-f.at<f.life&&time>=f.at);
+    for(const f of this.fx){const k=(time-f.at)/f.life;c.globalAlpha=1-k*k;
+      if(f.kind==='heart'){const s=.8+k*.5,x=f.x,y=f.y-k*26;c.save();c.translate(x,y);c.scale(s,s);c.beginPath();c.moveTo(0,4);c.bezierCurveTo(-9,-3,-5,-10,0,-5);c.bezierCurveTo(5,-10,9,-3,0,4);c.fillStyle=f.col;c.fill();c.restore();}
+      else{const d=8+k*30,x=f.x+Math.cos(f.a)*d,y=f.y+Math.sin(f.a)*d*.8,r=3.5*(1-k)+1;
+        c.save();c.translate(x,y);c.rotate(k*2);c.beginPath();for(let i=0;i<4;i++){const q=i*Math.PI/2;c.lineTo(Math.cos(q)*r*1.8,Math.sin(q)*r*1.8);c.lineTo(Math.cos(q+Math.PI/4)*r*.55,Math.sin(q+Math.PI/4)*r*.55);}c.closePath();c.fillStyle=f.col;c.fill();c.restore();}
+    }
+    c.globalAlpha=1;
+  }
   background(t){
     const c=this.c,p=districtStyle(t.state.levelIndex),g=c.createLinearGradient(0,0,0,1080);
     g.addColorStop(0,p.sky);g.addColorStop(.37,p.horizon);g.addColorStop(1,p.deep);c.fillStyle=g;c.fillRect(0,0,600,1080);
@@ -47,7 +64,7 @@ export class MarketScene extends Scene {
       const n=i+offset,a=QUEUE(Math.floor(n)),b=QUEUE(Math.ceil(n)),f=n%1;
       const person=t.state.people[i],cut=cutPose(t,person,i,this.reduceMotion),x=cut?.x??a.x+(b.x-a.x)*f,y=cut?.y??a.y+(b.y-a.y)*f;
       if(i===0&&!cut){this.ellipse(x+2,y+3,17,6,COLORS[t.state.queue[0]].hex+'88');this.ellipse(x+2,y+3,12,4,'#ffffffaa');}
-      this.person(x,y,t.state.queue[i],this.reduceMotion?0:t.time+i*.17,i===0?1.6:1.38,(!!cut||offset>.02)&&!this.reduceMotion,person);cutBadge(this,t,person,x,y);
+      this.person(x,y,t.state.queue[i],this.reduceMotion?0:t.time+i*.17,i===0?1.6:1.15,(!!cut||offset>.02)&&!this.reduceMotion,person);cutBadge(this,t,person,x,y);
     }
     const cars=t.state.cars.map(car=>({car,pose:carPose(car,t.state),board:true}));
     for(const car of t.state.bays.filter(Boolean))cars.push({car,pose:{...car.pose},board:false});
@@ -70,7 +87,8 @@ export class MarketScene extends Scene {
     for(const passenger of t.walkers){
       if(!passenger.pose)continue;
       const end=Math.min(1,passenger.elapsed/passenger.duration),hop=this.reduceMotion?0:Math.sin(Math.max(0,end-.75)*Math.PI*4)*7;
-      this.person(passenger.pose.x,passenger.pose.y-hop,passenger.color,this.reduceMotion?0:t.time,1.3*(end>.9?1-(end-.9)*3:1),!this.reduceMotion,passenger.person);cutBadge(this,t,passenger.person,passenger.pose.x,passenger.pose.y-hop);
+      this.person(passenger.pose.x,passenger.pose.y-hop,passenger.color,this.reduceMotion?0:t.time,1.1*(end>.9?1-(end-.9)*3:1),!this.reduceMotion,passenger.person);cutBadge(this,t,passenger.person,passenger.pose.x,passenger.pose.y-hop);
     }
+    this.drawFx(t.time);
   }
 }

@@ -1,8 +1,8 @@
-import {attemptedStages} from './retry.js?v=59';
-import {timeStars} from './timing.js?v=59';
-import {inventory} from './items.js?v=59';
-import {TOTAL_LEVELS} from './campaign.js?v=59';
-import {normalizeDaily} from './daily.js?v=59';
+import {attemptedStages} from './retry.js?v=60';
+import {timeStars} from './timing.js?v=60';
+import {inventory} from './items.js?v=60';
+import {TOTAL_LEVELS} from './campaign.js?v=60';
+import {normalizeDaily} from './daily.js?v=60';
 export {TOTAL_LEVELS};
 export const THEMES=[
   {id:'lantern',name:'살구빛 등불',price:0,color:'#ffc27d',description:'포근한 골목의 첫 번째 밤'},

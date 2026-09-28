@@ -1,23 +1,23 @@
-import {requiresRetryAd,retryAfterAd} from './retry.js?v=59';
-import {timeTargets,formatTime,timerState} from './timing.js?v=59';
-import {claimEventReward,EVENT_REWARDS} from './mission-rewards.js?v=59';
-import {ITEMS,BUNDLE,purchase,useItem,itemAvailability,navigationSuggestion,queueGroups} from './items.js?v=59';
-import {cutActive,chooseQueueCut} from './queue-cut.js?v=59';
-import {exitBlockers,hiddenCar} from './puzzle.js?v=59';
-import {SoundEffects,EFFECT_NAMES,bindInteractionSounds} from './sfx.js?v=59';
-import {pendingCars,garageStatus,routeOptions,chooseRoute} from './garage.js?v=59';
-import {MusicPlayer,TRACKS} from './music.js?v=59';
-import {LEVELS_PER_DISTRICT,districtFor,stageProfile} from './campaign.js?v=59';
-import {Market,MARKET_LEVELS,DISTRICTS,STALL_ICONS} from './market.js?v=59';
-import {MarketScene} from './market-scene.js?v=59';
-import {LobbyScene} from './lobby-scene.js?v=59';
-import {carPose,BAY,CAPACITY} from './traffic.js?v=59';
-import {canExit,COLORS,LEVELS} from './game.js?v=59';
-import {FLEET_STYLES,REGION_FLEETS,fleetFor,fleetStyles,vehicleLabel,styleDebut} from './fleet.js?v=59';
-import {platform} from './platform.js?v=59';
-import {normalize,complete,buyTheme,claimMission,MISSIONS,THEMES,TOTAL_LEVELS,marketGrowth} from './progress.js?v=59';
-import {checkpoint,restoreSession} from './session.js?v=59';
-import {refreshDaily,dailyProgress,claimDaily,claimStreak,streakReward,dailyReady} from './daily.js?v=59';
+import {requiresRetryAd,retryAfterAd} from './retry.js?v=60';
+import {timeTargets,formatTime,timerState} from './timing.js?v=60';
+import {claimEventReward,EVENT_REWARDS} from './mission-rewards.js?v=60';
+import {ITEMS,BUNDLE,purchase,useItem,itemAvailability,navigationSuggestion,queueGroups} from './items.js?v=60';
+import {cutActive,chooseQueueCut} from './queue-cut.js?v=60';
+import {exitBlockers,hiddenCar} from './puzzle.js?v=60';
+import {SoundEffects,EFFECT_NAMES,bindInteractionSounds} from './sfx.js?v=60';
+import {pendingCars,garageStatus,routeOptions,chooseRoute} from './garage.js?v=60';
+import {MusicPlayer,TRACKS} from './music.js?v=60';
+import {LEVELS_PER_DISTRICT,districtFor,stageProfile} from './campaign.js?v=60';
+import {Market,MARKET_LEVELS,DISTRICTS,STALL_ICONS} from './market.js?v=60';
+import {MarketScene} from './market-scene.js?v=60';
+import {LobbyScene} from './lobby-scene.js?v=60';
+import {carPose,BAY,CAPACITY} from './traffic.js?v=60';
+import {canExit,COLORS,LEVELS} from './game.js?v=60';
+import {FLEET_STYLES,REGION_FLEETS,fleetFor,fleetStyles,vehicleLabel,styleDebut} from './fleet.js?v=60';
+import {platform} from './platform.js?v=60';
+import {normalize,complete,buyTheme,claimMission,MISSIONS,THEMES,TOTAL_LEVELS,marketGrowth} from './progress.js?v=60';
+import {checkpoint,restoreSession} from './session.js?v=60';
+import {refreshDaily,dailyProgress,claimDaily,claimStreak,streakReward,dailyReady} from './daily.js?v=60';
 const $=s=>document.querySelector(s),SAVE='night-bite-market-v1',SESSION='night-bite-session-v1';
 function read(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
 const rawSave=read(SAVE);
@@ -116,7 +116,7 @@ function start(index,practice=false,adCompleted=false){
  hideModal();market=new Market(index);run={hints:0,undos:0,seconds:0,practice,startPending:true};if(!practice){save.level=index;persist();}finished=false;selected=null;checkpointSignature='';queueSignature='';
  enterGame();checkpointRun();stageStart();
 }
-function enterGame(){sfx.stop();market.onEvent=e=>{if((e.type==='incoming'&&e.emergency)||e.type==='cutin')return;sfx.play(e.type);if(e.type==='reveal'){selected={id:e.carId,until:market.time+.7};toast('길이 열려 셔틀의 색이 드러났어요.',1800);}if(e.type==='gate')toast(`${e.gateId.at(-1)}번 차단기가 열렸어요.`,1800);};comboShown=market.state.combo?.chain||0;comboUntil=0;$('#combo-banner').classList.remove('show');hideModal();view='game';$('#lobby').hidden=true;$('#game').hidden=false;targets();$('#game-level').textContent=`${run?.practice?'퍼즐 체험':(market.state.levelIndex+1)+'단계'} · ${DISTRICTS[districtFor(market.state.levelIndex)].name}${market.state.levelIndex%10===9?' · 도전':''}`;}
+function enterGame(){sfx.stop();market.onEvent=e=>{if(e.type==='board'||e.type==='depart')scene.burst?.(e.type,market.state.bays.find(c=>c?.id===e.carId),market.time);if((e.type==='incoming'&&e.emergency)||e.type==='cutin')return;sfx.play(e.type);if(e.type==='reveal'){selected={id:e.carId,until:market.time+.7};toast('길이 열려 셔틀의 색이 드러났어요.',1800);}if(e.type==='gate')toast(`${e.gateId.at(-1)}번 차단기가 열렸어요.`,1800);};comboShown=market.state.combo?.chain||0;comboUntil=0;$('#combo-banner').classList.remove('show');hideModal();view='game';$('#lobby').hidden=true;$('#game').hidden=false;targets();$('#game-level').textContent=`${run?.practice?'퍼즐 체험':(market.state.levelIndex+1)+'단계'} · ${DISTRICTS[districtFor(market.state.levelIndex)].name}${market.state.levelIndex%10===9?' · 도전':''}`;}
 function resume(){if(!market)return;enterGame();if(run.startPending)stageStart();else sfx.play('resume');}
 $('#garage-trial').onclick=()=>{showModal('돌발 미션 체험','<p>운행 도중 예상치 못한 손님을 만나 보세요.<br>기존 기록과 코인은 바뀌지 않아요.</p><div class="puzzle-trials"><button id="trial-cut">새치기 손님 · 5단계</button><button id="trial-rescue">응급차 출동 · 11단계</button></div>','닫기',hideModal);$('#trial-cut').onclick=()=>{practiceReturn={market,run,finished};start(4,true);toast('차량을 보내다 보면 새치기 손님이 나타나요.',4500);};$('#trial-rescue').onclick=()=>{practiceReturn={market,run,finished};start(10,true);toast('8대 배차 후 진입로가 열리면 응급차가 들어와요.',5000);};};
 $('#play').onclick=()=>requestStart(save.level);$('#continue').onclick=resume;
@@ -217,7 +217,7 @@ $('#garage-preview').onclick=()=>{
 document.addEventListener('visibilitychange',syncMusic);
 window.addEventListener('resize',()=>{scene.resize();lobbyScene.resize();});document.addEventListener('visibilitychange',()=>{last=0;checkpointRun();});window.addEventListener('pagehide',checkpointRun);
 showLobby();syncMusic();if(restored&&market.demandVersion<5)toast('새 색상은 새 운행부터 적용돼요. 기존 판은 그대로 이어져요.',5000);requestAnimationFrame(frame);
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=59').catch(()=>{});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js?v=60').catch(()=>{});
 
 function renderCombo(now){
  const chain=market.state.combo?.chain||0;
